@@ -1,0 +1,66 @@
+以下是一个将图片分割成多块（四分五裂效果）的HTML代码，通过CSS网格和轻微错位实现分裂感。你只需将代码中的your-image.jpg替换为你的照片路径即可：
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四分五裂的图片效果</title>
+<style>
+body {
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+margin: 0;
+background-color: #f0f0f0;
+}
+
+.split-image {
+position: relative;
+width: 600px; /* 图片宽度 */
+height: 400px; /* 图片高度 */
+}
+
+.split-piece {
+position: absolute;
+overflow: hidden;
+transition: transform 0.3s ease;
+}
+
+.split-piece:hover {
+transform: scale(1.05);
+z-index: 10;
+}
+
+.split-piece img {
+position: absolute;
+width: 600px; /* 与容器宽度一致 */
+height: 400px; /* 与容器高度一致 */
+object-fit: cover;
+}
+</style>
+</head>
+<body>
+<div class="split-image">
+<!-- 左上角块 -->
+<div class="split-piece" style="width: 50%; height: 50%; top: -5px; left: -3px;">
+< img src="your-image.jpg" alt="分裂的图片" style="top: 0; left: 0;">
+</div>
+
+<!-- 右上角块 -->
+<div class="split-piece" style="width: 50%; height: 50%; top: -2px; right: -5px;">
+< img src="your-image.jpg" alt="分裂的图片" style="top: 0; left: -300px;">
+</div>
+
+<!-- 左下角块 -->
+<div class="split-piece" style="width: 50%; height: 50%; bottom: -5px; left: -2px;">
+< img src="your-image.jpg" alt="分裂的图片" style="top: -200px; left: 0;">
+</div>
+
+<!-- 右下角块 -->
+<div class="split-piece" style="width: 50%; height: 50%; bottom: -3px; right: -2px;">
+< img src="your-image.jpg" alt="分裂的图片" style="top: -200px; left: -300px;">
+</div>
+</div>
+</body>
+</html>

@@ -307,7 +307,8 @@ async function loadFullVocabulary(){
  }catch(error){console.warn('四级词库未能自动加载：',error)}
 }
 function renderAll(){renderHome();if(!$('calendar').classList.contains('hidden'))renderCalendar();if(!$('words').classList.contains('hidden'))renderWords();if(!$('stats').classList.contains('hidden'))renderStats()}
-renderAll();\nloadFullVocabulary();
+renderAll();
+loadFullVocabulary();
 </script>
 </body>
 </html>

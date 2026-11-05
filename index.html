@@ -290,8 +290,8 @@ async function loadFullVocabulary(){
  try{
   const response=await fetch('./cet4-vocabulary.csv',{cache:'no-store'});
   if(!response.ok)throw new Error('词库文件加载失败');
-  const raw=(await response.text()).replace(/^\\uFEFF/,'');
-  const lines=raw.split(/\\r?\\n/).filter(Boolean);
+  const raw=(await response.text()).replace(/^\uFEFF/,'');
+  const lines=raw.split(/\r?\n/).filter(Boolean);
   const existing=new Map(data.words.map(w=>[w.word.toLowerCase(),w]));
   let added=0;
   for(const line of lines.slice(1)){

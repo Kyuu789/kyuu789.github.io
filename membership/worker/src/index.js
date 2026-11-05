@@ -165,7 +165,16 @@ async function handle(request, env) {
     if (attempts && Number(attempts.window_started) > now - 900 && Number(attempts.failed_count) >= 5) {
       return json({ ok: false, error: "尝试次数过多，请 15 分钟后再试" }, 429);
     }
-    if (!env.ADMIN_SECRET || !safeEqual(String(body.password || ""), env.ADMIN_SECRET)) {
+    const submittedPassword = String(body.password || "");
+    const adminSecretPresent = typeof env.ADMIN_SECRET === "string" && env.ADMIN_SECRET.length > 0;
+    const adminPasswordMatches = adminSecretPresent && safeEqual(submittedPassword, env.ADMIN_SECRET);
+    if (!adminPasswordMatches) {
+      console.warn("Admin login diagnostic:", {
+        adminSecretPresent,
+        adminSecretLength: adminSecretPresent ? env.ADMIN_SECRET.length : 0,
+        submittedPasswordLength: submittedPassword.length,
+        adminPasswordMatches
+      });
       await env.DB.prepare(
         "INSERT INTO admin_login_attempts (ip_hash, failed_count, window_started) VALUES (?, 1, ?) " +
         "ON CONFLICT(ip_hash) DO UPDATE SET " +

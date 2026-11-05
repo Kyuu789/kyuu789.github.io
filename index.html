@@ -98,6 +98,30 @@ input:focus,select:focus,textarea:focus{border-color:#8fc9a7;box-shadow:0 0 0 3p
 footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
 @media(max-width:760px){.grid{grid-template-columns:1fr}.hero{padding:20px}.hero-art{font-size:45px}.header-actions .pill{display:none}.shell{padding-top:16px}.card{padding:17px}}
 @media(max-width:420px){.brand h1{font-size:18px}.logo{width:49px;height:49px}.stats{gap:6px}.stat{padding:11px}.stat strong{font-size:20px}.day{border-radius:8px}.formgrid{grid-template-columns:1fr}}
+
+/* 可自定义主题：只改变外观，不触碰原有学习数据 */
+#app{--theme-bg:#F4FBF7;--theme-card:#fff;--theme-primary:#5baf87;--theme-primary-dark:#3f8f69;--theme-soft:#e2f7eb;--theme-soft2:#f8e7ee;--theme-text:#356c55;--theme-muted:#769582;--theme-border:#e0f0e7;--theme-stat:#f6fbf8;background:var(--theme-bg);color:var(--theme-text)}
+#app[data-theme="rose"]{--theme-bg:#fff6f8;--theme-card:#fff;--theme-primary:#d987a5;--theme-primary-dark:#bd6687;--theme-soft:#ffe4ed;--theme-soft2:#fcecf2;--theme-text:#89516a;--theme-muted:#a77e90;--theme-border:#f3dce5;--theme-stat:#fff2f6}
+#app[data-theme="lavender"]{--theme-bg:#f8f6ff;--theme-card:#fff;--theme-primary:#9986d6;--theme-primary-dark:#7965b9;--theme-soft:#eee9ff;--theme-soft2:#f6efff;--theme-text:#62548f;--theme-muted:#8e83ad;--theme-border:#e6e0f6;--theme-stat:#f5f2ff}
+#app[data-theme="sky"]{--theme-bg:#f3f9ff;--theme-card:#fff;--theme-primary:#69a9d7;--theme-primary-dark:#4788b7;--theme-soft:#e0f1ff;--theme-soft2:#edf6ff;--theme-text:#416b8d;--theme-muted:#7d9bb2;--theme-border:#dcebf6;--theme-stat:#f0f8ff}
+#app[data-theme="peach"]{--theme-bg:#fff8f1;--theme-card:#fff;--theme-primary:#df9a68;--theme-primary-dark:#bd7849;--theme-soft:#ffecd9;--theme-soft2:#fff1e8;--theme-text:#8a6042;--theme-muted:#a88a72;--theme-border:#f2e3d4;--theme-stat:#fff5eb}
+#app[data-theme="lemon"]{--theme-bg:#fffdf1;--theme-card:#fff;--theme-primary:#b5a34d;--theme-primary-dark:#928239;--theme-soft:#f8f1c9;--theme-soft2:#fff8df;--theme-text:#77703c;--theme-muted:#9a946c;--theme-border:#eee8c8;--theme-stat:#fffbed}
+#app .card{background:var(--theme-card);border-color:var(--theme-border)}
+#app .hero{background:linear-gradient(120deg,var(--theme-soft),var(--theme-soft2));border-color:var(--theme-border)}
+#app .hero h2,#app .brand h1,#app .card h2{color:var(--theme-text)}
+#app .hero p,#app .muted,#app .field label{color:var(--theme-muted)}
+#app .btn:not(.soft){background:var(--theme-primary);box-shadow:0 4px 0 var(--theme-primary-dark)}
+#app .btn:not(.soft):active{box-shadow:0 2px 0 var(--theme-primary-dark)}
+#app .tab.active{background:var(--theme-soft);color:var(--theme-text);border-color:var(--theme-border)}
+#app .stat{background:var(--theme-stat)}
+#app .stat strong{color:var(--theme-primary)}
+#app .progress{background:var(--theme-soft)}
+#app .progress i{background:linear-gradient(90deg,var(--theme-primary),var(--theme-soft))}
+#app .day.checked{background:var(--theme-soft);border-color:var(--theme-primary);color:var(--theme-text)}
+#app .check.done{background:var(--theme-primary)}
+#app .tag{background:var(--theme-soft);color:var(--theme-text)}
+#app input:focus,#app select:focus,#app textarea:focus{border-color:var(--theme-primary);box-shadow:0 0 0 3px var(--theme-soft)}
+#app .field input,#app .field select,#app .field textarea{background:var(--theme-stat);border-color:var(--theme-border)}
 </style>
 </head>
 <body>
@@ -117,7 +141,7 @@ footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
   </nav>
   <main>
    <section id="home" class="page">
-    <div class="hero"><div><h2>今天也要闪闪发光！</h2><p>把今天的努力，变成明天的底气。<br>Kitty 陪你一起拿下 CET-4 ✨</p><div style="margin-top:14px"><button class="btn" id="startStudy">开始背单词 →</button></div></div><div class="hero-art">🎀🐱</div></div>
+    <div class="hero"><div><h2 id="welcomeTitle">今天也要闪闪发光！</h2><p>把今天的努力，变成明天的底气。<br>Kitty 陪你一起拿下 CET-4 ✨</p><div style="margin-top:14px"><button class="btn" id="startStudy">开始背单词 →</button></div></div><div class="hero-art">🎀🐱</div></div>
     <div class="stats">
      <div class="stat"><strong id="statDays">0</strong><span>累计打卡天数</span></div>
      <div class="stat"><strong id="statWords">0</strong><span>累计学习单词</span></div>
@@ -142,7 +166,7 @@ footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
    <section id="calendar" class="page hidden">
     <div class="grid">
      <div class="card">
-      <div class="calendar-head"><button class="btn soft" id="prevMonth">←</button><h2 id="monthTitle" style="margin:0"></h2><button class="btn soft" id="nextMonth">→</button></div>
+      <div style="font-size:16px;font-weight:800;color:var(--theme-text);margin-bottom:12px" id="calendarWelcome">欢迎来打卡 ♡</div><div class="calendar-head"><button class="btn soft" id="prevMonth">←</button><h2 id="monthTitle" style="margin:0"></h2><button class="btn soft" id="nextMonth">→</button></div>
       <div class="calendar" id="calendarGrid"></div>
       <p class="muted">点选任意日期即可查看、补签或编辑记录。没有补签期限。</p>
      </div>
@@ -193,6 +217,11 @@ footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
    <section id="settings" class="page hidden">
     <div class="grid">
      <div class="card">
+      <h2>个性化设置 ♡</h2>
+      <div class="field"><label>首页显示的名字</label><input id="profileName" maxlength="16" placeholder="请输入你的名字，例如：小林"></div>
+      <div class="field" style="margin-top:12px"><label>首页主题皮肤</label><select id="themeSelect"><option value="mint">薄荷奶绿</option><option value="rose">樱花粉</option><option value="lavender">梦幻薰衣草</option><option value="sky">晴空蓝</option><option value="peach">奶油蜜桃</option><option value="lemon">香草奶黄</option></select></div>
+      <button class="btn" id="saveProfile" style="margin-top:12px">保存个性化设置 ♡</button>
+      <hr style="border:0;border-top:1px dashed #e2eee6;margin:20px 0">
       <h2>学习目标设置</h2>
       <div class="field"><label>每日单词目标</label><input id="dailyGoal" type="number" min="1" max="500" value="30"></div>
       <button class="btn" id="saveGoal" style="margin-top:12px">保存目标</button>
@@ -223,6 +252,10 @@ const starterWords = [
 ["abandon","/əˈbændən/","放弃；抛弃"],["ability","/əˈbɪləti/","能力；才能"],["abnormal","/æbˈnɔːml/","反常的；不规则的"],["aboard","/əˈbɔːd/","在船（飞机、车）上"],["absolute","/ˈæbsəluːt/","绝对的；完全的"],["absorb","/əbˈzɔːb/","吸收；理解"],["abstract","/ˈæbstrækt/","抽象的；摘要"],["abundant","/əˈbʌndənt/","丰富的；充裕的"],["academic","/ˌækəˈdemɪk/","学术的；大学的"],["accelerate","/əkˈseləreɪt/","加速；促进"],["access","/ˈækses/","进入；使用权"],["accommodate","/əˈkɒmədeɪt/","容纳；适应"],["accompany","/əˈkʌmpəni/","陪伴；伴随"],["accomplish","/əˈkʌmplɪʃ/","完成；实现"],["accurate","/ˈækjərət/","准确的；精确的"],["accumulate","/əˈkjuːmjəleɪt/","积累；积聚"],["achieve","/əˈtʃiːv/","实现；取得"],["acknowledge","/əkˈnɒlɪdʒ/","承认；感谢"],["acquire","/əˈkwaɪə(r)/","获得；习得"],["adapt","/əˈdæpt/","适应；改编"],["adequate","/ˈædɪkwət/","足够的；适当的"],["adjust","/əˈdʒʌst/","调整；适应"],["administration","/ədˌmɪnɪˈstreɪʃn/","管理；行政部门"],["adopt","/əˈdɒpt/","采用；收养"],["advance","/ədˈvɑːns/","前进；进步"],["advantage","/ədˈvɑːntɪdʒ/","优势；有利条件"],["affect","/əˈfekt/","影响；感动"],["afford","/əˈfɔːd/","负担得起；提供"],["agency","/ˈeɪdʒənsi/","代理机构；部门"],["aggressive","/əˈɡresɪv/","好斗的；积极进取的"],["aid","/eɪd/","帮助；援助"],["aim","/eɪm/","目标；旨在"],["alternative","/ɔːlˈtɜːnətɪv/","可替代的选择"],["ambition","/æmˈbɪʃn/","抱负；雄心"],["analyze","/ˈænəlaɪz/","分析"],["annual","/ˈænjuəl/","每年的；年度的"],["anticipate","/ænˈtɪsɪpeɪt/","预期；期待"],["apparent","/əˈpærənt/","明显的；表面上的"],["approach","/əˈprəʊtʃ/","方法；接近"],["appropriate","/əˈprəʊpriət/","适当的；恰当的"],["aspect","/ˈæspekt/","方面；外观"],["assess","/əˈses/","评估；评价"],["assume","/əˈsjuːm/","假定；承担"],["available","/əˈveɪləbl/","可获得的；有空的"],["benefit","/ˈbenɪfɪt/","益处；受益"],["challenge","/ˈtʃælɪndʒ/","挑战；质疑"],["concentrate","/ˈkɒnsntreɪt/","集中；专心"],["consequence","/ˈkɒnsɪkwəns/","结果；后果"],["environment","/ɪnˈvaɪrənmənt/","环境"],["opportunity","/ˌɒpəˈtjuːnəti/","机会"],["significant","/sɪɡˈnɪfɪkənt/","重要的；显著的"]
 ].map((w,i)=>({id:"seed"+i,word:w[0],phonetic:w[1],meaning:w[2],known:false}));
 const KEY='kittyCET4_v1';
+// 用户昵称和主题单独保存，绝不改写原有 kittyCET4_v1 学习数据结构。
+const PROFILE_KEY='kittyCET4_profile_v1';
+function loadProfile(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY))||{name:'',theme:'mint'}}catch(e){return {name:'',theme:'mint'}}}
+let profile=loadProfile();
 let data = load();
 let selectedDate=iso(today), viewMonth=new Date(today.getFullYear(),today.getMonth(),1), wordPage=0;
 function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&x.records&&x.words)return x}catch(e){}return {records:{},words:starterWords,goal:30}}
@@ -233,6 +266,9 @@ document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>setT
 $('todayLabel').textContent=today.toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'});
 function getStreak(){let n=0,d=new Date(today);while(dayRecord(iso(d))){n++;d.setDate(d.getDate()-1)}return n}
 function renderHome(){
+ const displayName=(profile.name||'').trim();
+ $('welcomeTitle').textContent=displayName?displayName+'，欢迎来学单词！':'今天也要闪闪发光！';
+ $('calendarWelcome').textContent=displayName?displayName+'，欢迎来打卡 ♡':'欢迎来打卡 ♡';
  const r=dayRecord(iso(today));const done=r?.words||0;const pct=Math.min(100,Math.round(done/data.goal*100));
  $('statDays').textContent=Object.keys(data.records).length;$('statWords').textContent=Object.values(data.records).reduce((s,r)=>s+(+r.words||0),0);$('statStreak').textContent=getStreak();
  $('goalTag').textContent='目标 '+data.goal+' 词';$('progressText').textContent=`已学习 ${done} / ${data.goal} 个`;$('progressPct').textContent=pct+'%';$('progressBar').style.width=pct+'%';
@@ -273,6 +309,10 @@ function renderStats(){
  let bars='';for(let i=13;i>=0;i--){let d=new Date(today);d.setDate(d.getDate()-i);let r=dayRecord(iso(d)),v=r?.words||0,h=Math.max(5,Math.min(100,v/Math.max(1,data.goal*2)*100));bars+=`<div title="${iso(d)}：${v}词" style="height:100%;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:5px"><div style="height:${h}%;width:100%;border-radius:7px 7px 3px 3px;background:${r?'#8fcdaa':'#eaf3ed'}"></div><small style="font-size:9px;color:#9bb2a4">${d.getDate()}</small></div>`}
  $('recentChart').innerHTML=bars;
 }
+$('profileName').value=profile.name||'';$('themeSelect').value=profile.theme||'mint';
+function applyTheme(){ $('app').dataset.theme=profile.theme||'mint'; }
+applyTheme();
+$('saveProfile').onclick=()=>{profile.name=$('profileName').value.trim().slice(0,16);profile.theme=$('themeSelect').value;localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));applyTheme();renderHome();alert('名字和主题皮肤已保存 ♡')};
 $('dailyGoal').value=data.goal;$('saveGoal').onclick=()=>{data.goal=Math.max(1,Math.min(500,+$('dailyGoal').value||30));save();alert('每日目标已保存 ♡')};
 function download(name,content,type){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([content],{type}));a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
 $('exportJson').onclick=()=>download('coco-xili-cet4-backup.json',JSON.stringify(data,null,2),'application/json');

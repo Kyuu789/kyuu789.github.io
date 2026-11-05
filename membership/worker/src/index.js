@@ -153,10 +153,40 @@ async function handle(request, env) {
     return json({ ok: true, active, expiresAt: member?.expires_at || null });
   }
 
+  if (url.pathname === "/api/admin/login" && request.method === "POST") {
+    const body = await readJson(request);
+    if (!body) return json({ ok: false, error: "请求格式不正确" }, 400);
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const ipHash = await sha256(ip);
+    const now = Math.floor(Date.now() / 1000);
+    const attempts = await env.DB.prepare(
+      "SELECT failed_count, window_started FROM admin_login_attempts WHERE ip_hash = ?"
+    ).bind(ipHash).first();
+    if (attempts && Number(attempts.window_started) > now - 900 && Number(attempts.failed_count) >= 5) {
+      return json({ ok: false, error: "尝试次数过多，请 15 分钟后再试" }, 429);
+    }
+    if (!env.ADMIN_SECRET || !safeEqual(String(body.password || ""), env.ADMIN_SECRET)) {
+      await env.DB.prepare(
+        "INSERT INTO admin_login_attempts (ip_hash, failed_count, window_started) VALUES (?, 1, ?) " +
+        "ON CONFLICT(ip_hash) DO UPDATE SET " +
+        "failed_count = CASE WHEN admin_login_attempts.window_started <= ? THEN 1 ELSE admin_login_attempts.failed_count + 1 END, " +
+        "window_started = CASE WHEN admin_login_attempts.window_started <= ? THEN excluded.window_started ELSE admin_login_attempts.window_started END"
+      ).bind(ipHash, now, now - 900, now - 900).run();
+      return json({ ok: false, error: "管理员密码不正确" }, 401);
+    }
+    await env.DB.prepare("DELETE FROM admin_login_attempts WHERE ip_hash = ?").bind(ipHash).run();
+    if (!env.ADMIN_SESSION_SECRET || env.ADMIN_SESSION_SECRET.length < 32) {
+      return json({ ok: false, error: "管理员会话尚未配置" }, 503);
+    }
+    const token = await signAdminPayload({ role: "admin", exp: now + 1800 }, env.ADMIN_SESSION_SECRET);
+    return json({ ok: true, token, expiresIn: 1800 });
+  }
+
   if (url.pathname === "/api/admin/codes" && request.method === "POST") {
-    const supplied = request.headers.get("X-Admin-Key") || "";
-    if (!env.ADMIN_SECRET || !safeEqual(supplied, env.ADMIN_SECRET)) {
-      return json({ ok: false, error: "未授权" }, 401);
+    const auth = request.headers.get("Authorization") || "";
+    const adminToken = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+    if (!(await verifyAdminToken(adminToken, env.ADMIN_SESSION_SECRET))) {
+      return json({ ok: false, error: "管理员登录已过期，请重新登录" }, 401);
     }
     const body = await readJson(request);
     if (!body) return json({ ok: false, error: "请求格式不正确" }, 400);

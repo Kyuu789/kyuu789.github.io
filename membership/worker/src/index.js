@@ -52,6 +52,39 @@ function safeEqual(a, b) {
   return diff === 0;
 }
 
+function b64url(bytes) {
+  return btoa(String.fromCharCode(...bytes))
+    .replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+}
+function fromB64url(value) {
+  const padded = value.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - value.length % 4) % 4);
+  return Uint8Array.from(atob(padded), c => c.charCodeAt(0));
+}
+async function signAdminPayload(payload, secret) {
+  const encoded = b64url(new TextEncoder().encode(JSON.stringify(payload)));
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(encoded));
+  return encoded + "." + b64url(new Uint8Array(signature));
+}
+async function verifyAdminToken(token, secret) {
+  if (!secret || typeof token !== "string" || token.length > 2048) return false;
+  const parts = token.split(".");
+  if (parts.length !== 2) return false;
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]
+    );
+    const valid = await crypto.subtle.verify(
+      "HMAC", key, fromB64url(parts[1]), new TextEncoder().encode(parts[0])
+    );
+    if (!valid) return false;
+    const payload = JSON.parse(new TextDecoder().decode(fromB64url(parts[0])));
+    return payload.role === "admin" && Number(payload.exp) > Math.floor(Date.now() / 1000);
+  } catch { return false; }
+}
+
 async function readJson(request) {
   const type = request.headers.get("Content-Type") || "";
   if (!type.toLowerCase().includes("application/json")) return null;

@@ -281,8 +281,33 @@ $('exportCsv').onclick=()=>{let rows=[['date','words','minutes','note','backfill
 $('importJson').onchange=async e=>{try{const x=JSON.parse(await e.target.files[0].text());if(!x.records||!x.words)throw Error();if(confirm('导入将覆盖当前数据，建议先导出备份。继续吗？')){data=x;save();alert('备份导入成功 ♡')}}catch(err){alert('文件格式不正确。')}e.target.value=''};
 $('importCsv').onchange=async e=>{const text=await e.target.files[0].text();const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(Boolean);let count=0;lines.slice(1).forEach(line=>{const cols=line.split(',').map(x=>x.trim().replace(/^"|"$/g,''));if(cols[0]&&cols[2]){data.words.push({id:'csv'+Date.now()+Math.random(),word:cols[0],phonetic:cols[1]||'',meaning:cols[2],known:false});count++}});save();alert('已导入 '+count+' 个单词。');e.target.value=''};
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function parseCsvLine(line){
+ const out=[];let value='',quoted=false;
+ for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'&&quoted&&line[i+1]==='"'){value+='"';i++}else if(c==='"'){quoted=!quoted}else if(c===','&&!quoted){out.push(value);value=''}else{value+=c}}
+ out.push(value);return out;
+}
+async function loadFullVocabulary(){
+ try{
+  const response=await fetch('./cet4-vocabulary.csv',{cache:'no-store'});
+  if(!response.ok)throw new Error('词库文件加载失败');
+  const raw=(await response.text()).replace(/^\\uFEFF/,'');
+  const lines=raw.split(/\\r?\\n/).filter(Boolean);
+  const existing=new Map(data.words.map(w=>[w.word.toLowerCase(),w]));
+  let added=0;
+  for(const line of lines.slice(1)){
+   const cols=parseCsvLine(line);const word=(cols[0]||'').trim(),meaning=(cols[2]||'').trim();
+   if(!word||!meaning)continue;
+   const key=word.toLowerCase();
+   if(existing.has(key)){if(!existing.get(key).meaning)existing.get(key).meaning=meaning;continue}
+   const item={id:'cet4_'+key,word,phonetic:cols[1]||'',meaning,known:false};
+   data.words.push(item);existing.set(key,item);added++;
+  }
+  save();
+  $('wordCountTag').textContent=data.words.length+' 个单词';
+ }catch(error){console.warn('四级词库未能自动加载：',error)}
+}
 function renderAll(){renderHome();if(!$('calendar').classList.contains('hidden'))renderCalendar();if(!$('words').classList.contains('hidden'))renderWords();if(!$('stats').classList.contains('hidden'))renderStats()}
-renderAll();
+renderAll();\nloadFullVocabulary();
 </script>
 </body>
 </html>

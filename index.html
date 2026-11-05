@@ -20,6 +20,15 @@
   --site-radius-scale:1;
   --site-decoration-opacity:1;
 }
+#app:not(.member-verified) .shell{display:none}
+#memberGate{display:none;min-height:100vh;place-items:center;padding:24px;background:linear-gradient(135deg,#e2f7eb,#f8e7ee)}
+#app:not(.member-verified) #memberGate{display:grid}
+.gate-card{width:min(100%,440px);background:#fff;border:1px solid #e0f0e7;border-radius:26px;padding:28px;box-shadow:0 12px 36px #8ebba533;text-align:center}
+.gate-card h1{color:#356c55;margin:0 0 8px;font-size:24px}
+.gate-card p{color:#769582;font-size:13px;line-height:1.8}
+.gate-card input{width:100%;margin:12px 0}
+.gate-card button{width:100%}
+#gateMessage{min-height:22px;color:#bd6687}
 *{box-sizing:border-box}
 body{margin:0;background:var(--site-background);color:#29483D;font-family:var(--site-font-body)}
 button,input,select,textarea{font:inherit}
@@ -126,6 +135,16 @@ footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
 </head>
 <body>
 <div id="app">
+ <section id="memberGate">
+  <div class="gate-card">
+   <div style="font-size:42px;margin-bottom:10px">🎀</div>
+   <h1>可可西里单词屋</h1>
+   <p>本网站仅向已开通会员的同学开放。请输入专属兑换码，验证通过后即可进入学习空间。</p>
+   <input id="gateCode" autocomplete="off" placeholder="请输入会员兑换码" maxlength="19" aria-label="会员兑换码">
+   <button class="btn" id="gateActivate">验证并进入</button>
+   <p id="gateMessage" aria-live="polite">兑换码仅可激活一次，请勿转发。</p>
+  </div>
+ </section>
  <div class="bg-doodles" aria-hidden="true"><span class="doodle d1">✿</span><span class="doodle d2">♡</span><span class="doodle d3">✧</span></div>
  <div class="shell">
   <header>
@@ -257,6 +276,35 @@ footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
  </div>
 </div>
 <script>
+const MEMBER_API='https://cocoxili-membership.wave3sir.workers.dev';
+const MEMBER_TOKEN_KEY='kittyCET4_member_token_v1';
+async function verifyMemberOnEntry(){
+ const token=localStorage.getItem(MEMBER_TOKEN_KEY);
+ if(!token)return;
+ try{
+  const res=await fetch(MEMBER_API+'/api/status',{headers:{Authorization:'Bearer '+token}});
+  const result=await res.json();
+  if(res.ok&&result.active){document.getElementById('app').classList.add('member-verified');return}
+  localStorage.removeItem(MEMBER_TOKEN_KEY);
+ }catch(e){document.getElementById('gateMessage').textContent='会员验证服务暂时不可用，请检查网络后重试。'}
+}
+document.getElementById('gateActivate').onclick=async()=>{
+ const input=document.getElementById('gateCode'),button=document.getElementById('gateActivate'),message=document.getElementById('gateMessage');
+ const code=input.value.trim().toUpperCase();
+ if(!/^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){3}$/.test(code)){message.textContent='兑换码格式不正确，请检查后重试。';return}
+ button.disabled=true;message.textContent='正在验证会员资格…';
+ try{
+  const res=await fetch(MEMBER_API+'/api/activate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+  const result=await res.json();
+  if(!res.ok||!result.ok){message.textContent=result.error||'验证失败，请检查兑换码。';return}
+  localStorage.setItem(MEMBER_TOKEN_KEY,result.token);
+  message.textContent='验证成功，正在进入…';
+  document.getElementById('app').classList.add('member-verified');
+ }catch(e){message.textContent='暂时无法连接验证服务，请稍后重试。'}
+ finally{button.disabled=false}
+};
+document.getElementById('gateCode').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('gateActivate').click()});
+verifyMemberOnEntry();
 const $ = id => document.getElementById(id);
 const today = new Date();
 const iso = d => [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');

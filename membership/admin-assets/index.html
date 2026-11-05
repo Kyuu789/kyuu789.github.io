@@ -26,7 +26,7 @@ button.secondary{background:var(--pink);color:#704d58}.row{display:grid;grid-tem
 <p>会员兑换码管理。请只在自己的设备上登录，不要把管理员密码或兑换码发到公开群聊。</p>
 <section id="login">
 <label for="api">会员服务地址</label>
-<input id="api" type="url" placeholder="https://你的Worker地址" autocomplete="url">
+<input id="api" type="url" placeholder="自动使用当前 Worker 地址" autocomplete="url">
 <label for="password">管理员密码</label>
 <input id="password" type="password" autocomplete="current-password" placeholder="输入管理员密码">
 <button id="loginBtn">安全登录</button>
@@ -49,7 +49,7 @@ let api="",token=sessionStorage.getItem("coco_admin_token")||"";
 function showError(message){$("error").textContent=message||""}
 function validApi(value){try{const u=new URL(value);return u.protocol==="https:"?u.origin:""}catch{return ""}}
 function setLoggedIn(value){$("login").classList.toggle("hidden",value);$("panel").classList.toggle("hidden",!value)}
-$("api").value=sessionStorage.getItem("coco_worker_url")||"";
+$("api").value=sessionStorage.getItem("coco_worker_url")||location.origin;
 if(token){api=$("api").value; if(validApi(api))setLoggedIn(true);else{token="";sessionStorage.removeItem("coco_admin_token")}}
 $("loginBtn").addEventListener("click",async()=>{
  api=validApi($("api").value.trim());const password=$("password").value;

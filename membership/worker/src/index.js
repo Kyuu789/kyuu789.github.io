@@ -214,7 +214,10 @@ async function handle(request, env) {
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin");
-    if (origin && origin !== ALLOWED_ORIGIN) return new Response("Origin not allowed", { status: 403 });
+    const requestOrigin = new URL(request.url).origin;
+    if (origin && origin !== ALLOWED_ORIGIN && origin !== requestOrigin) {
+      return new Response("Origin not allowed", { status: 403 });
+    }
     try {
       return await handle(request, env);
     } catch (error) {

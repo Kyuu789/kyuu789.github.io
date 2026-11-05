@@ -18,3 +18,10 @@ ON activation_codes(redeemed_at);
 
 CREATE INDEX IF NOT EXISTS idx_members_expires
 ON members(expires_at);
+
+-- Tracks failed admin logins by a one-way hash of the Cloudflare client IP.
+CREATE TABLE IF NOT EXISTS admin_login_attempts (
+  ip_hash TEXT PRIMARY KEY,
+  failed_count INTEGER NOT NULL DEFAULT 0,
+  window_started INTEGER NOT NULL
+);

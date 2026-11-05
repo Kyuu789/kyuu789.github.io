@@ -136,9 +136,10 @@ async function handle(request, env) {
 
     const codes = Array.from({ length: count }, randomCode);
     const now = Math.floor(Date.now() / 1000);
-    const statements = codes.map(code => env.DB.prepare(
+    const hashes = await Promise.all(codes.map(code => sha256(code)));
+    const statements = hashes.map(hash => env.DB.prepare(
       "INSERT INTO activation_codes (code_hash, duration_days, created_at) VALUES (?, ?, ?)"
-    ).bind(await sha256(code), days, now));
+    ).bind(hash, days, now));
     await env.DB.batch(statements);
     // Plaintext codes are returned once. Do not log or store this response.
     return json({ ok: true, durationDays: days, codes });

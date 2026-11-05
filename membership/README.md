@@ -3,7 +3,7 @@
 此目录是独立会员 API，不会修改现有 GitHub Pages 学习页面，也不会读取、迁移或覆盖现有的 `kittyCET4_v1` 学习数据。
 
 ## 管理员手机后台
-- 管理页面：`/membership/admin/`（部署到 GitHub Pages 后可用）
+- 管理页面：部署 Worker 后直接打开 Worker 根地址（同源托管，避免跨站请求）。
 - 登录时填写 Worker 的 HTTPS 地址和管理员密码。
 - 登录后可选择生成数量（1-100）和有效天数（1-3650）。
 - 兑换码明文只在生成时显示一次，可复制后发给已付款的同学。
@@ -39,7 +39,10 @@
 5. 设置会话签名密钥：`wrangler secret put ADMIN_SESSION_SECRET`。使用至少 32 字节的随机值，且不要与管理员密码相同。
 6. 部署：`wrangler deploy`。
 7. 访问 Worker 的 `/api/health` 确认服务可用。
-8. 部署 GitHub Pages 分支后打开 `/membership/admin/`，填写 Worker HTTPS 地址和管理员密码测试登录、生成、复制流程。
+8. 部署 Worker 后直接打开 Worker 根地址，页面会自动使用当前 Worker API 地址；填写管理员密码测试登录、生成、复制流程。
 
 ## 本地命令行备用工具
 `membership/admin/generate-codes.mjs` 也支持电脑终端操作，使用相同的管理员登录流程。要求 Node.js 18+，环境变量为 `WORKER_URL` 和 `ADMIN_SECRET`。
+
+## 管理后台托管
+管理员页面通过 Wrangler Static Assets 与 Worker 一起部署，位于 Worker 根地址。页面与 API 同源，避免依赖浏览器的第三方 Cookie；当前短期管理员令牌保存在当前标签页的 sessionStorage，不会持久写入 localStorage。

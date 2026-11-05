@@ -29,7 +29,7 @@
 - 管理员兑换码生成记录目前没有独立审计后台；不要把兑换码明文写入公开日志。
 
 ## 部署尚未完成
-此开发版尚未连接真实 Cloudflare D1，也没有部署 Worker。请勿向同学发放兑换码，直到完成 Cloudflare 资源创建、Secret 设置、数据库迁移、线上 API 测试及前端接入。
+此开发版尚未完成真实环境验证，也没有接入正式前端会员入口。请勿向同学发放兑换码，直到完成 Worker 部署、Secret 设置、数据库绑定核验、线上 API 测试及前端接入。
 
 ## Cloudflare 配置步骤
 1. 创建 D1 数据库，名称使用 `cocoxili-members`。
@@ -40,6 +40,9 @@
 6. 部署：`wrangler deploy`。
 7. 访问 Worker 的 `/api/health` 确认服务可用。
 8. 部署 Worker 后直接打开 Worker 根地址，页面会自动使用当前 Worker API 地址；填写管理员密码测试登录、生成、复制流程。
+
+## Git 集成构建
+Cloudflare Workers Builds 的生产分支应设置为 `feature/member-access-backend`，根目录设置为 `membership/worker`，部署命令设置为 `npx wrangler deploy`。
 
 ## 本地命令行备用工具
 `membership/admin/generate-codes.mjs` 也支持电脑终端操作，使用相同的管理员登录流程。要求 Node.js 18+，环境变量为 `WORKER_URL` 和 `ADMIN_SECRET`。

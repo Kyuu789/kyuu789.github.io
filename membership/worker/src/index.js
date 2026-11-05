@@ -208,6 +208,8 @@ async function handle(request, env) {
     return json({ ok: true, durationDays: days, codes });
   }
 
+  // Serve the bundled admin UI for non-API routes (including "/").
+  if (env.ASSETS) return env.ASSETS.fetch(request);
   return json({ ok: false, error: "Not found" }, 404);
 }
 

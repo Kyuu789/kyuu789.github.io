@@ -109,11 +109,11 @@ footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
    <div class="header-actions"><span class="pill" id="todayLabel"></span><button class="btn soft" id="backupBtn">备份数据 ↓</button></div>
   </header>
   <nav class="tabs">
-   <button class="tab active" data-tab="home">♡ 今日首页</button>
-   <button class="tab" data-tab="calendar">✿ 打卡日历</button>
-   <button class="tab" data-tab="words">📖 单词本</button>
-   <button class="tab" data-tab="stats">☆ 学习统计</button>
-   <button class="tab" data-tab="settings">⚙ 设置</button>
+   <button class="tab active" data-tab="home" onclick="setTab('home')">♡ 今日首页</button>
+   <button class="tab" data-tab="calendar" onclick="setTab('calendar')">✿ 打卡日历</button>
+   <button class="tab" data-tab="words" onclick="setTab('words')">📖 单词本</button>
+   <button class="tab" data-tab="stats" onclick="setTab('stats')">☆ 学习统计</button>
+   <button class="tab" data-tab="settings" onclick="setTab('settings')">⚙ 设置</button>
   </nav>
   <main>
    <section id="home" class="page">

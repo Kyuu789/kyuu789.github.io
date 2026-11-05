@@ -1,0 +1,13 @@
+name = "cocoxili-membership"
+main = "src/index.js"
+compatibility_date = "2026-11-05"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "cocoxili-members"
+database_id = "48eb7472-d7b1-4da6-a952-a5636796e0a0"
+
+[assets]
+directory = "./admin-assets"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]

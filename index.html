@@ -157,7 +157,7 @@ footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
    <button class="tab" data-tab="words" onclick="setTab('words')">📖 单词本</button>
    <button class="tab" data-tab="stats" onclick="setTab('stats')">☆ 学习统计</button>
    <button class="tab" data-tab="settings" onclick="setTab('settings')">⚙ 设置</button>
-   <button class="tab" data-tab="member" onclick="setTab('member')">✦ 会员激活</button>
+   <button class="tab" data-tab="member" onclick="setTab('member')">✦ 会员状态</button>
   </nav>
   <main>
    <section id="home" class="page">
@@ -264,15 +264,11 @@ footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
     </div>
    </section>
    <section id="member" class="page hidden">
-    <div class="grid">
-     <div class="card">
-      <h2>会员激活 ♡</h2>
-      <p class="muted" style="line-height:1.8">输入购买后获得的专属兑换码，激活会员。</p>
-      <div class="field"><label>会员兑换码</label><input id="memberCode" autocomplete="off" placeholder="ABCD-EFGH-JKLM-NPQR" maxlength="19" style="text-transform:uppercase"></div>
-      <button class="btn" id="activateMember" style="margin-top:12px">立即激活会员</button>
-      <p id="memberMessage" class="muted" style="margin-top:12px" aria-live="polite">兑换码仅可使用一次，请勿转发。</p>
-     </div>
-     <div class="card"><h2>我的会员状态 ✧</h2><p id="memberStatus" style="font-size:14px;color:var(--theme-text)">尚未激活会员</p><button class="btn soft" id="refreshMember" style="margin-top:10px">刷新会员状态</button></div>
+    <div class="card">
+     <h2>我的会员状态 ✧</h2>
+     <p class="muted" style="line-height:1.8">会员兑换码请在网站首页入口激活。这里可以查看当前会员状态。</p>
+     <p id="memberStatus" style="font-size:14px;color:var(--theme-text)">正在查询会员状态…</p>
+     <button class="btn soft" id="refreshMember" style="margin-top:10px">刷新会员状态</button>
     </div>
    </section>
   </main>
@@ -413,20 +409,12 @@ async function loadFullVocabulary(){
 }
 const MEMBER_API='https://cocoxili-membership.wave3sir.workers.dev';
 const MEMBER_TOKEN_KEY='kittyCET4_member_token_v1';
-function memberMessage(message,isError=false){$('memberMessage').textContent=message;$('memberMessage').style.color=isError?'#bd6687':'var(--theme-muted)'}
 async function refreshMemberStatus(){
  const token=localStorage.getItem(MEMBER_TOKEN_KEY);
  if(!token){$('memberStatus').textContent='尚未激活会员';return}
  try{const res=await fetch(MEMBER_API+'/api/status',{headers:{Authorization:'Bearer '+token}});const result=await res.json();$('memberStatus').textContent=result.active?'会员有效期至：'+new Date(result.expiresAt*1000).toLocaleString('zh-CN'):'会员已过期或尚未激活';if(!result.active)localStorage.removeItem(MEMBER_TOKEN_KEY)}
  catch(e){$('memberStatus').textContent='暂时无法连接会员服务，请稍后刷新。'}
 }
-$('activateMember').onclick=async()=>{
- const code=$('memberCode').value.trim().toUpperCase();
- if(!/^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){3}$/.test(code)){memberMessage('请检查兑换码格式。',true);return}
- $('activateMember').disabled=true;memberMessage('正在验证兑换码…');
- try{const res=await fetch(MEMBER_API+'/api/activate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});const result=await res.json();if(!res.ok||!result.ok){memberMessage(result.error||'激活失败，请检查兑换码。',true);return}localStorage.setItem(MEMBER_TOKEN_KEY,result.token);$('memberCode').value='';memberMessage('激活成功！会员有效期至 '+new Date(result.expiresAt*1000).toLocaleString('zh-CN'));await refreshMemberStatus()}
- catch(e){memberMessage('暂时无法连接会员服务，请稍后重试。',true)}finally{$('activateMember').disabled=false}
-};
 $('refreshMember').onclick=refreshMemberStatus;
 refreshMemberStatus();
 function renderAll(){renderHome();if(!$('calendar').classList.contains('hidden'))renderCalendar();if(!$('words').classList.contains('hidden'))renderWords();if(!$('stats').classList.contains('hidden'))renderStats()}

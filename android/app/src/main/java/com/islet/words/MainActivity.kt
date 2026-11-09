@@ -7,9 +7,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.webkit.*
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private val fileRequestCode = 4102

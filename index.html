@@ -23,6 +23,11 @@
 #app:not(.member-verified) .shell{display:none}
 #memberGate{display:none;min-height:100vh;place-items:center;padding:24px;background:linear-gradient(135deg,#e2f7eb,#f8e7ee)}
 #app:not(.member-verified) #memberGate{display:grid}
+#nicknameGate{display:none;min-height:100vh;place-items:center;padding:24px;background:linear-gradient(135deg,#e2f7eb,#f8e7ee)}
+#app.member-verified.nickname-required .shell{display:none}
+#app.member-verified.nickname-required #nicknameGate{display:grid}
+.identity-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:linear-gradient(120deg,#e2f7eb,#f8e7ee);border:1px solid #d9eee3;border-radius:18px;padding:13px 17px;margin-bottom:15px;color:#356c55}
+.identity-banner strong{font-size:17px}
 .gate-card{width:min(100%,440px);background:#fff;border:1px solid #e0f0e7;border-radius:26px;padding:28px;box-shadow:0 12px 36px #8ebba533;text-align:center}
 .gate-card h1{color:#356c55;margin:0 0 8px;font-size:24px}
 .gate-card p{color:#769582;font-size:13px;line-height:1.8}
@@ -145,6 +150,16 @@ footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
    <p id="gateMessage" aria-live="polite">兑换码仅可激活一次，请勿转发。</p>
   </div>
  </section>
+ <section id="nicknameGate">
+  <div class="gate-card">
+   <div style="font-size:42px;margin-bottom:10px">✍️</div>
+   <h1>设置你的打卡昵称</h1>
+   <p>请填写老师能够识别你的名字。昵称登记后将固定显示在学习空间和打卡记录中，无法自行修改。</p>
+   <input id="nicknameInput" autocomplete="nickname" maxlength="16" placeholder="请输入昵称（最多 16 个字）" aria-label="打卡昵称">
+   <button class="btn" id="saveNickname">确认并进入学习空间</button>
+   <p id="nicknameMessage" aria-live="polite">请认真填写，确认后不能自行更改。</p>
+  </div>
+ </section>
  <div class="bg-doodles" aria-hidden="true"><span class="doodle d1">✿</span><span class="doodle d2">♡</span><span class="doodle d3">✧</span></div>
  <div class="shell">
   <header>
@@ -192,7 +207,7 @@ footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
    <section id="calendar" class="page hidden">
     <div class="grid">
      <div class="card">
-      <div style="font-size:16px;font-weight:800;color:var(--theme-text);margin-bottom:12px" id="calendarWelcome">欢迎来打卡 ♡</div><div class="calendar-head"><button class="btn soft" id="prevMonth">←</button><h2 id="monthTitle" style="margin:0"></h2><button class="btn soft" id="nextMonth">→</button></div>
+      <div class="identity-banner"><span>本次打卡人</span><strong id="calendarMemberName">待登记</strong></div><div style="font-size:16px;font-weight:800;color:var(--theme-text);margin-bottom:12px" id="calendarWelcome">欢迎来打卡 ♡</div><div class="calendar-head"><button class="btn soft" id="prevMonth">←</button><h2 id="monthTitle" style="margin:0"></h2><button class="btn soft" id="nextMonth">→</button></div>
       <div class="calendar" id="calendarGrid"></div>
       <p class="muted">点选任意日期即可查看、补签或编辑记录。没有补签期限。</p>
      </div>
@@ -244,7 +259,7 @@ footer{text-align:center;color:#a0b6a8;font-size:11px;margin-top:24px}
     <div class="grid">
      <div class="card">
       <h2>个性化设置 ♡</h2>
-      <div class="field"><label>首页显示的名字</label><input id="profileName" maxlength="16" placeholder="请输入你的名字，例如：小林"></div>
+      <div class="field"><label>打卡昵称（登记后不可自行修改）</label><input id="profileName" maxlength="16" readonly aria-readonly="true"><p class="muted" style="margin:6px 0 0">昵称用于老师识别打卡记录。如需更正，请联系管理员。</p></div>
       <div class="field" style="margin-top:12px"><label>首页主题皮肤</label><select id="themeSelect"><option value="mint">薄荷奶绿</option><option value="rose">樱花粉</option><option value="lavender">梦幻薰衣草</option><option value="sky">晴空蓝</option><option value="peach">奶油蜜桃</option><option value="lemon">香草奶黄</option></select></div>
       <button class="btn" id="saveProfile" style="margin-top:12px">保存个性化设置 ♡</button>
       <hr style="border:0;border-top:1px dashed #e2eee6;margin:20px 0">
@@ -286,7 +301,7 @@ async function verifyMemberOnEntry(){
  try{
   const res=await fetch(GATE_MEMBER_API+'/api/status',{headers:{Authorization:'Bearer '+token}});
   const result=await res.json();
-  if(res.ok&&result.active){document.getElementById('app').classList.add('member-verified');return}
+  if(res.ok&&result.active){document.getElementById('app').classList.add('member-verified');requireNicknameIfNeeded();return}
   localStorage.removeItem(GATE_MEMBER_TOKEN_KEY);
  }catch(e){document.getElementById('gateMessage').textContent='会员验证服务暂时不可用，请检查网络后重试。'}
 }
@@ -302,9 +317,27 @@ document.getElementById('gateActivate').onclick=async()=>{
   localStorage.setItem(GATE_MEMBER_TOKEN_KEY,result.token);
   message.textContent='验证成功，正在进入…';
   document.getElementById('app').classList.add('member-verified');
+  requireNicknameIfNeeded();
  }catch(e){message.textContent='暂时无法连接验证服务，请稍后重试。'}
  finally{button.disabled=false}
 };
+function requireNicknameIfNeeded(){
+ const app=document.getElementById('app');
+ let saved={};try{saved=JSON.parse(localStorage.getItem('kittyCET4_profile_v1'))||{}}catch(e){}
+ if(String(saved.name||'').trim()){app.classList.remove('nickname-required');return}
+ app.classList.add('nickname-required');
+}
+document.getElementById('saveNickname').onclick=()=>{
+ const input=document.getElementById('nicknameInput');
+ const name=input.value.trim().replace(/\s+/g,' ').slice(0,16);
+ if(!name){document.getElementById('nicknameMessage').textContent='昵称不能为空，请填写后再继续。';return}
+ let saved={};try{saved=JSON.parse(localStorage.getItem('kittyCET4_profile_v1'))||{}}catch(e){}
+ saved.name=name;saved.theme=saved.theme||'mint';
+ localStorage.setItem('kittyCET4_profile_v1',JSON.stringify(saved));
+ document.getElementById('app').classList.remove('nickname-required');
+ location.reload();
+};
+document.getElementById('nicknameInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('saveNickname').click()});
 document.getElementById('gateCode').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('gateActivate').click()});
 verifyMemberOnEntry();
 const $ = id => document.getElementById(id);
@@ -372,10 +405,10 @@ function renderStats(){
  let bars='';for(let i=13;i>=0;i--){let d=new Date(today);d.setDate(d.getDate()-i);let r=dayRecord(iso(d)),v=r?.words||0,h=Math.max(5,Math.min(100,v/Math.max(1,data.goal*2)*100));bars+=`<div title="${iso(d)}：${v}词" style="height:100%;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:5px"><div style="height:${h}%;width:100%;border-radius:7px 7px 3px 3px;background:${r?'#8fcdaa':'#eaf3ed'}"></div><small style="font-size:9px;color:#9bb2a4">${d.getDate()}</small></div>`}
  $('recentChart').innerHTML=bars;
 }
-$('profileName').value=profile.name||'';$('themeSelect').value=profile.theme||'mint';
+$('profileName').value=profile.name||'';$('profileName').disabled=!profile.name;$('themeSelect').value=profile.theme||'mint';
 function applyTheme(){ $('app').dataset.theme=profile.theme||'mint'; }
 applyTheme();
-$('saveProfile').onclick=()=>{profile.name=$('profileName').value.trim().slice(0,16);profile.theme=$('themeSelect').value;localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));applyTheme();renderHome();alert('名字和主题皮肤已保存 ♡')};
+$('saveProfile').onclick=()=>{profile.theme=$('themeSelect').value;localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));applyTheme();renderHome();alert('主题皮肤已保存 ♡')};
 $('dailyGoal').value=data.goal;$('saveGoal').onclick=()=>{data.goal=Math.max(1,Math.min(500,+$('dailyGoal').value||30));save();alert('每日目标已保存 ♡')};
 function download(name,content,type){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([content],{type}));a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
 $('exportJson').onclick=()=>download('coco-xili-cet4-backup.json',JSON.stringify(data,null,2),'application/json');

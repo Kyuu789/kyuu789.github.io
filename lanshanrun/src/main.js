@@ -67,7 +67,7 @@ async function generatePlanZip(){
     for(let day=new Date(startDate);day<=endDate;day.setDate(day.getDate()+1)){
       for(const slot of slots.filter(x=>x.day===day.getDay())){
         const date=planDateValue(day),filename='planned-run-course-'+date+'-'+slot.time.replace(':','')+'-'+slot.index+'.'+format;
-        const name='Run Plan '+date+' '+slot.time;
+        const name='Run '+date.slice(5).replace('-','')+' '+slot.time.replace(':','');
         entries.push({date,time:slot.time,weekday:planDayNames[slot.day],filename,name,slot});
       }
     }

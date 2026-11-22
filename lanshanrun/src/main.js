@@ -12,3 +12,81 @@ document.querySelectorAll('.export-card').forEach(b=>b.onclick=()=>{try{if(b.dat
 
 
 
+
+const planDayNames=['周日','周一','周二','周三','周四','周五','周六'];
+const planToday=new Date();
+const planStartDefault=new Date(planToday.getFullYear(),planToday.getMonth(),planToday.getDate());
+const planEndDefault=new Date(planStartDefault);planEndDefault.setDate(planEndDefault.getDate()+27);
+const planDateValue=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+$('planStartDate').value=planDateValue(planStartDefault);
+$('planEndDate').value=planDateValue(planEndDefault);
+function courseSerial(name){let h=2166136261;for(const ch of name)h=Math.imul(h^ch.charCodeAt(0),16777619);return (h>>>0)||1}
+function tcxCourse(name,c){
+  const pts=c.all,first=pts[0],last=pts[pts.length-1];
+  const pointXml=pts.map(p=>'<Trackpoint><Position><LatitudeDegrees>'+p.lat.toFixed(7)+'</LatitudeDegrees><LongitudeDegrees>'+p.lon.toFixed(7)+'</LongitudeDegrees></Position><AltitudeMeters>0</AltitudeMeters><DistanceMeters>'+p.meters.toFixed(2)+'</DistanceMeters></Trackpoint>').join('');
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Courses><Course><Name>'+esc(name)+'</Name><Lap><TotalTimeSeconds>'+c.elapsed.toFixed(1)+'</TotalTimeSeconds><DistanceMeters>'+c.total.toFixed(2)+'</DistanceMeters><BeginPosition><LatitudeDegrees>'+first.lat.toFixed(7)+'</LatitudeDegrees><LongitudeDegrees>'+first.lon.toFixed(7)+'</LongitudeDegrees></BeginPosition><EndPosition><LatitudeDegrees>'+last.lat.toFixed(7)+'</LatitudeDegrees><LongitudeDegrees>'+last.lon.toFixed(7)+'</LongitudeDegrees></EndPosition><Intensity>Active</Intensity></Lap><Track>'+pointXml+'</Track></Course></Courses></TrainingCenterDatabase>';
+}
+async function fitCourse(name,c,serial){
+  const {Encoder,Decoder,Stream,Profile,Utils}=await import('https://esm.sh/@garmin/fitsdk@21.222.0');
+  const baseTime=Utils.convertDateToDateTime(new Date('2000-01-01T00:00:00Z'));
+  const pts=c.all,first=pts[0],last=pts[pts.length-1],sportName='running';
+  const msgs=[
+    {mesgNum:Profile.MesgNum.FILE_ID,type:'course',manufacturer:'development',product:1,timeCreated:new Date(),serialNumber:serial},
+    {mesgNum:Profile.MesgNum.COURSE,name:name,sport:sportName,subSport:'generic'},
+    {mesgNum:Profile.MesgNum.LAP,messageIndex:0,startTime:baseTime,timestamp:baseTime+Math.round(c.elapsed),totalElapsedTime:c.elapsed,totalTimerTime:c.elapsed,totalDistance:c.total,startPositionLat:Math.round(first.lat*2147483648/180),startPositionLong:Math.round(first.lon*2147483648/180),endPositionLat:Math.round(last.lat*2147483648/180),endPositionLong:Math.round(last.lon*2147483648/180),sport:sportName,subSport:'generic'},
+    {mesgNum:Profile.MesgNum.EVENT,timestamp:baseTime,event:'timer',eventType:'start'}
+  ];
+  let seconds=0,previous=null;
+  for(const p of pts){
+    if(previous)seconds+=dist([previous.lat,previous.lon],[p.lat,p.lon])*(c.pace/60);
+    previous=p;
+    msgs.push({mesgNum:Profile.MesgNum.RECORD,timestamp:baseTime+Math.round(seconds),positionLat:Math.round(p.lat*2147483648/180),positionLong:Math.round(p.lon*2147483648/180),distance:p.meters,speed:1000/c.pace});
+  }
+  msgs.push({mesgNum:Profile.MesgNum.EVENT,timestamp:baseTime+Math.round(c.elapsed),event:'timer',eventType:'stop_disable_all'});
+  const encoder=new Encoder();msgs.forEach(m=>encoder.writeMesg(m));const bytes=encoder.close();
+  const buffer=bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),decoder=new Decoder(Stream.fromArrayBuffer(buffer));
+  if(!decoder.isFIT()||!decoder.checkIntegrity())throw Error('FIT Course 文件完整性校验失败');
+  const result=decoder.read();if(result.errors.length)throw Error('FIT Course 解码错误：'+result.errors.join('；'));
+  const keys=Object.keys(result.messages),findKey=k=>keys.find(x=>x.toLowerCase().startsWith(k));
+  if(!findKey('course')||!findKey('lap')||!findKey('record'))throw Error('FIT Course 消息校验失败');
+  return bytes;
+}
+async function generatePlanZip(){
+  const status=$('planStatus'),button=$('planZipBtn');button.disabled=true;
+  try{
+    if(!window.JSZip)throw Error('ZIP 组件未加载，请检查网络后重试');
+    if(sport!=='running')throw Error('请先切换到跑步模式');
+    const c=course(),startValue=$('planStartDate').value,endValue=$('planEndDate').value,format=$('planFormat').value;
+    if(!startValue||!endValue)throw Error('请选择计划开始和结束日期');
+    const startDate=new Date(startValue+'T00:00:00'),endDate=new Date(endValue+'T00:00:00');
+    if(startDate>endDate)throw Error('结束日期不能早于开始日期');
+    if((endDate-startDate)/86400000>366)throw Error('一次最多生成一年计划');
+    const slots=[1,2,3,4].map(i=>({day:+$('planDay'+i).value,time:$('planTime'+i).value,index:i}));
+    if(slots.some(x=>!x.time))throw Error('请填写四次训练的开始时间');
+    const entries=[];
+    for(let day=new Date(startDate);day<=endDate;day.setDate(day.getDate()+1)){
+      for(const slot of slots.filter(x=>x.day===day.getDay())){
+        const date=planDateValue(day),filename='planned-run-course-'+date+'-'+slot.time.replace(':','')+'-'+slot.index+'.'+format;
+        const name='Run Plan '+date+' '+slot.time;
+        entries.push({date,time:slot.time,weekday:planDayNames[slot.day],filename,name,slot});
+      }
+    }
+    if(!entries.length)throw Error('所选日期范围内没有训练日');
+    const zip=new JSZip(),rows=[];
+    for(let i=0;i<entries.length;i++){
+      const entry=entries[i],serial=courseSerial(entry.filename);
+      const data=format==='tcx'?tcxCourse(entry.name,c):await fitCourse(entry.name,c,serial);
+      zip.file('courses/'+entry.filename,data);
+      rows.push([entry.date,entry.time,entry.weekday,(c.total/1000).toFixed(2),Math.floor(c.pace/60)+':'+String(c.pace%60).padStart(2,'0'),entry.filename]);
+      status.textContent='正在生成路线课程 '+(i+1)+' / '+entries.length;
+    }
+    const csvEscape=value=>'"'+String(value).replace(/"/g,'""')+'"';
+    zip.file('training-plan.csv','\uFEFF'+['日期,计划时间,星期,路线距离(km),目标配速(/km),课程文件',...rows.map(row=>row.map(csvEscape).join(','))].join('\r\n'));
+    zip.file('README.txt','Lanshan Run 每周跑步路线计划\r\n\r\n本包包含路线课程文件（TCX Course 或 FIT Course）和计划表。课程文件描述导航路线，不是运动活动记录；课程内使用的相对时间仅用于路线点顺序，不代表实际跑步时间。选择的日期和时间只用于计划表与文件名。\r\n\r\n路线距离和目标配速来自网站当前路线设置。');
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+    save('lanshan-run-courses-'+startValue+'-'+endValue+'.zip',blob,'application/zip');
+    status.textContent='已打包 '+entries.length+' 个路线课程和计划表';
+  }catch(e){status.textContent=e.message||'课程包生成失败'}
+  finally{button.disabled=false}
+}
+$('planZipBtn').onclick=generatePlanZip;

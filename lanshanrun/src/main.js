@@ -15,7 +15,7 @@ document.querySelectorAll('.export-card').forEach(b=>b.onclick=()=>{try{if(b.dat
 
 const planDayNames=['周日','周一','周二','周三','周四','周五','周六'];
 const planToday=new Date();
-const planStartDefault=new Date(planToday.getFullYear(),planToday.getMonth(),planToday.getDate());
+const planStartDefault=new Date(planToday.getFullYear(),planToday.getMonth(),planToday.getDate());planStartDefault.setDate(planStartDefault.getDate()+1);
 const planEndDefault=new Date(planStartDefault);planEndDefault.setDate(planEndDefault.getDate()+27);
 const planDateValue=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 $('planStartDate').value=planDateValue(planStartDefault);

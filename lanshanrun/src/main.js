@@ -42,7 +42,7 @@ async function fitCourse(name,c,serial){
     previous=p;
     msgs.push({mesgNum:Profile.MesgNum.RECORD,timestamp:baseTime+Math.round(seconds),positionLat:Math.round(p.lat*2147483648/180),positionLong:Math.round(p.lon*2147483648/180),distance:p.meters,speed:1000/c.pace});
   }
-  msgs.push({mesgNum:Profile.MesgNum.EVENT,timestamp:baseTime+Math.round(c.elapsed),event:'timer',eventType:'stop_disable_all'});
+  msgs.push({mesgNum:Profile.MesgNum.EVENT,timestamp:baseTime+Math.round(c.elapsed),event:'timer',eventType:'stopDisableAll'});
   const encoder=new Encoder();msgs.forEach(m=>encoder.writeMesg(m));const bytes=encoder.close();
   const buffer=bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),decoder=new Decoder(Stream.fromArrayBuffer(buffer));
   if(!decoder.isFIT()||!decoder.checkIntegrity())throw Error('FIT Course 文件完整性校验失败');

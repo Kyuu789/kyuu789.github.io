@@ -36,7 +36,7 @@ async function generatePlanZip(){
     for(let day=new Date(startDate);day<=endDate;day.setDate(day.getDate()+1)){
       const date=planDateValue(day);
       for(const slot of slots.filter(x=>x.day===day.getDay())){
-        const filename='planned-route-'+date+'-'+slot.time.replace(':','')+'.gpx';
+        const filename='planned-route-'+date+'-'+slot.time.replace(':','')+'-'+slot.index+'.gpx';
         const routePoints=c.all.map((p,i)=>'<rtept lat="'+p.lat.toFixed(7)+'" lon="'+p.lon.toFixed(7)+'"><name>路线点 '+(i+1)+'</name></rtept>').join('');
         const route='<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Lanshan Run" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>计划路线 · '+date+'</name><desc>计划导航路线，不是已完成的运动记录。</desc></metadata><rte><name>跑步计划 '+date+' '+slot.time+'</name><desc>规划路线 GPX；不包含活动时间戳。</desc>'+routePoints+'</rte></gpx>';
         zip.file('routes/'+filename,route);

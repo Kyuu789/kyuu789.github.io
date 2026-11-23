@@ -65,7 +65,7 @@
       osc.type = type || 'square';
       osc.frequency.setValueAtTime(freq, t);
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(gain || 0.08, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(gain || 0.13, t + 0.01);
       g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
       osc.connect(g).connect(audioCtx.destination);
       osc.start(t);
@@ -98,7 +98,7 @@
       lp.frequency.setValueAtTime(1200, t);
       lp.frequency.exponentialRampToValueAtTime(220, t + dur);
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.16, t);
+      gain.gain.setValueAtTime(0.26, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
       src.connect(lp).connect(gain).connect(ctx.destination);
       src.start(t);
@@ -110,7 +110,7 @@
       osc.frequency.setValueAtTime(280, t + 0.25);
       osc.frequency.exponentialRampToValueAtTime(90, t + 0.85);
       g2.gain.setValueAtTime(0.0001, t + 0.25);
-      g2.gain.exponentialRampToValueAtTime(0.12, t + 0.32);
+      g2.gain.exponentialRampToValueAtTime(0.2, t + 0.32);
       g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.95);
       osc.connect(g2).connect(ctx.destination);
       osc.start(t + 0.25);
@@ -150,10 +150,10 @@
         if (!soundOn || !audioCtx) return;
         while (bgmNext < audioCtx.currentTime + 0.7) {
           const lead = BGM_LEAD[bgmStep % BGM_LEAD.length];
-          scheduleTone(440 * Math.pow(2, (lead - 69) / 12), bgmNext, BGM_STEP * 0.85, 'square', 0.028);
+          scheduleTone(440 * Math.pow(2, (lead - 69) / 12), bgmNext, BGM_STEP * 0.85, 'square', 0.075);
           if (bgmStep % 2 === 0) {
             const bass = BGM_BASS[(bgmStep / 2) % BGM_BASS.length];
-            scheduleTone(440 * Math.pow(2, (bass - 69) / 12), bgmNext, BGM_STEP * 1.8, 'triangle', 0.035);
+            scheduleTone(440 * Math.pow(2, (bass - 69) / 12), bgmNext, BGM_STEP * 1.8, 'triangle', 0.09);
           }
           bgmStep += 1;
           bgmNext += BGM_STEP;
@@ -169,15 +169,15 @@
 
   function sfxHit(golden) {
     if (golden) {
-      beep(880, 'square', 0.09, 0.1);
-      beep(1320, 'square', 0.12, 0.09, audioCtx ? audioCtx.currentTime + 0.08 : 0);
+      beep(880, 'square', 0.09, 0.18);
+      beep(1320, 'square', 0.12, 0.16, audioCtx ? audioCtx.currentTime + 0.08 : 0);
     } else {
-      beep(560 + Math.min(state.combo, 10) * 28, 'square', 0.07, 0.09);
+      beep(560 + Math.min(state.combo, 10) * 28, 'square', 0.07, 0.17);
     }
   }
 
   function sfxMiss() {
-    beep(150, 'sawtooth', 0.18, 0.07);
+    beep(150, 'sawtooth', 0.18, 0.12);
   }
 
   /* ---------------- build holes ---------------- */
@@ -294,7 +294,7 @@
       timeEl.textContent = String(Math.max(0, state.timeLeft));
       if (state.timeLeft <= 5 && state.timeLeft > 0) {
         timeEl.style.color = '#ff8a70';
-        beep(320, 'triangle', 0.08, 0.06);
+        beep(320, 'triangle', 0.08, 0.11);
       }
       if (state.timeLeft <= 0) finishGame('time');
     }, 1000);
@@ -580,8 +580,16 @@
     }
   });
 
+  // 首次触摸即解锁音频，iOS 需要用户手势后才能出声
+  document.addEventListener('pointerdown', () => {
+    if (!soundOn) return;
+    const ctx = ensureAudio();
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  }, { passive: true });
+
   startBtn.addEventListener('click', () => {
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    const ctx = ensureAudio();
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
     startGame();
     scheduleSpawn(nextDelay());
   });
@@ -600,7 +608,7 @@
     localStorage.setItem(SOUND_KEY, soundOn ? 'on' : 'off');
     soundBtn.textContent = soundOn ? '🔊' : '🔇';
     if (soundOn) {
-      beep(720, 'triangle', 0.08, 0.06);
+      beep(720, 'triangle', 0.08, 0.12);
       if (state.running) startBgm();
     } else {
       stopBgm();

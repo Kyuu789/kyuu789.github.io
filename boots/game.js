@@ -16,7 +16,6 @@
   const endOverlay = document.getElementById('endOverlay');
   const startBtn = document.getElementById('startBtn');
   const againBtn = document.getElementById('againBtn');
-  const homeBtn = document.getElementById('homeBtn');
   const bestLine = document.getElementById('bestLine');
   const finalScoreEl = document.getElementById('finalScore');
   const hitCountEl = document.getElementById('hitCount');
@@ -597,10 +596,6 @@
   againBtn.addEventListener('click', () => {
     startGame();
     scheduleSpawn(nextDelay());
-  });
-
-  homeBtn.addEventListener('click', () => {
-    window.location.href = '../';
   });
 
   soundBtn.addEventListener('click', () => {

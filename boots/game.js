@@ -23,6 +23,7 @@
   const maxComboEl = document.getElementById('maxCombo');
   const bestScoreEl = document.getElementById('bestScore');
   const endCommentEl = document.getElementById('endComment');
+  const endTitleEl = document.getElementById('endTitle');
   const soundBtn = document.getElementById('soundBtn');
   const grabber = document.getElementById('grabber');
   const bubble = document.getElementById('bubble');
@@ -155,7 +156,7 @@
   function resetHole(h) {
     h.occupied = false;
     h.hit = false;
-    h.el.classList.remove('up', 'down', 'hit', 'golden');
+    h.el.classList.remove('up', 'down', 'hit', 'golden', 'wrong');
   }
 
   /* ---------------- game flow ---------------- */
@@ -173,6 +174,7 @@
     holes.forEach(resetHole);
     updateHud();
     timeEl.textContent = String(ROUND_SECONDS);
+    timeEl.style.color = '';
     hintEl.textContent = '靴子钻出洞口就点它，点得越快分越高';
     react('开抢！');
 
@@ -190,7 +192,7 @@
         timeEl.style.color = '#ff8a70';
         beep(320, 'triangle', 0.08, 0.06);
       }
-      if (state.timeLeft <= 0) finishGame();
+      if (state.timeLeft <= 0) finishGame('time');
     }, 1000);
   }
 
@@ -211,19 +213,19 @@
 
   function nextDelay() {
     const p = progress();
-    const base = 880 - p * 420;
-    return base + Math.random() * (320 - p * 180);
+    const base = 880 - p * 470;
+    return base + Math.random() * (300 - p * 190);
   }
 
   function upDuration() {
     const p = progress();
-    return 1150 - p * 430 + Math.random() * 180;
+    return 1150 - p * 480 + Math.random() * 170;
   }
 
   function spawn() {
     if (!state.running || state.paused) return;
     const p = progress();
-    const maxActive = p < 0.25 ? 2 : (p < 0.65 ? 3 : 3);
+    const maxActive = p < 0.2 ? 2 : (p < 0.6 ? 3 : 4);
     if (state.occupied >= maxActive) return;
 
     const free = holes.filter((h) => !h.occupied);
@@ -251,6 +253,7 @@
   }
 
   function miss(h) {
+    if (!state.running) return;
     h.occupied = false;
     h.hit = true;
     state.occupied = Math.max(0, state.occupied - 1);
@@ -275,8 +278,24 @@
     }, 240);
   }
 
+  function wrongTap(h) {
+    h.el.classList.add('wrong');
+    h.fx.textContent = '点错了';
+    h.fx.classList.remove('show');
+    void h.fx.offsetWidth;
+    h.fx.classList.add('show');
+    sfxMiss();
+    react('点错了！', 'miss');
+    finishGame('wrong');
+  }
+
   function whack(h) {
-    if (!state.running || state.paused || !h.occupied || h.hit) return;
+    if (!state.running || state.paused) return;
+    if (!h.occupied || h.hit) {
+      if (h.el.classList.contains('hit') || h.el.classList.contains('down') || h.el.classList.contains('wrong')) return;
+      wrongTap(h);
+      return;
+    }
     h.hit = true;
     h.occupied = false;
     state.occupied = Math.max(0, state.occupied - 1);
@@ -316,7 +335,7 @@
     }, 320);
   }
 
-  function finishGame() {
+  function finishGame(reason) {
     state.running = false;
     clearTimers();
     holes.forEach((h) => {
@@ -332,17 +351,23 @@
       localStorage.setItem(BEST_KEY, String(best));
     }
 
+    endTitleEl.textContent = reason === 'wrong' ? '点错了！' : '时间到';
     finalScoreEl.textContent = String(state.score);
     hitCountEl.textContent = String(state.hits);
     maxComboEl.textContent = String(state.maxCombo);
     bestScoreEl.textContent = String(best);
     bestLine.textContent = best ? '历史最佳：' + best + ' 分' : '';
 
-    let comment = '再试一次，手速还能更快。';
-    if (state.score >= 400) comment = '靴子收割机，这手速有点东西。';
-    else if (state.score >= 260) comment = '很稳，金靴基本没逃掉。';
-    else if (state.score >= 140) comment = '不错，连击再稳一点分数会更高。';
-    else if (state.score < 60) comment = '先盯紧洞口，别急着乱点。';
+    let comment;
+    if (reason === 'wrong') {
+      comment = '点到了空洞口，这局直接结束。';
+    } else {
+      comment = '再试一次，手速还能更快。';
+      if (state.score >= 400) comment = '靴子收割机，这手速有点东西。';
+      else if (state.score >= 260) comment = '很稳，金靴基本没逃掉。';
+      else if (state.score >= 140) comment = '不错，连击再稳一点分数会更高。';
+      else if (state.score < 60) comment = '先盯紧洞口，别急着乱点。';
+    }
     endCommentEl.textContent = comment;
 
     endOverlay.classList.remove('hidden');

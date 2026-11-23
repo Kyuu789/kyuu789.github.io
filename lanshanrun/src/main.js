@@ -152,7 +152,7 @@ async function downloadPlanZip(){
   try{
     if(!planSchedule)throw Error('请先生成预览');
     if(!window.JSZip)throw Error('ZIP 组件未加载，请检查网络后重试');
-    const c=course(),zip=new JSZip(),rows=[],format=planSchedule.format;
+    const c=course(),zip=new JSZip(),format=planSchedule.format;
     for(let i=0;i<planSchedule.entries.length;i++){
       const entry=planSchedule.entries[i],name='Run '+entry.date.slice(5).replace('-','')+' '+entry.time.replace(':','');
       let data;
@@ -160,15 +160,11 @@ async function downloadPlanZip(){
       else if(format==='fit')data=await planFitCourse(c,name,planSerial(entry.filename));
       else data=planGpxRoute(c,name);
       zip.file('courses/'+entry.filename,data);
-      rows.push([entry.date,entry.time,'Asia/Shanghai',format==='tcx'?'TCX Course':format==='fit'?'FIT Course':'GPX Route',filenameForPlan(entry.filename),(c.total/1000).toFixed(2)]);
       $('planStatus').textContent='正在生成路线课程 '+(i+1)+' / '+planSchedule.entries.length;
     }
-    const quote=value=>'"'+String(value).replace(/"/g,'""')+'"';
-    zip.file('training-plan.csv','\uFEFF'+['日期,北京时间,时区,文件类型,文件名,路线距离(km)',...rows.map(row=>row.map(quote).join(','))].join('\r\n'));
-    zip.file('README.txt','Lanshan Run 计划路线包\r\n\r\nZIP 内包含 GPX Route、TCX Course 或 FIT Course 路线文件及计划表。它们描述规划路线，不是已完成运动记录。文件不含所选日期的活动时间戳；计划日期和北京时间仅列在文件名与 CSV 计划表中。\r\n');
     const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
     save('lanshan-run-plan-'+planSchedule.entries[0].date+'-'+planSchedule.entries.at(-1).date+'.zip',blob,'application/zip');
-    $('planStatus').textContent='已打包 '+rows.length+' 个路线计划文件 · 日期时间为北京时间';
+    $('planStatus').textContent='已打包 '+planSchedule.entries.length+' 个路线计划文件';
   }catch(e){$('planStatus').textContent=e.message||'计划 ZIP 生成失败'}
   finally{button.disabled=false}
 }

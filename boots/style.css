@@ -511,24 +511,6 @@ h2{margin:0 0 4px;font-size:26px;color:#3a2716}
   100%{transform:scale(1)}
 }
 
-.fall-guy{
-  position:absolute;
-  top:30%;
-  left:50%;
-  z-index:1;
-  width:90px;
-  width:clamp(76px,20vw,112px);
-  transform:translate(-50%,-50%);
-  animation:fallInto 1.5s cubic-bezier(.4,0,.7,1) forwards;
-  filter:drop-shadow(0 8px 12px rgba(0,0,0,.35));
-}
-@keyframes fallInto{
-  0%{transform:translate(-50%,-190%) rotate(-10deg);opacity:1}
-  55%{transform:translate(-50%,-20%) rotate(14deg) scale(.9);opacity:1}
-  85%{transform:translate(-50%,55%) rotate(28deg) scale(.55);opacity:.8}
-  100%{transform:translate(-50%,95%) rotate(38deg) scale(.25);opacity:0}
-}
-
 .calm-text{
   position:relative;
   z-index:3;

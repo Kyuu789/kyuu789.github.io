@@ -7,8 +7,52 @@ function course(){if(points.length<2)throw Error('请先在地图上添加至少
 function save(name,data,type){let u=URL.createObjectURL(new Blob([data],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
 function gpx(){let c=course(),start=activityStart(),seconds=0,last=null,track=c.all.map(p=>{if(last)seconds+=dist([last.lat,last.lon],[p.lat,p.lon])/1000*c.pace/60;last=p;return`<trkpt lat="${p.lat.toFixed(7)}" lon="${p.lon.toFixed(7)}"><ele>0</ele><time>${new Date(start.getTime()+seconds*1000).toISOString()}</time></trkpt>`}).join('');save('lanshan-run.gpx',`<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="Lanshan Run" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>Lanshan Run</name><time>${start.toISOString()}</time></metadata><trk><name>Lanshan Run</name><type>${sport}</type><trkseg>${track}</trkseg></trk></gpx>`,'application/gpx+xml')}
 function tcx(){let c=course(),start=activityStart(),seconds=0,last=null,track=c.all.map(p=>{if(last)seconds+=dist([last.lat,last.lon],[p.lat,p.lon])*c.pace/60;last=p;return`<Trackpoint><Time>${new Date(start.getTime()+seconds*1000).toISOString()}</Time><Position><LatitudeDegrees>${p.lat.toFixed(7)}</LatitudeDegrees><LongitudeDegrees>${p.lon.toFixed(7)}</LongitudeDegrees></Position><AltitudeMeters>0</AltitudeMeters><DistanceMeters>${p.meters.toFixed(2)}</DistanceMeters></Trackpoint>`}).join(''),type=sport==='running'?'Running':sport==='cycling'?'Biking':'Other';save('lanshan-run.tcx',`<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"><Activities><Activity Sport="${type}"><Id>${start.toISOString()}</Id><Lap StartTime="${start.toISOString()}"><TotalTimeSeconds>${c.elapsed.toFixed(1)}</TotalTimeSeconds><DistanceMeters>${c.total.toFixed(2)}</DistanceMeters><Calories>0</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${track}</Track></Lap></Activity></Activities></TrainingCenterDatabase>`,'application/vnd.garmin.tcx+xml')}
-async function fit(){const {Encoder,Decoder,Stream,Profile,Utils}=await import('https://esm.sh/@garmin/fitsdk@21.222.0');let c=course(),start=activityStart(),t0=Utils.convertDateToDateTime(start),sPerM=c.pace/60,sportName=sport==='running'?'running':sport==='cycling'?'cycling':'walking',msgs=[{mesgNum:Profile.MesgNum.FILE_ID,type:'activity',manufacturer:'development',product:1,timeCreated:t0,serialNumber:1},{mesgNum:Profile.MesgNum.DEVICE_INFO,deviceIndex:'creator',manufacturer:'development',product:1,serialNumber:1,softwareVersion:1,timestamp:t0},{mesgNum:Profile.MesgNum.EVENT,timestamp:t0,event:'timer',eventType:'start'}],seconds=0,last=null;for(const p of c.all){if(last)seconds+=dist([last.lat,last.lon],[p.lat,p.lon])*sPerM;last=p;msgs.push({mesgNum:Profile.MesgNum.RECORD,timestamp:t0+Math.round(seconds),positionLat:Math.round(p.lat*2147483648/180),positionLong:Math.round(p.lon*2147483648/180),distance:p.meters,enhancedSpeed:1/sPerM,enhancedAltitude:0})}let end=t0+Math.round(c.elapsed);msgs.push({mesgNum:Profile.MesgNum.EVENT,timestamp:end,event:'timer',eventType:'stop'},{mesgNum:Profile.MesgNum.LAP,messageIndex:0,timestamp:end,startTime:t0,totalElapsedTime:c.elapsed,totalTimerTime:c.elapsed,totalDistance:c.total,sport:sportName,subSport:'generic'},{mesgNum:Profile.MesgNum.SESSION,messageIndex:0,timestamp:end,startTime:t0,totalElapsedTime:c.elapsed,totalTimerTime:c.elapsed,totalDistance:c.total,sport:sportName,subSport:'generic',firstLapIndex:0,numLaps:1},{mesgNum:Profile.MesgNum.ACTIVITY,timestamp:end,numSessions:1,localTimestamp:end-start.getTimezoneOffset()*60,totalTimerTime:c.elapsed});let enc=new Encoder();msgs.forEach(m=>enc.writeMesg(m));let bytes=enc.close(),buffer=bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),dec=new Decoder(Stream.fromArrayBuffer(buffer));if(!dec.isFIT()||!dec.checkIntegrity())throw Error('FIT 文件完整性验证失败');let result=dec.read();if(result.errors.length)throw Error('FIT 解码错误：'+result.errors.join('；'));const keys=Object.keys(result.messages),findKey=k=>keys.find(x=>x.toLowerCase().startsWith(k));const recordKey=findKey('record');if(!recordKey||!findKey('session')||!findKey('lap'))throw Error('FIT 消息校验失败：'+keys.join(', '));save('lanshan-run.fit',bytes,'application/octet-stream');note(`FIT 已编码并验证通过 · ${result.messages[recordKey].length} 个轨迹点`)}
-document.querySelectorAll('.export-card').forEach(b=>b.onclick=()=>{try{if(b.dataset.format==='fit'){fit().catch(e=>note(e.message))}else ({gpx,tcx})[b.dataset.format]()}catch(e){note(e.message)}});$('helpBtn').onclick=()=>$('helpDialog').showModal();$('closeHelp').onclick=()=>$('helpDialog').close();$('gotIt').onclick=()=>$('helpDialog').close();draw();
+let fitSdkPromise;
+async function getFitSdk(){
+  if(!fitSdkPromise)fitSdkPromise=(async()=>{
+    try{return await import('https://cdn.jsdelivr.net/npm/@garmin/fitsdk@21.222.0/+esm')}
+    catch(firstError){
+      try{return await import('https://esm.sh/@garmin/fitsdk@21.222.0?bundle')}
+      catch(secondError){throw Error('Garmin FIT 编码器加载失败，请检查网络后重试（'+(secondError.message||firstError.message||'加载失败')+'）')}
+    }
+  })();
+  return fitSdkPromise;
+}
+async function fit(){
+  const {Encoder,Decoder,Stream,Profile,Utils}=await getFitSdk();
+  const c=course(),start=activityStart(),t0=Utils.convertDateToDateTime(start),secondsPerMeter=+$('pace').value/1000;
+  const sportName=sport==='running'?'running':sport==='cycling'?'cycling':'walking';
+  const msgs=[
+    {mesgNum:Profile.MesgNum.FILE_ID,type:'activity',manufacturer:'development',product:1,timeCreated:t0,serialNumber:1},
+    {mesgNum:Profile.MesgNum.DEVICE_INFO,deviceIndex:'creator',manufacturer:'development',product:1,serialNumber:1,softwareVersion:1,timestamp:t0},
+    {mesgNum:Profile.MesgNum.EVENT,timestamp:t0,event:'timer',eventType:'start'}
+  ];
+  let elapsedSeconds=0,last=null;
+  for(const p of c.all){
+    if(last)elapsedSeconds+=dist([last.lat,last.lon],[p.lat,p.lon])*secondsPerMeter;
+    last=p;
+    msgs.push({mesgNum:Profile.MesgNum.RECORD,timestamp:t0+Math.round(elapsedSeconds),positionLat:Math.round(p.lat*2147483648/180),positionLong:Math.round(p.lon*2147483648/180),distance:p.meters,enhancedSpeed:1/secondsPerMeter,enhancedAltitude:0});
+  }
+  const end=t0+Math.round(c.elapsed);
+  msgs.push(
+    {mesgNum:Profile.MesgNum.EVENT,timestamp:end,event:'timer',eventType:'stop'},
+    {mesgNum:Profile.MesgNum.LAP,messageIndex:0,timestamp:end,startTime:t0,totalElapsedTime:c.elapsed,totalTimerTime:c.elapsed,totalDistance:c.total,sport:sportName,subSport:'generic'},
+    {mesgNum:Profile.MesgNum.SESSION,messageIndex:0,timestamp:end,startTime:t0,totalElapsedTime:c.elapsed,totalTimerTime:c.elapsed,totalDistance:c.total,sport:sportName,subSport:'generic',firstLapIndex:0,numLaps:1},
+    {mesgNum:Profile.MesgNum.ACTIVITY,timestamp:end,numSessions:1,localTimestamp:end-start.getTimezoneOffset()*60,totalTimerTime:c.elapsed}
+  );
+  const encoder=new Encoder();msgs.forEach(message=>encoder.writeMesg(message));
+  const bytes=encoder.close(),buffer=bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength);
+  const decoder=new Decoder(Stream.fromArrayBuffer(buffer));
+  if(!decoder.isFIT()||!decoder.checkIntegrity())throw Error('FIT 文件完整性校验失败');
+  const result=decoder.read();
+  if(result.errors?.length)throw Error('FIT 解码错误：'+result.errors.join('；'));
+  const keys=Object.keys(result.messages||{}),findKey=prefix=>keys.find(key=>key.toLowerCase().startsWith(prefix));
+  const recordKey=findKey('record');
+  if(!recordKey||!findKey('session')||!findKey('lap'))throw Error('FIT 文件缺少轨迹、圈段或运动概要消息');
+  save('lanshan-run.fit',bytes,'application/octet-stream');
+  note('FIT 已编码并通过完整性校验 · '+result.messages[recordKey].length+' 个轨迹点');
+}
+document.querySelectorAll('.export-card').forEach(b=>b.onclick=()=>{try{if(b.dataset.format==='fit'){b.disabled=true;note('正在加载 Garmin FIT 编码器…');fit().catch(e=>note(e.message||'FIT 导出失败')).finally(()=>b.disabled=false)}else ({gpx,tcx})[b.dataset.format]()}catch(e){note(e.message)}});$('helpBtn').onclick=()=>$('helpDialog').showModal();$('closeHelp').onclick=()=>$('helpDialog').close();$('gotIt').onclick=()=>$('helpDialog').close();draw();
 
 
 

@@ -56,3 +56,99 @@ document.querySelectorAll('.export-card').forEach(b=>b.onclick=()=>{try{if(b.dat
 
 
 
+
+function getBeijingDateString(){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const v=Object.fromEntries(parts.map(p=>[p.type,p.value]));
+  return v.year+'-'+v.month+'-'+v.day;
+}
+function planDayValue(d){return d.toISOString().slice(0,10)}
+function shiftPlanDay(value,amount){const d=new Date(value+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+amount);return planDayValue(d)}
+const planTomorrow=shiftPlanDay(getBeijingDateString(),1);
+$('planStart').value=planTomorrow;
+$('planEnd').value=shiftPlanDay(planTomorrow,13);
+let planSchedule=null;
+function clearPlanPreview(){planSchedule=null;$('downloadPlanZipBtn').disabled=true;$('planPreviewBody').innerHTML='<tr><td colspan="3">生成预览后显示安排</td></tr>'}
+function formatPlanTime(minutes){return String(Math.floor(minutes/60)).padStart(2,'0')+':'+String(minutes%60).padStart(2,'0')}
+function randomPlanPreview(){
+  try{
+    course();
+    const startValue=$('planStart').value,endValue=$('planEnd').value,count=Number($('planCount').value),format=$('planFormat').value;
+    if(!startValue||!endValue)throw Error('请选择开始和结束日期');
+    if(startValue>endValue)throw Error('结束日期不能早于开始日期');
+    const first=new Date(startValue+'T00:00:00Z'),last=new Date(endValue+'T00:00:00Z'),days=Math.round((last-first)/86400000)+1;
+    if(days<1||days>366)throw Error('日期范围最多选择一年');
+    if(!Number.isInteger(count)||count<1||count>days)throw Error('计划天数需在 1 到 '+days+' 天之间');
+    const available=Array.from({length:days},(_,i)=>shiftPlanDay(startValue,i));
+    for(let i=available.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[available[i],available[j]]=[available[j],available[i]]}
+    const entries=available.slice(0,count).map(date=>{
+      const minutes=1080+Math.floor(Math.random()*121),time= formatPlanTime(minutes);
+      const filename='lanshan-run-plan-'+date+'-'+time.replace(':','')+'.'+format;
+      return{date,time,filename,minutes};
+    }).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+    planSchedule={entries,format};
+    $('planPreviewBody').innerHTML=entries.map(e=>'<tr><td>'+e.date+'</td><td>'+e.time+'</td><td>'+e.filename+'</td></tr>').join('');
+    $('downloadPlanZipBtn').disabled=false;
+    $('planStatus').textContent='已安排 '+entries.length+' 天 · 时间均为北京时间';
+  }catch(e){clearPlanPreview();$('planStatus').textContent=e.message||'预览生成失败'}
+}
+function planTcxCourse(c,name){
+  const pts=c.all,first=pts[0],last=pts[pts.length-1];
+  const track=pts.map(p=>'<Trackpoint><Position><LatitudeDegrees>'+p.lat.toFixed(7)+'</LatitudeDegrees><LongitudeDegrees>'+p.lon.toFixed(7)+'</LongitudeDegrees></Position><AltitudeMeters>0</AltitudeMeters><DistanceMeters>'+p.meters.toFixed(2)+'</DistanceMeters></Trackpoint>').join('');
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"><Courses><Course><Name>'+esc(name)+'</Name><Lap><TotalTimeSeconds>'+c.elapsed.toFixed(1)+'</TotalTimeSeconds><DistanceMeters>'+c.total.toFixed(2)+'</DistanceMeters><BeginPosition><LatitudeDegrees>'+first.lat.toFixed(7)+'</LatitudeDegrees><LongitudeDegrees>'+first.lon.toFixed(7)+'</LongitudeDegrees></BeginPosition><EndPosition><LatitudeDegrees>'+last.lat.toFixed(7)+'</LatitudeDegrees><LongitudeDegrees>'+last.lon.toFixed(7)+'</LongitudeDegrees></EndPosition><Intensity>Active</Intensity></Lap><Track>'+track+'</Track></Course></Courses></TrainingCenterDatabase>';
+}
+async function planFitCourse(c,name,serial){
+  const {Encoder,Decoder,Stream,Profile,Utils}=await getFitSdk();
+  const baseTime=Utils.convertDateToDateTime(new Date('2000-01-01T00:00:00Z')),pts=c.all,first=pts[0],last=pts[pts.length-1];
+  const msgs=[
+    {mesgNum:Profile.MesgNum.FILE_ID,type:'course',manufacturer:'development',product:1,timeCreated:new Date(),serialNumber:serial},
+    {mesgNum:Profile.MesgNum.COURSE,name,sport:'running',subSport:'generic'},
+    {mesgNum:Profile.MesgNum.LAP,messageIndex:0,startTime:baseTime,timestamp:baseTime+Math.round(c.elapsed),totalElapsedTime:c.elapsed,totalTimerTime:c.elapsed,totalDistance:c.total,startPositionLat:Math.round(first.lat*2147483648/180),startPositionLong:Math.round(first.lon*2147483648/180),endPositionLat:Math.round(last.lat*2147483648/180),endPositionLong:Math.round(last.lon*2147483648/180),sport:'running',subSport:'generic'},
+    {mesgNum:Profile.MesgNum.EVENT,timestamp:baseTime,event:'timer',eventType:'start'}
+  ];
+  let seconds=0,previous=null;
+  for(const p of pts){
+    if(previous)seconds+=dist([previous.lat,previous.lon],[p.lat,p.lon])*c.pace/1000;
+    previous=p;
+    msgs.push({mesgNum:Profile.MesgNum.RECORD,timestamp:baseTime+Math.round(seconds),positionLat:Math.round(p.lat*2147483648/180),positionLong:Math.round(p.lon*2147483648/180),distance:p.meters,speed:1000/c.pace});
+  }
+  msgs.push({mesgNum:Profile.MesgNum.EVENT,timestamp:baseTime+Math.round(c.elapsed),event:'timer',eventType:'stopDisableAll'});
+  const encoder=new Encoder();msgs.forEach(m=>encoder.writeMesg(m));const bytes=encoder.close();
+  const buffer=bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),decoder=new Decoder(Stream.fromArrayBuffer(buffer));
+  if(!decoder.isFIT()||!decoder.checkIntegrity())throw Error('FIT Course 文件完整性校验失败');
+  const result=decoder.read();if(result.errors?.length)throw Error('FIT Course 解码错误：'+result.errors.join('；'));
+  return bytes;
+}
+function planGpxRoute(c,name){
+  const routePoints=c.all.map((p,i)=>'<rtept lat="'+p.lat.toFixed(7)+'" lon="'+p.lon.toFixed(7)+'"><name>路线点 '+(i+1)+'</name></rtept>').join('');
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Lanshan Run" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>'+esc(name)+'</name><desc>计划路线，不是运动记录。</desc></metadata><rte><name>'+esc(name)+'</name><desc>GPX Route 规划路线，无活动时间戳。</desc>'+routePoints+'</rte></gpx>';
+}
+async function downloadPlanZip(){
+  const button=$('downloadPlanZipBtn');button.disabled=true;
+  try{
+    if(!planSchedule)throw Error('请先生成预览');
+    if(!window.JSZip)throw Error('ZIP 组件未加载，请检查网络后重试');
+    const c=course(),zip=new JSZip(),rows=[],format=planSchedule.format;
+    for(let i=0;i<planSchedule.entries.length;i++){
+      const entry=planSchedule.entries[i],name='Run '+entry.date.slice(5).replace('-','')+' '+entry.time.replace(':','');
+      let data;
+      if(format==='tcx')data=planTcxCourse(c,name);
+      else if(format==='fit')data=await planFitCourse(c,name,courseSerial(entry.filename));
+      else data=planGpxRoute(c,name);
+      zip.file('courses/'+entry.filename,data);
+      rows.push([entry.date,entry.time,'Asia/Shanghai',format==='tcx'?'TCX Course':format==='fit'?'FIT Course':'GPX Route',filenameForPlan(entry.filename),(c.total/1000).toFixed(2)]);
+      $('planStatus').textContent='正在生成路线课程 '+(i+1)+' / '+planSchedule.entries.length;
+    }
+    const quote=value=>'"'+String(value).replace(/"/g,'""')+'"';
+    zip.file('training-plan.csv','\uFEFF'+['日期,北京时间,时区,文件类型,文件名,路线距离(km)',...rows.map(row=>row.map(quote).join(','))].join('\r\n'));
+    zip.file('README.txt','Lanshan Run 计划路线包\r\n\r\nZIP 内包含 GPX Route、TCX Course 或 FIT Course 路线文件及计划表。它们描述规划路线，不是已完成运动记录。文件不含所选日期的活动时间戳；计划日期和北京时间仅列在文件名与 CSV 计划表中。\r\n');
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+    save('lanshan-run-plan-'+planSchedule.entries[0].date+'-'+planSchedule.entries.at(-1).date+'.zip',blob,'application/zip');
+    $('planStatus').textContent='已打包 '+rows.length+' 个路线计划文件 · 日期时间为北京时间';
+  }catch(e){$('planStatus').textContent=e.message||'计划 ZIP 生成失败'}
+  finally{button.disabled=false}
+}
+function filenameForPlan(name){return name}
+$('previewPlanBtn').onclick=randomPlanPreview;
+$('downloadPlanZipBtn').onclick=downloadPlanZip;
+['planStart','planEnd','planCount','planFormat'].forEach(id=>$(id).addEventListener('change',()=>{clearPlanPreview();$('planStatus').textContent='设置已变更，请重新生成预览'}));

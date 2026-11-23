@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>靴子抢夺战</title>
+<meta name="theme-color" content="#1f3a2c" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="game">
+    <header class="hud">
+      <div class="stat">
+        <span class="label">得分</span>
+        <strong id="score">0</strong>
+      </div>
+      <div class="stat combo" id="comboBox">
+        <span class="label">连击</span>
+        <strong id="combo">0</strong>
+      </div>
+      <div class="stat">
+        <span class="label">剩余</span>
+        <strong id="time">45</strong>
+      </div>
+    </header>
+
+    <div class="arena-wrap">
+      <div class="arena" id="arena"></div>
+      <footer class="coach">
+        <div class="grabber" id="grabber">
+          <span class="bubble" id="bubble">抢靴子！</span>
+          <img src="assets/grabber.png" alt="抢靴子的人物" draggable="false" />
+        </div>
+        <div class="hint" id="hint">靴子钻出洞口就点它，点得越快分越高</div>
+      </footer>
+    </div>
+  </div>
+
+  <div class="overlay" id="startOverlay">
+    <div class="panel">
+      <div class="panel-boot">
+        <img src="assets/boot.png" alt="" onerror="this.onerror=null;this.src='assets/boot.svg'" />
+      </div>
+      <h1>靴子抢夺战</h1>
+      <p class="sub">草地上有 9 个洞，靴子会突然冒出来。<br />抢在它缩回去之前点中它。</p>
+      <ul class="rules">
+        <li><b>+10</b> 每只普通靴子，连击越高加成越多</li>
+        <li><b>金靴</b> 出现得少，分值翻倍</li>
+        <li>漏掉一只会断连击，时间 45 秒</li>
+      </ul>
+      <button class="btn primary" id="startBtn">开始</button>
+      <p class="best" id="bestLine"></p>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="endOverlay">
+    <div class="panel">
+      <h2 id="endTitle">时间到</h2>
+      <p class="score-big"><span id="finalScore">0</span><small>分</small></p>
+      <p class="sub" id="endComment">再试一次，手速还能更快。</p>
+      <div class="end-stats">
+        <div><span>命中</span><b id="hitCount">0</b></div>
+        <div><span>最高连击</span><b id="maxCombo">0</b></div>
+        <div><span>最佳</span><b id="bestScore">0</b></div>
+      </div>
+      <button class="btn primary" id="againBtn">再来一局</button>
+      <button class="btn ghost" id="homeBtn">回到首页</button>
+    </div>
+  </div>
+
+  <button class="sound" id="soundBtn" aria-label="声音开关" title="声音开关">🔊</button>
+
+  <script src="game.js"></script>
+</body>
+</html>

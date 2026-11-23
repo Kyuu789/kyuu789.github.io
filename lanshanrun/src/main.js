@@ -63,6 +63,7 @@ function getBeijingDateString(){
   return v.year+'-'+v.month+'-'+v.day;
 }
 function planDayValue(d){return d.toISOString().slice(0,10)}
+function planSerial(value){let h=2166136261;for(const ch of value)h=Math.imul(h^ch.charCodeAt(0),16777619);return (h>>>0)||1}
 function shiftPlanDay(value,amount){const d=new Date(value+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+amount);return planDayValue(d)}
 const planTomorrow=shiftPlanDay(getBeijingDateString(),1);
 $('planStart').value=planTomorrow;
@@ -133,7 +134,7 @@ async function downloadPlanZip(){
       const entry=planSchedule.entries[i],name='Run '+entry.date.slice(5).replace('-','')+' '+entry.time.replace(':','');
       let data;
       if(format==='tcx')data=planTcxCourse(c,name);
-      else if(format==='fit')data=await planFitCourse(c,name,courseSerial(entry.filename));
+      else if(format==='fit')data=await planFitCourse(c,name,planSerial(entry.filename));
       else data=planGpxRoute(c,name);
       zip.file('courses/'+entry.filename,data);
       rows.push([entry.date,entry.time,'Asia/Shanghai',format==='tcx'?'TCX Course':format==='fit'?'FIT Course':'GPX Route',filenameForPlan(entry.filename),(c.total/1000).toFixed(2)]);

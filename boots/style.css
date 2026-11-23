@@ -494,12 +494,13 @@ h2{margin:0 0 4px;font-size:26px;color:#3a2716}
 }
 .toilet-scene.show{display:flex;animation:fade .15s ease-out}
 
-.toilet-mouth{
+.toilet-img{
   position:relative;
   z-index:2;
-  margin-top:clamp(40px,10vh,90px);
-  font-size:clamp(96px,26vw,150px);
-  line-height:1;
+  width:190px;
+  width:clamp(150px,44vw,230px);
+  height:auto;
+  margin-top:clamp(20px,6vh,56px);
   filter:drop-shadow(0 14px 18px rgba(0,0,0,.45));
   animation:toiletShake .5s ease-out;
 }
@@ -512,9 +513,10 @@ h2{margin:0 0 4px;font-size:26px;color:#3a2716}
 
 .fall-guy{
   position:absolute;
-  top:42%;
+  top:30%;
   left:50%;
   z-index:1;
+  width:90px;
   width:clamp(76px,20vw,112px);
   transform:translate(-50%,-50%);
   animation:fallInto 1.5s cubic-bezier(.4,0,.7,1) forwards;
@@ -566,7 +568,7 @@ h2{margin:0 0 4px;font-size:26px;color:#3a2716}
   .grabber{width:72px}
   .bubble{font-size:10px;padding:4px 7px;left:50%}
   .hint{font-size:11px;padding-bottom:6px}
-  .toilet-mouth{font-size:110px;margin-top:60px}
+  .toilet-img{width:165px;margin-top:10px}
   .calm-text{font-size:13px}
   .panel{padding:22px 20px 18px}
   h1{font-size:29px}

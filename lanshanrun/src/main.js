@@ -399,7 +399,7 @@
       if (!planSchedule) throw new Error('请先生成预览');
       if (!window.JSZip) throw new Error('ZIP 组件未加载，请检查网络后重试');
 
-      const { entries, format, geometry } = planSchedule;
+      const { entries, format } = planSchedule;
       const settings = readSettings();
       const zip = new JSZip();
       let sdk = null;
@@ -409,22 +409,29 @@
         const entry = entries[i];
         const name = `Run ${entry.date.slice(5).replace('-', '')} ${entry.time.replace(':', '')}`;
         const start = new Date(`${entry.date}T${entry.time}:00+08:00`);
+        // 每天的条目都是一条完整运动记录（与 05 单次导出结构一致），不是路线课程
+        const activity = F.buildActivity({
+          points: state.points,
+          closed: state.closed,
+          laps: settings.laps,
+          pace: settings.pace,
+          sport: state.sport,
+          start,
+          weight: settings.weight,
+        });
+        const check = F.validateActivity(activity);
+        if (!check.ok) throw new Error(`${entry.date} 的数据自检未通过：${check.issues[0]}`);
+
         let data;
         if (format === 'tcx') {
-          data = F.toTcxCourse(geometry, name, { pace: settings.pace, start });
+          data = F.toTcx(activity, name);
         } else if (format === 'fit') {
-          data = F.toFitCourse(geometry, sdk, {
-            name,
-            sport: state.sport,
-            pace: settings.pace,
-            start,
-            serialNumber: planSerial(entry.filename),
-          }).bytes;
+          data = F.toFitActivity(activity, sdk, { serialNumber: planSerial(entry.filename) }).bytes;
         } else {
-          data = F.toGpxRoute(geometry, name);
+          data = F.toGpx(activity, name);
         }
-        zip.file(`courses/${entry.filename}`, data);
-        $('planStatus').textContent = `正在生成路线课程 ${i + 1} / ${entries.length}`;
+        zip.file(entry.filename, data);
+        $('planStatus').textContent = `正在生成运动记录 ${i + 1} / ${entries.length}`;
       }
 
       const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
@@ -433,7 +440,7 @@
         blob,
         'application/zip'
       );
-      $('planStatus').textContent = `已打包 ${entries.length} 个路线课程文件`;
+      $('planStatus').textContent = `已打包 ${entries.length} 条运动记录（每日一个文件，结构与 05 单次导出相同）`;
     } catch (e) {
       $('planStatus').textContent = e.message || '计划 ZIP 生成失败';
     } finally {

@@ -3,7 +3,30 @@ const tiles=[L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{m
 function draw(){lines.clearLayers();pins.clearLayers();let p=closed&&points.length>2?[...points,points[0]]:points;if(p.length>1)L.polyline(p,{color:'#174d37',weight:5,lineCap:'round',lineJoin:'round'}).addTo(lines);points.forEach((x,i)=>L.circleMarker(x,{radius:i===0||i===points.length-1?7:5,color:'white',weight:3,fillColor:i===0?'#c36c42':'#174d37',fillOpacity:1}).bindTooltip(i===0?'起点':`点 ${i+1}`).addTo(pins));const km=total()/1000,pace=+$('pace').value,laps=+$('laps').value;$('pointCount').textContent=`${points.length} 个点`;$('distance').innerHTML=`${(km*laps).toFixed(2)} <i>km</i>`;$('duration').textContent=time(km*laps*pace);$('paceValue').textContent=`${Math.floor(pace/60)}:${String(pace%60).padStart(2,'0')} /km`;$('lapsValue').textContent=`${laps} 圈`;note(points.length<2?'点击地图添加路线点':`${points.length} 个路线点 · ${(km*laps).toFixed(2)} km`);$('undoBtn').disabled=!points.length;$('reverseBtn').disabled=points.length<2;$('closeBtn').disabled=points.length<3;$('clearBtn').disabled=!points.length}
 map.on('click',e=>{points.push([e.latlng.lat,e.latlng.lng]);closed=false;draw()});$('undoBtn').onclick=()=>{points.pop();closed=false;draw()};$('reverseBtn').onclick=()=>{points.reverse();draw()};$('closeBtn').onclick=()=>{closed=!closed;draw()};$('clearBtn').onclick=()=>{points=[];closed=false;draw()};$('pace').oninput=draw;$('laps').oninput=draw;document.querySelectorAll('.sport').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sport').forEach(x=>x.classList.remove('active'));b.classList.add('active');sport=b.dataset.sport;draw()});
 async function search(){let q=$('searchInput').value.trim();if(!q)return;note('正在搜索地点…');try{let r=await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`),a=await r.json();if(!a.length)throw Error('没有找到这个地点');map.setView([+a[0].lat,+a[0].lon],15);$('mapLabel').textContent=a[0].display_name.split(',').slice(0,2).join(' · ');note('地点已定位，点击地图绘制')}catch(e){note(e.message||'搜索失败，请稍后重试')}}$('searchBtn').onclick=search;$('searchInput').onkeydown=e=>{if(e.key==='Enter')search()};$('locateBtn').onclick=()=>map.locate({setView:true,maxZoom:15});map.on('locationfound',()=>note('已定位到当前位置'));map.on('locationerror',()=>note('无法获取位置，请检查浏览器定位权限'));$('fitBtn').onclick=()=>points.length&&map.fitBounds(L.latLngBounds(points).pad(.18));$('layerBtn').onclick=()=>{map.removeLayer(tiles[layer]);layer=1-layer;tiles[layer].addTo(map)};
-function course(){if(points.length<2)throw Error('请先在地图上添加至少两个路线点');let pts=points.map(p=>[...p]);if(closed&&pts.length>2)pts.push(pts[0]);let length=0,base=pts.map((p,i)=>{if(i)length+=dist(pts[i-1],p);return{lat:p[0],lon:p[1],meters:length}}),laps=+$('laps').value,pace=+$('pace').value,all=[];for(let n=0;n<laps;n++)base.forEach(p=>all.push({...p,meters:p.meters+n*length}));return{base,all,total:length*laps,elapsed:length*laps/1000*pace,pace}}
+function course(){
+  if(points.length<2)throw Error('请先在地图上添加至少两个路线点');
+  const raw=points.map(p=>[...p]);
+  if(closed&&raw.length>2)raw.push(raw[0]);
+  const dense=[[...raw[0]]];
+  for(let i=1;i<raw.length;i++){
+    const from=raw[i-1],to=raw[i],segment=dist(from,to),steps=Math.max(1,Math.ceil(segment/10));
+    for(let step=1;step<=steps;step++){
+      const ratio=step/steps;
+      dense.push([from[0]+(to[0]-from[0])*ratio,from[1]+(to[1]-from[1])*ratio]);
+    }
+  }
+  let length=0;
+  const base=dense.map((p,i)=>{
+    if(i)length+=dist(dense[i-1],p);
+    return{lat:p[0],lon:p[1],meters:length};
+  });
+  const laps=+$('laps').value,pace=+$('pace').value,all=[];
+  for(let n=0;n<laps;n++)base.forEach((p,i)=>{
+    if(n>0&&i===0)return;
+    all.push({...p,meters:p.meters+n*length});
+  });
+  return{base,all,total:length*laps,elapsed:length*laps/1000*pace,pace};
+}
 function save(name,data,type){let u=URL.createObjectURL(new Blob([data],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
 function gpx(){let c=course(),start=activityStart(),seconds=0,last=null,track=c.all.map(p=>{if(last)seconds+=dist([last.lat,last.lon],[p.lat,p.lon])*c.pace/1000;last=p;return`<trkpt lat="${p.lat.toFixed(7)}" lon="${p.lon.toFixed(7)}"><ele>0</ele><time>${new Date(start.getTime()+seconds*1000).toISOString()}</time></trkpt>`}).join('');save('lanshan-run.gpx',`<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="Lanshan Run" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>Lanshan Run</name><time>${start.toISOString()}</time></metadata><trk><name>Lanshan Run</name><type>${sport}</type><trkseg>${track}</trkseg></trk></gpx>`,'application/gpx+xml')}
 function tcx(){let c=course(),start=activityStart(),seconds=0,last=null,track=c.all.map(p=>{if(last)seconds+=dist([last.lat,last.lon],[p.lat,p.lon])*c.pace/1000;last=p;return`<Trackpoint><Time>${new Date(start.getTime()+seconds*1000).toISOString()}</Time><Position><LatitudeDegrees>${p.lat.toFixed(7)}</LatitudeDegrees><LongitudeDegrees>${p.lon.toFixed(7)}</LongitudeDegrees></Position><AltitudeMeters>0</AltitudeMeters><DistanceMeters>${p.meters.toFixed(2)}</DistanceMeters></Trackpoint>`}).join(''),type=sport==='running'?'Running':sport==='cycling'?'Biking':'Other';save('lanshan-run.tcx',`<?xml version="1.0" encoding="UTF-8"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"><Activities><Activity Sport="${type}"><Id>${start.toISOString()}</Id><Lap StartTime="${start.toISOString()}"><TotalTimeSeconds>${c.elapsed.toFixed(1)}</TotalTimeSeconds><DistanceMeters>${c.total.toFixed(2)}</DistanceMeters><Calories>0</Calories><Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${track}</Track></Lap></Activity></Activities></TrainingCenterDatabase>`,'application/vnd.garmin.tcx+xml')}

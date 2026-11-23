@@ -130,37 +130,31 @@
     $('reverseBtn').disabled = state.points.length < 2;
     $('closeBtn').disabled = state.points.length < 3;
     $('clearBtn').disabled = !state.points.length;
-    $('planStatus').textContent = state.points.length >= 2 ? '路线已就绪，可生成计划预览。' : '先在地图上画好路线。';
   }
 
   map.on('click', (e) => {
     state.points.push([e.latlng.lat, e.latlng.lng]);
     state.closed = false;
-    clearPlanPreview();
     draw();
   });
 
   $('undoBtn').onclick = () => {
     state.points.pop();
     state.closed = false;
-    clearPlanPreview();
     draw();
   };
   $('reverseBtn').onclick = () => {
     state.points.reverse();
     state.closed = false;
-    clearPlanPreview();
     draw();
   };
   $('closeBtn').onclick = () => {
     state.closed = !state.closed;
-    clearPlanPreview();
     draw();
   };
   $('clearBtn').onclick = () => {
     state.points = [];
     state.closed = false;
-    clearPlanPreview();
     draw();
   };
   $('pace').oninput = draw;
@@ -175,7 +169,6 @@
       document.querySelectorAll('.sport').forEach((x) => x.classList.remove('active'));
       button.classList.add('active');
       state.sport = button.dataset.sport;
-      clearPlanPreview();
       draw();
     };
   });
@@ -311,162 +304,6 @@
   $('helpBtn').onclick = () => $('helpDialog').showModal();
   $('closeHelp').onclick = () => $('helpDialog').close();
   $('gotIt').onclick = () => $('helpDialog').close();
-
-  /* --------------------------- 随机训练计划 --------------------------- */
-  function beijingDateString() {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Shanghai',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).formatToParts(new Date());
-    const v = Object.fromEntries(parts.map((p) => [p.type, p.value]));
-    return `${v.year}-${v.month}-${v.day}`;
-  }
-  function isoDay(d) {
-    return d.toISOString().slice(0, 10);
-  }
-  function shiftDay(value, amount) {
-    const d = new Date(`${value}T00:00:00Z`);
-    d.setUTCDate(d.getUTCDate() + amount);
-    return isoDay(d);
-  }
-  function planSerial(value) {
-    let h = 2166136261;
-    for (const ch of value) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
-    return (h >>> 0) || 1;
-  }
-  function formatPlanTime(minutes) {
-    return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
-  }
-
-  const planTomorrow = shiftDay(beijingDateString(), 1);
-  $('planStart').value = planTomorrow;
-  $('planEnd').value = shiftDay(planTomorrow, 13);
-
-  let planSchedule = null;
-
-  function clearPlanPreview() {
-    planSchedule = null;
-    $('downloadPlanZipBtn').disabled = true;
-    $('planPreviewBody').innerHTML = '<tr><td colspan="3">生成预览后显示安排</td></tr>';
-  }
-
-  function randomPlanPreview() {
-    try {
-      const startValue = $('planStart').value;
-      const endValue = $('planEnd').value;
-      const count = Number($('planCount').value);
-      const format = $('planFormat').value;
-      if (!startValue || !endValue) throw new Error('请选择开始和结束日期');
-      if (startValue > endValue) throw new Error('结束日期不能早于开始日期');
-
-      // 先验证路线可生成课程
-      const geometry = F.buildGeometry(state.points, state.closed);
-
-      const first = new Date(`${startValue}T00:00:00Z`);
-      const last = new Date(`${endValue}T00:00:00Z`);
-      const days = Math.round((last - first) / 86400000) + 1;
-      if (days < 1 || days > 366) throw new Error('日期范围最多选择一年');
-      if (!Number.isInteger(count) || count < 1 || count > days) throw new Error(`计划天数需在 1 到 ${days} 天之间`);
-
-      const available = Array.from({ length: days }, (_, i) => shiftDay(startValue, i));
-      for (let i = available.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [available[i], available[j]] = [available[j], available[i]];
-      }
-
-      const entries = available
-        .slice(0, count)
-        .map((date) => {
-          const minutes = 1080 + Math.floor(Math.random() * 121); // 18:00 - 20:00
-          const time = formatPlanTime(minutes);
-          const filename = `lanshan-run-plan-${date}-${time.replace(':', '')}.${format}`;
-          return { date, time, filename, minutes };
-        })
-        .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-
-      planSchedule = { entries, format, geometry };
-      $('planPreviewBody').innerHTML = entries
-        .map((e) => `<tr><td>${e.date}</td><td>${e.time}</td><td>${e.filename}</td></tr>`)
-        .join('');
-      $('downloadPlanZipBtn').disabled = false;
-      $('planStatus').textContent = `已安排 ${entries.length} 天 · 时间均为北京时间 · 单程 ${(
-        geometry.length / 1000
-      ).toFixed(2)} km`;
-    } catch (e) {
-      clearPlanPreview();
-      $('planStatus').textContent = e.message || '预览生成失败';
-    }
-  }
-
-  async function downloadPlanZip() {
-    const button = $('downloadPlanZipBtn');
-    button.disabled = true;
-    try {
-      if (!planSchedule) throw new Error('请先生成预览');
-      if (!window.JSZip) throw new Error('ZIP 组件未加载，请检查网络后重试');
-
-      const { entries, format } = planSchedule;
-      const settings = readSettings();
-      const zip = new JSZip();
-      let sdk = null;
-      if (format === 'fit') sdk = await getFitSdk();
-
-      for (let i = 0; i < entries.length; i++) {
-        const entry = entries[i];
-        const name = `Run ${entry.date.slice(5).replace('-', '')} ${entry.time.replace(':', '')}`;
-        const start = new Date(`${entry.date}T${entry.time}:00+08:00`);
-        // 每天的条目都是一条完整运动记录（与 05 单次导出结构一致），不是路线课程
-        const activity = F.buildActivity({
-          points: state.points,
-          closed: state.closed,
-          laps: settings.laps,
-          pace: settings.pace,
-          sport: state.sport,
-          start,
-          weight: settings.weight,
-          heartRate: settings.heartRate,
-          cadence: settings.cadence,
-          altitude: settings.altitude,
-        });
-        const check = F.validateActivity(activity);
-        if (!check.ok) throw new Error(`${entry.date} 的数据自检未通过：${check.issues[0]}`);
-
-        let data;
-        if (format === 'tcx') {
-          data = F.toTcx(activity, name);
-        } else if (format === 'fit') {
-          data = F.toFitActivity(activity, sdk, { serialNumber: planSerial(entry.filename) }).bytes;
-        } else {
-          data = F.toGpx(activity, name);
-        }
-        zip.file(entry.filename, data);
-        $('planStatus').textContent = `正在生成运动记录 ${i + 1} / ${entries.length}`;
-      }
-
-      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
-      save(
-        `lanshan-run-plan-${entries[0].date}-${entries[entries.length - 1].date}.zip`,
-        blob,
-        'application/zip'
-      );
-      $('planStatus').textContent = `已打包 ${entries.length} 条运动记录（每日一个文件，结构与 05 单次导出相同）`;
-    } catch (e) {
-      $('planStatus').textContent = e.message || '计划 ZIP 生成失败';
-    } finally {
-      button.disabled = false;
-    }
-  }
-
-  $('previewPlanBtn').onclick = randomPlanPreview;
-  $('downloadPlanZipBtn').onclick = downloadPlanZip;
-  ['planStart', 'planEnd', 'planCount', 'planFormat'].forEach((id) => {
-    $(id).addEventListener('change', () => {
-      clearPlanPreview();
-      $('planStatus').textContent = '设置已变更，请重新生成预览';
-    });
-  });
 
   draw();
 })();

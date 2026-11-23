@@ -267,6 +267,13 @@
     return '';
   }
 
+  function activityFileName(activity, ext) {
+    const d = activity.start;
+    const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const time = `${pad(d.getHours())}${pad(d.getMinutes())}`;
+    return `lanshan-run-${date}-${time}.${ext}`;
+  }
+
   async function exportFormat(format, button) {
     try {
       if (button) button.disabled = true;
@@ -278,13 +285,13 @@
       )} · 约 ${activity.calories} kcal`;
 
       if (format === 'gpx') {
-        save('lanshan-run.gpx', F.toGpx(activity), 'application/gpx+xml');
+        save(activityFileName(activity, 'gpx'), F.toGpx(activity), 'application/gpx+xml');
       } else if (format === 'tcx') {
-        save('lanshan-run.tcx', F.toTcx(activity), 'application/vnd.garmin.tcx+xml');
+        save(activityFileName(activity, 'tcx'), F.toTcx(activity), 'application/vnd.garmin.tcx+xml');
       } else {
         const sdk = await getFitSdk();
         const { bytes } = F.toFitActivity(activity, sdk);
-        save('lanshan-run.fit', bytes, 'application/octet-stream');
+        save(activityFileName(activity, 'fit'), bytes, 'application/octet-stream');
         summary = `已导出 FIT（CRC 校验通过）· ${activity.samples.length} 个采样点 · ${km} km · ${duration(
           activity.totalElapsed
         )} · 约 ${activity.calories} kcal`;

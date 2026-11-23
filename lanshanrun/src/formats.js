@@ -110,6 +110,12 @@
     };
   }
 
+  function clampNumber(value, min, max, fallback) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return fallback;
+    return Math.min(max, Math.max(min, Math.round(n)));
+  }
+
   function estimateCalories(sport, seconds, weightKg) {
     const meta = sportMeta(sport);
     const weight = Number(weightKg) > 0 ? Number(weightKg) : 65;
@@ -129,6 +135,9 @@
       sport = 'running',
       start,
       weight = 65,
+      heartRate = 145,
+      cadence = 170,
+      altitude = 7,
       maxSamples = 20000,
     } = options || {};
 
@@ -142,6 +151,9 @@
     const totalDistance = length * lapCount;
     const speed = 1000 / paceSeconds; // 米/秒
     const totalElapsed = Math.round(totalDistance / speed);
+    const hr = clampNumber(heartRate, 60, 240, 145);
+    const cad = clampNumber(cadence, 30, 260, 170);
+    const ele = clampNumber(altitude, -500, 9000, 7);
 
     // 超长路线降采样，避免生成几十万个点导致设备拒绝
     const step = totalElapsed > maxSamples ? Math.ceil(totalElapsed / maxSamples) : 1;
@@ -197,6 +209,9 @@
       autoClosed: routeData.autoClosed,
       sampleSeconds: step,
       weight: Number(weight) > 0 ? Number(weight) : 65,
+      heartRate: hr,
+      cadence: cad,
+      altitude: ele,
     };
   }
 
@@ -274,12 +289,15 @@
     const points = activity.samples
       .map(
         (p) =>
-          `<trkpt lat="${p.lat.toFixed(7)}" lon="${p.lon.toFixed(7)}"><ele>0</ele><time>${p.time.toISOString()}</time></trkpt>`
+          `<trkpt lat="${p.lat.toFixed(7)}" lon="${p.lon.toFixed(7)}"><ele>${activity.altitude}</ele><time>${p.time.toISOString()}</time>` +
+          `<extensions><gpxtpx:TrackPointExtension><gpxtpx:hr>${activity.heartRate}</gpxtpx:hr><gpxtpx:cad>${activity.cadence}</gpxtpx:cad></gpxtpx:TrackPointExtension></extensions>` +
+          '</trkpt>'
       )
       .join('');
     return (
       '<?xml version="1.0" encoding="UTF-8"?>\n' +
       '<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' +
+      ' xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"' +
       ' xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"' +
       ` version="1.1" creator="${SOURCE}">` +
       `<metadata><name>${xmlEscape(title)}</name><time>${activity.start.toISOString()}</time></metadata>` +
@@ -290,7 +308,10 @@
 
   /* ------------------------------ TCX ------------------------------ */
 
-  function tcxTrackpoints(samples, withTime) {
+  function tcxTrackpoints(samples, withTime, activity) {
+    const hr = activity ? `<HeartRateBpm><Value>${activity.heartRate}</Value></HeartRateBpm>` : '';
+    const cad = activity ? `<Cadence>${activity.cadence}</Cadence>` : '';
+    const alt = activity ? activity.altitude : 0;
     return samples
       .map((p) => {
         const time = withTime ? `<Time>${p.time.toISOString()}</Time>` : '';
@@ -298,7 +319,9 @@
           '<Trackpoint>' +
           time +
           `<Position><LatitudeDegrees>${p.lat.toFixed(7)}</LatitudeDegrees><LongitudeDegrees>${p.lon.toFixed(7)}</LongitudeDegrees></Position>` +
-          `<AltitudeMeters>0</AltitudeMeters><DistanceMeters>${p.distance.toFixed(2)}</DistanceMeters>` +
+          `<AltitudeMeters>${alt}</AltitudeMeters><DistanceMeters>${p.distance.toFixed(2)}</DistanceMeters>` +
+          hr +
+          cad +
           '</Trackpoint>'
         );
       })
@@ -310,14 +333,17 @@
     const laps = activity.laps
       .map((lap) => {
         const points = activity.samples.filter((p) => p.t >= lap.startSecond && p.t <= lap.endSecond);
-        const track = tcxTrackpoints(points, true);
+        const track = tcxTrackpoints(points, true, activity);
         return (
           `<Lap StartTime="${new Date(activity.start.getTime() + lap.startSecond * 1000).toISOString()}">` +
           `<TotalTimeSeconds>${lap.elapsed.toFixed(1)}</TotalTimeSeconds>` +
           `<DistanceMeters>${lap.distance.toFixed(2)}</DistanceMeters>` +
           `<MaximumSpeed>${activity.speed.toFixed(3)}</MaximumSpeed>` +
           `<Calories>${lap.calories}</Calories>` +
-          '<Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod>' +
+          `<AverageHeartRateBpm><Value>${activity.heartRate}</Value></AverageHeartRateBpm>` +
+          '<Intensity>Active</Intensity>' +
+          `<Cadence>${activity.cadence}</Cadence>` +
+          '<TriggerMethod>Manual</TriggerMethod>' +
           `<Track>${track}</Track></Lap>`
         );
       })
@@ -472,11 +498,13 @@
         timestamp: t0 + p.t,
         positionLat: halfLat(p.lat),
         positionLong: halfLon(p.lon),
-        altitude: 0,
-        enhancedAltitude: 0,
+        altitude: activity.altitude,
+        enhancedAltitude: activity.altitude,
         distance: p.distance,
         speed: activity.speed,
         enhancedSpeed: activity.speed,
+        heartRate: activity.heartRate,
+        cadence: activity.cadence,
       });
     });
 
@@ -496,6 +524,8 @@
         totalTimerTime: lap.elapsed,
         totalDistance: lap.distance,
         totalCalories: lap.calories,
+        avgHeartRate: activity.heartRate,
+        avgCadence: activity.cadence,
         avgSpeed: activity.speed,
         maxSpeed: activity.speed,
         enhancedAvgSpeed: activity.speed,
@@ -522,6 +552,8 @@
         totalTimerTime: activity.totalElapsed,
         totalDistance: activity.totalDistance,
         totalCalories: activity.calories,
+        avgHeartRate: activity.heartRate,
+        avgCadence: activity.cadence,
         avgSpeed: activity.speed,
         maxSpeed: activity.speed,
         enhancedAvgSpeed: activity.speed,

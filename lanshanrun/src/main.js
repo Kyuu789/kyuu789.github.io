@@ -51,6 +51,9 @@
       pace: Number($('pace').value),
       laps: Number($('laps').value),
       weight: Number($('weight').value),
+      heartRate: Number($('heartRate').value),
+      cadence: Number($('cadence').value),
+      altitude: Number($('altitude').value),
     };
   }
 
@@ -111,7 +114,6 @@
     $('paceLabel').innerHTML = `${Math.floor(settings.pace / 60)}:${pad(Math.round(settings.pace % 60))} <i>/km</i>`;
     $('lapsValue').textContent =
       settings.laps > 1 ? `${settings.laps} 圈 · ${((stats.length || 0) / 1000).toFixed(2)} km/圈` : '1 圈';
-    $('weightValue').textContent = `${settings.weight} kg`;
 
     if (!state.points.length) {
       note('点击地图添加路线点');
@@ -163,7 +165,10 @@
   };
   $('pace').oninput = draw;
   $('laps').oninput = draw;
-  $('weight').oninput = draw;
+  ['weight', 'heartRate', 'cadence', 'altitude'].forEach((id) => {
+    const el = $(id);
+    if (el) el.oninput = draw;
+  });
 
   document.querySelectorAll('.sport').forEach((button) => {
     button.onclick = () => {
@@ -253,6 +258,9 @@
       sport: state.sport,
       start,
       weight: settings.weight,
+      heartRate: settings.heartRate,
+      cadence: settings.cadence,
+      altitude: settings.altitude,
     });
     const check = F.validateActivity(activity);
     if (!check.ok) throw new Error('运动数据自检未通过：' + check.issues[0]);
@@ -418,6 +426,9 @@
           sport: state.sport,
           start,
           weight: settings.weight,
+          heartRate: settings.heartRate,
+          cadence: settings.cadence,
+          altitude: settings.altitude,
         });
         const check = F.validateActivity(activity);
         if (!check.ok) throw new Error(`${entry.date} 的数据自检未通过：${check.issues[0]}`);

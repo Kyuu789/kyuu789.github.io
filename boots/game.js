@@ -175,7 +175,7 @@
     updateHud();
     timeEl.textContent = String(ROUND_SECONDS);
     timeEl.style.color = '';
-    hintEl.textContent = '靴子钻出洞口就点它，点得越快分越高';
+    hintEl.textContent = '靴子可能同时冒出来，点得越快分越高';
     react('开抢！');
 
     startOverlay.classList.add('hidden');
@@ -201,7 +201,9 @@
     state.spawnId = window.setTimeout(() => {
       if (!state.running) return;
       if (state.paused) { scheduleSpawn(500); return; }
-      spawn();
+      const p = progress();
+      const count = p < 0.2 ? 1 : (p < 0.55 ? 2 : (Math.random() < 0.4 ? 3 : 2));
+      for (let i = 0; i < count; i++) spawn();
       scheduleSpawn(nextDelay());
     }, delay);
   }
@@ -219,13 +221,13 @@
 
   function upDuration() {
     const p = progress();
-    return 1150 - p * 480 + Math.random() * 170;
+    return 1200 - p * 430 + Math.random() * 170;
   }
 
   function spawn() {
     if (!state.running || state.paused) return;
     const p = progress();
-    const maxActive = p < 0.2 ? 2 : (p < 0.6 ? 3 : 4);
+    const maxActive = p < 0.2 ? 2 : (p < 0.6 ? 4 : 5);
     if (state.occupied >= maxActive) return;
 
     const free = holes.filter((h) => !h.occupied);
@@ -267,7 +269,7 @@
       hintEl.textContent = '漏掉了，连击归零';
       later(() => {
         if (hintEl.textContent === '漏掉了，连击归零') {
-          hintEl.textContent = '靴子钻出洞口就点它，点得越快分越高';
+          hintEl.textContent = '靴子可能同时冒出来，点得越快分越高';
         }
       }, 1400);
     }
@@ -325,7 +327,7 @@
 
     if (golden) {
       hintEl.textContent = '金靴 +' + points + ' 分！';
-      later(() => { hintEl.textContent = '靴子钻出洞口就点它，点得越快分越高'; }, 900);
+      later(() => { hintEl.textContent = '靴子可能同时冒出来，点得越快分越高'; }, 900);
     }
 
     later(() => {

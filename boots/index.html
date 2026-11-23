@@ -26,12 +26,17 @@
 
     <div class="arena-wrap">
       <div class="arena" id="arena"></div>
+      <div class="toilet-scene" id="toiletScene" aria-hidden="true">
+        <div class="toilet-mouth">🚽</div>
+        <img class="fall-guy" src="assets/grabber.png" alt="" draggable="false" />
+        <div class="calm-text">掉马桶了，冷静 1.5 秒…</div>
+      </div>
       <footer class="coach">
         <div class="grabber" id="grabber">
           <span class="bubble" id="bubble">抢靴子！</span>
           <img src="assets/grabber.png" alt="抢靴子的人物" draggable="false" />
         </div>
-        <div class="hint" id="hint">靴子可能同时冒出来，点得越快分越高</div>
+        <div class="hint" id="hint">靴子可能同时冒出来，黄奶龙别点</div>
       </footer>
     </div>
   </div>
@@ -48,6 +53,7 @@
         <li><b>金靴</b> 出现得少，分值翻倍</li>
         <li>漏掉一只会断连击，<b>点空一次直接结束</b></li>
         <li>坚持 45 秒，靴子会越冒越快，还会几只同时出现</li>
+        <li><b>黄色奶龙是障碍</b>，点到会掉马桶冷静 1.5 秒</li>
       </ul>
       <button class="btn primary" id="startBtn">开始</button>
       <p class="best" id="bestLine"></p>

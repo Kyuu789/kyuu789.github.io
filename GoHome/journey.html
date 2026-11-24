@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#153d37" />
+<title>回家五次换乘 · 后半程</title>
+<link rel="stylesheet" href="style.css?v=3" />
+<link rel="stylesheet" href="journey.css?v=1" />
+</head>
+<body>
+<div class="app" id="app">
+
+  <section class="screen j-start" id="jStart">
+    <header class="masthead">
+      <span class="kicker">回家五次换乘 · 后半程</span>
+      <span class="stamp">邯郸东站</span>
+    </header>
+    <div class="j-hero-block">
+      <div class="burst" aria-hidden="true"></div>
+      <h1>还有<br /><em>四程路</em></h1>
+      <p class="lede">高铁、接驳车、摆渡车，最后一段靠腿。<br />每一步选错，都可能回不了家。</p>
+      <img class="cover-hero" src="assets/hero/stand-4.webp" alt="女孩在车站发愁" />
+    </div>
+
+    <div class="route-card">
+      <div class="route-line">
+        <div class="route-stop done"><img src="assets/icons/metro.webp" alt="" /><b>地铁</b><span>已完成</span></div>
+        <div class="route-stop active"><img src="assets/icons/hsr.webp" alt="" /><b>高铁</b><span>下一程</span></div>
+        <div class="route-stop"><img src="assets/icons/bus.webp" alt="" /><b>接驳车</b><span>邯郸东</span></div>
+        <div class="route-stop"><img src="assets/icons/van.webp" alt="" /><b>摆渡车</b><span>县城</span></div>
+        <div class="route-stop"><img src="assets/icons/walk.webp" alt="" /><b>步行</b><span>村口</span></div>
+      </div>
+    </div>
+
+    <div class="rules-card">
+      <p><b>玩法</b> 每程 3 道情景题，9 秒内选对。选错或超时掉一格体力，掉光就重走这一程。</p>
+      <p><b>目标</b> 一路换乘到村口，别被绕路、占座、上错车和村口黑车坑住。</p>
+    </div>
+
+    <button class="primary-btn" id="jStartBtn">继续换乘</button>
+    <p class="best-line" id="jBestLine"></p>
+  </section>
+
+  <section class="screen j-game hidden" id="jGame">
+    <div class="j-top">
+      <div class="stage-pill">
+        <img id="legIcon" src="assets/icons/hsr.webp" alt="" />
+        <div><strong id="legName">第二程 · 高铁</strong><span id="legRoute">苏州北 → 邯郸东</span></div>
+      </div>
+      <button class="sound-btn" id="jSoundBtn" aria-label="声音开关">🔊</button>
+    </div>
+
+    <div class="mini-route" id="miniRoute" aria-label="换乘进度">
+      <span class="mini-stop done"><img src="assets/icons/metro.webp" alt="" /></span>
+      <span class="mini-stop current"><img src="assets/icons/hsr.webp" alt="" /></span>
+      <span class="mini-stop"><img src="assets/icons/bus.webp" alt="" /></span>
+      <span class="mini-stop"><img src="assets/icons/van.webp" alt="" /></span>
+      <span class="mini-stop"><img src="assets/icons/walk.webp" alt="" /></span>
+    </div>
+
+    <div class="j-hud">
+      <div class="heart-row static" id="jHearts"><span>♥</span><span>♥</span><span>♥</span></div>
+      <span class="j-score" id="jScore">换乘 0/4</span>
+    </div>
+
+    <img class="j-ghost" id="ghostIcon" src="assets/icons/hsr.webp" alt="" />
+    <div class="platform-line" aria-hidden="true"></div>
+
+    <div class="q-card">
+      <div class="q-meta"><span id="qLegTag">高铁</span><span id="qIndex">第 1 / 3 题</span></div>
+      <h2 id="qText">检票口在排队，你怎么办？</h2>
+      <p class="q-scene" id="qScene">先保住车票，别的都好说。</p>
+      <div class="options" id="options"></div>
+      <div class="timer-track"><i id="timerFill"></i></div>
+    </div>
+
+    <div class="platform-note">
+      <span class="on-air"><i></i>旅途广播</span>
+      <p id="broadcast">G1571 次列车正在检票，请尽快上车。</p>
+    </div>
+
+    <img class="j-hero" id="jHero" src="assets/hero/stand-2.webp" alt="" />
+    <div class="answer-flash" id="answerFlash"></div>
+  </section>
+
+  <section class="screen j-legend hidden" id="jLegEnd">
+    <div class="leg-card">
+      <span class="end-tag" id="legTag">第二程 · 高铁</span>
+      <img class="leg-icon" id="legEndIcon" src="assets/icons/hsr.webp" alt="" />
+      <h2 id="legEndTitle">到邯郸东了</h2>
+      <p class="end-text" id="legEndText">车窗外换成华北平原，离村口又近了一点。</p>
+      <div class="stars" id="legStars">★★★</div>
+      <div class="end-stats">
+        <div><span>本程答对</span><b id="legRight">3</b></div>
+        <div><span>失误</span><b id="legMiss">0</b></div>
+        <div><span>剩余体力</span><b id="legHearts">3</b></div>
+      </div>
+      <button class="primary-btn" id="nextLegBtn">下一程 · 接驳车</button>
+    </div>
+  </section>
+
+  <section class="screen j-final hidden" id="jFinal">
+    <div class="final-card">
+      <span class="end-tag" id="finalTag">全程完成</span>
+      <h2 id="finalTitle">妈，我回来了</h2>
+      <img class="final-hero" id="finalHero" src="assets/hero/stand-5.webp" alt="" />
+      <p class="final-text" id="finalText">五次换乘，一路没被吃的拖垮，也没被村口黑车坑住。院里的灯还亮着。</p>
+      <div class="stars big" id="finalStars">★★★★★</div>
+      <div class="end-stats">
+        <div><span>换乘</span><b>5 次</b></div>
+        <div><span>答对</span><b id="finalRight">12</b></div>
+        <div><span>失误</span><b id="finalMiss">0</b></div>
+      </div>
+      <button class="primary-btn" id="againJourney">再走一遍</button>
+      <button class="ghost-btn" id="backMetro">回到第一程</button>
+    </div>
+  </section>
+
+  <section class="screen j-fail hidden" id="jFail">
+    <div class="final-card">
+      <span class="end-tag" id="failTag">这一程没走通</span>
+      <h2 id="failTitle">又被坑了</h2>
+      <img class="final-hero" id="failHero" src="assets/hero/stand-3.webp" alt="" />
+      <p class="final-text" id="failText">站台上的广播又响了一遍，这班车已经走了。重走这一程吧。</p>
+      <button class="primary-btn" id="retryLeg">重走这一程</button>
+      <button class="ghost-btn" id="backStart">回到出发页</button>
+    </div>
+  </section>
+
+</div>
+<script src="journey.js?v=1"></script>
+</body>
+</html>

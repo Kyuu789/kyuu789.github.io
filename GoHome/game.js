@@ -679,6 +679,13 @@
 
     const best = Math.max(Number(localStorage.getItem(BEST_KEY) || 0), state.score);
     localStorage.setItem(BEST_KEY, String(best));
+    if (reason === "win") {
+      localStorage.setItem("gohome.metro.done", "1");
+      localStorage.setItem("gohome.metro.fat", String(fat));
+      localStorage.setItem("gohome.metro.eaten", String(state.eaten));
+    }
+    nextBtn.disabled = reason !== "win";
+    nextBtn.textContent = reason === "win" ? "下一程 · 高铁" : "下一程 · 高铁（先完成本程）";
     updateBestLine();
 
     gameScreen.classList.add("hidden");
@@ -715,6 +722,10 @@
   document.addEventListener("pointerdown", () => {
     if (soundOn) ensureAudio();
   }, { passive: true });
+
+  nextBtn.addEventListener("click", () => {
+    if (!nextBtn.disabled) window.location.href = "journey.html";
+  });
 
   startBtn.addEventListener("click", startGame);
   againBtn.addEventListener("click", startGame);

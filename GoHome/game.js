@@ -43,16 +43,16 @@
   }
 
   const heroStage = [
-    loadImg("assets/hero/fat-1.png"),
-    loadImg("assets/hero/fat-2.png"),
-    loadImg("assets/hero/fat-3.png")
+    loadImg("assets/hero/fat-1.webp"),
+    loadImg("assets/hero/fat-2.webp"),
+    loadImg("assets/hero/fat-3.webp")
   ];
   const FOODS = [
-    { key: "jianbing", name: "煎饼果子", weight: 8, points: 12, src: "assets/icons/jianbing.png" },
-    { key: "huoshao", name: "驴肉火烧", weight: 13, points: 18, src: "assets/icons/huoshao.png" },
-    { key: "milktea", name: "奶茶", weight: 10, points: 14, src: "assets/icons/milktea.png" },
-    { key: "noodles", name: "泡面", weight: 17, points: 24, src: "assets/icons/noodles.png" },
-    { key: "tanghulu", name: "糖葫芦", weight: 6, points: 9, src: "assets/icons/tanghulu.png" }
+    { key: "jianbing", name: "煎饼果子", weight: 8, points: 12, src: "assets/icons/jianbing.webp" },
+    { key: "huoshao", name: "驴肉火烧", weight: 13, points: 18, src: "assets/icons/huoshao.webp" },
+    { key: "milktea", name: "奶茶", weight: 10, points: 14, src: "assets/icons/milktea.webp" },
+    { key: "noodles", name: "泡面", weight: 17, points: 24, src: "assets/icons/noodles.webp" },
+    { key: "tanghulu", name: "糖葫芦", weight: 6, points: 9, src: "assets/icons/tanghulu.webp" }
   ].map(f => ({ ...f, img: loadImg(f.src) }));
 
   /* ---------- 音频 ---------- */
@@ -647,22 +647,22 @@
     let stars = 0;
     let title = "";
     let text = "";
-    let heroSrc = "assets/hero/fat-3.png";
+    let heroSrc = "assets/hero/fat-3.webp";
 
     if (reason === "win") {
       stars = fat <= 35 && state.hearts === 3 ? 3 : fat < 70 ? 2 : 1;
       title = "赶上了！";
       text = "车门在身后合上。一路吃了 " + state.eaten + " 口，体重到 " + fat + "%，好在还是赶上了。";
-      heroSrc = fat < 40 ? "assets/hero/stand-5.png" : fat < 80 ? "assets/hero/fat-2.png" : "assets/hero/fat-3.png";
+      heroSrc = fat < 40 ? "assets/hero/stand-5.webp" : fat < 80 ? "assets/hero/fat-2.webp" : "assets/hero/fat-3.webp";
       sfxWin();
     } else if (reason === "fat") {
       title = "吃太饱，走不动了";
       text = "肚子卡在闸机口，行李箱还在，下一班车已经开走了。少吃两口，真的。";
-      heroSrc = "assets/hero/fat-3.png";
+      heroSrc = "assets/hero/fat-3.webp";
     } else {
       title = "被挤下站台了";
       text = "早高峰的人潮太猛，冲了三次都没挤上车。先缓缓，再来一趟。";
-      heroSrc = "assets/hero/stand-3.png";
+      heroSrc = "assets/hero/stand-3.webp";
     }
 
     endTag.textContent = reason === "win" ? "第一程 · 地铁 · 完成" : "第一程 · 地铁 · 失败";

@@ -189,7 +189,7 @@
     state.px = laneX(1);
     state.targetX = state.px;
     state.invuln = 0;
-    state.obstacleTimer = 0.55;
+    state.obstacleTimer = 1.15;
     state.foodTimer = 0.9;
     state.obstacles = [];
     state.foods = [];
@@ -225,9 +225,9 @@
 
   function spawnObstacles() {
     const p = state.elapsed / LEVEL_SECONDS;
-    const count = Math.random() < 0.3 + p * 0.18 ? 2 : 1;
+    const count = Math.random() < 0.06 + p * 0.06 ? 2 : 1;
     const lanes = [0, 1, 2].sort(() => Math.random() - 0.5).slice(0, count);
-    const speed = 145 + p * 82;
+    const speed = 132 + p * 66;
     lanes.forEach(lane => {
       const luggage = Math.random() < 0.22;
       state.obstacles.push({
@@ -245,14 +245,21 @@
   function spawnFood() {
     const def = FOODS[Math.floor(Math.random() * FOODS.length)];
     const steal = Math.random() < 0.34;
-    const lane = Math.floor(Math.random() * 3);
+    let lane = Math.floor(Math.random() * 3);
+    const blocked = state.obstacles
+      .filter(o => !o.hit && o.y > -100 && o.y < 90)
+      .map(o => o.lane);
+    if (blocked.includes(lane)) {
+      const free = [0, 1, 2].filter(l => !blocked.includes(l));
+      if (free.length) lane = free[Math.floor(Math.random() * free.length)];
+    }
     state.foods.push({
       def,
       steal,
       lane,
       x: laneX(lane),
       y: -46,
-      speed: 145 + (state.elapsed / LEVEL_SECONDS) * 82,
+      speed: 132 + (state.elapsed / LEVEL_SECONDS) * 66,
       taken: false,
       wobble: Math.random() * Math.PI * 2
     });
@@ -262,7 +269,7 @@
     if (state.invuln > 0 || !state.running) return;
     obs.hit = true;
     state.hearts -= 1;
-    state.invuln = 1.25;
+    state.invuln = 1.5;
     state.shake = 0.35;
     sfxHit();
     hitFlash.classList.add("on");
@@ -310,7 +317,7 @@
     if (state.obstacleTimer <= 0) {
       spawnObstacles();
       const p = state.elapsed / LEVEL_SECONDS;
-      state.obstacleTimer = (0.92 - p * 0.3) * (0.88 + Math.random() * 0.3);
+      state.obstacleTimer = (1.28 - p * 0.24) * (0.95 + Math.random() * 0.25);
     }
 
     state.foodTimer -= dt;

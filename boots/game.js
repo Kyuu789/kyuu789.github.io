@@ -179,6 +179,10 @@
     beep(150, 'sawtooth', 0.18, 0.12);
   }
 
+  /* 数字键按小键盘排布：上排 789 / 中排 456 / 下排 123 */
+  const KEY_TO_INDEX = { 7: 0, 8: 1, 9: 2, 4: 3, 5: 4, 6: 5, 1: 6, 2: 7, 3: 8 };
+  const INDEX_TO_KEY = { 0: '7', 1: '8', 2: '9', 3: '4', 4: '5', 5: '6', 6: '1', 7: '2', 8: '3' };
+
   /* ---------------- build holes ---------------- */
   for (let i = 0; i < HOLES; i++) {
     const hole = document.createElement('button');
@@ -195,7 +199,8 @@
       '</span>' +
       '<span class="rim"></span>' +
       '<span class="tuft l"></span><span class="tuft r"></span>' +
-      '<span class="fx"></span>';
+      '<span class="fx"></span>' +
+      '<span class="key-hint">' + INDEX_TO_KEY[i] + '</span>';
     arena.appendChild(hole);
 
     holes.push({
@@ -572,11 +577,11 @@
 
   // 键盘可玩性：数字键 1-9 对应九个洞
   window.addEventListener('keydown', (ev) => {
-    const n = Number(ev.key);
-    if (n >= 1 && n <= 9) {
-      const h = holes[n - 1];
-      if (h) whack(h);
-    }
+    if (ev.repeat) return;
+    const idx = KEY_TO_INDEX[Number(ev.key)];
+    if (idx === undefined) return;
+    const h = holes[idx];
+    if (h) whack(h);
   });
 
   // 首次触摸即解锁音频，iOS 需要用户手势后才能出声

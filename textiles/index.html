@@ -1092,7 +1092,7 @@ function sendBaler(){
   state.cart={total:0,materials:{},colors:{}};
   state.machine={loaded:false,door:false,handInside:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false};
   if(three&&three.baleVisual){three.baleVisual.position.set(5.25,.88,1.15);three.baleMesh.scale.y=1;if(three.baleStraps)three.baleStraps.forEach(strap=>{strap.visible=false})}
-  state.roam.x=5.25;state.roam.z=3.15;state.roam.yaw=0;state.roam.pitch=0;
+  state.roam.x=5.25;state.roam.z=4.25;state.roam.yaw=0;state.roam.pitch=-0.28;
   setScene('baler'); updateBaler();
   toast(left?lang==='zh'?`${left} 处遗留，品质扣分`:`${left} left, quality cut`:`${lang==='zh'?'干净批次':'Clean batch'}`,left?'bad':'good');
 }

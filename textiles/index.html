@@ -1681,10 +1681,13 @@ function initThree(){
   const px=-5.4,pz=-6.1;
   for(let z=-.62;z<=.62;z+=.62)addBox(2.25,.12,.16,0x765137,px,.16,pz+z,.9,.05);
   for(let x=-.82;x<=.82;x+=.82)addBox(.16,.24,1.42,0x9a7049,px+x,.08,pz,.9,.02);
-  const baleColors=[0x9a927f,0x77776e,0xb0a68f,0x8b8170];
-  for(let row=0;row<2;row++)for(let col=0;col<2;col++){
-    const b=addBox(.98,.62,.9,baleColors[(row+col)%4],px-.5+col,pz?(.53+row*.64):.53,pz-.18+row*.18,.98,.01);
-    for(let k=0;k<3;k++)addBox(.025,.65,.94,0xd7c28d,b.position.x-.31+k*.31,b.position.y,b.position.z,.55,.1);
+  const baleColors=[0x9a927f,0x77776e,0xb0a68f,0x8b8170,0xa69b86,0x817b70];three.palletSlots=[];
+  for(let layer=0;layer<3;layer++)for(let col=0;col<2;col++){
+    const slot=new THREE.Group();slot.position.set(px,0,pz);slot.visible=false;scene.add(slot);
+    const cx=col===0?-.5:.5,cy=.53+layer*.64;
+    addBox(.98,.62,.9,baleColors[layer*2+col],cx,cy,0,.98,.01,slot);
+    for(let k=0;k<3;k++)addBox(.025,.65,.94,0xd7c28d,cx-.31+k*.31,cy,0,.55,.1,slot);
+    three.palletSlots.push(slot);
   }
 
   // Full-length 9.6 m box truck, separated cab, chassis, wheels and cargo bay.
@@ -1837,6 +1840,7 @@ function tickThree(){
   }
   if(three.sortRollers)three.sortRollers.forEach(roller=>{roller.rotation.z+=dt*2.4;});
   if(three.workers)three.workers.forEach(worker=>{worker.phase+=dt*.9;const sway=Math.sin(worker.phase)*.08;worker.arms.forEach((arm,i)=>{arm.rotation.x=(i===0?1:-1)*sway});worker.legs.forEach((leg,i)=>{leg.rotation.x=(i===0?-1:1)*sway*.65});});
+  if(three.palletSlots){const truck=state.truck||{};three.palletSlots.forEach((slot,i)=>{const bale=state.acceptedBales[i],onTruck=!!(truck.arrived&&truck.slotIds&&truck.slotIds.includes(i));slot.visible=!!(bale&&!bale.sold&&!onTruck)});}
   if(three.truckCargoSlots){const truck=state.truck||{};three.truckCargoSlots.forEach((slot,i)=>{slot.visible=!!(truck.arrived&&i<truck.loaded)});}
   if(three.forklift){const count=state.truck?state.truck.forklift:three.lastForkliftCount;if(count<three.lastForkliftCount)three.forkliftPhase=0;three.lastForkliftCount=count;if(three.forkliftPhase<1.2){three.forkliftPhase+=dt;three.forklift.position.x=three.forkliftBaseX+.9*Math.sin(Math.min(1,three.forkliftPhase/1.2)*Math.PI)}else three.forklift.position.x=three.forkliftBaseX;}
   if(three.machineGate){

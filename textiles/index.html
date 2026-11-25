@@ -1847,7 +1847,7 @@ function tickThree(){
   three.renderer.render(three.scene,three.camera);
 }
 function bindRoamControls(){
-  window.addEventListener('keydown',e=>{roamKeys[e.key.toLowerCase()]=true});
+  window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();roamKeys[k]=true;if(k==='e'&&state.roam.active){e.preventDefault();els.interactBtn.click()}});
   window.addEventListener('keyup',e=>{roamKeys[e.key.toLowerCase()]=false});
   window.addEventListener('resize',resizeThree);
   els.stage.addEventListener('pointerdown',e=>{

@@ -1485,42 +1485,210 @@ function makeLabel(text,x,z,y=2.55){
 function initThree(){
   if(typeof THREE==='undefined'||three)return;
   const canvas=els.threeCanvas;
-  const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b1412);scene.fog=new THREE.Fog(0x0b1412,8,25);
-  const camera=new THREE.PerspectiveCamera(70,1,0.1,60);camera.rotation.order='YXZ';
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'low-power'});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
-  three={scene,camera,renderer,tex:{}};
-  scene.add(new THREE.AmbientLight(0x9fb7a6,.62));
-  const sun=new THREE.DirectionalLight(0xffe2b0,.85);sun.position.set(4,9,3);scene.add(sun);
-  const floorTex=getTex('floor.jpg');floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;floorTex.repeat.set(4,3);
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(24,18),new THREE.MeshStandardMaterial({map:floorTex,roughness:.94}));
-  floor.rotation.x=-Math.PI/2;scene.add(floor);
-  texPlane(24,3.1,'warehouse.jpg',0,1.55,-8.92);
-  texPlane(18,3.1,'sort-facility.jpg',-11.92,1.55,0,Math.PI/2);
-  texPlane(18,3.1,'baler.jpg',11.92,1.55,0,-Math.PI/2);
-  [[-6,3],[-1,-4],[5,1],[-5,-6],[6,-6]].forEach(([x,z])=>{const p=new THREE.PointLight(0xffd9a0,.42,7);p.position.set(x,2.45,z);scene.add(p)});
-  // 收毛料堆
-  blob(1.15,'pile-white.jpg',-6.8,.48,3.1,1.35,.72,1.05);blob(.92,'pile-mixed.jpg',-5.6,.42,3.35,1.1,.7,1);blob(.78,'pile-dark.jpg',-6.1,.36,2.25,1,.68,.9);blob(.62,'pile-white.jpg',-5.15,.32,2.55,1,.65,.9);
-  // 分拣台
-  box(3.4,.16,1.5,0x3a332c,-1,.88,-4);box(3.2,.72,1.2,0x2d261f,-1,.38,-4);
-  const conv=new THREE.Mesh(new THREE.PlaneGeometry(3.2,1.3),new THREE.MeshStandardMaterial({map:getTex('sort-conveyor.jpg'),roughness:.9}));conv.rotation.x=-Math.PI/2;conv.position.set(-1,.97,-4);three.scene.add(conv);
-  texPlane(3.4,1.15,'sort-table.jpg',-1,1.45,-4.72);
-  // 打包机
-  box(2.6,2.5,1.7,0x34413a,5,1.25,1);texPlane(2.2,2.1,'baler.jpg',5,1.3,1.87);texPlane(1.3,1.2,'bale-result.jpg',5,.95,1.89);box(1.8,.45,1.2,0x6b5a35,5,2.18,1);texPlane(.85,.62,'control-panel.jpg',3.62,1.25,1.2,-Math.PI/2);texPlane(.6,.6,'gauge.jpg',3.62,.72,1.2,-Math.PI/2);
-  // 包垛
-  box(2.2,.25,1.4,0x5a4632,-5,.13,-6);box(1.5,.7,1.1,0x9a8f76,-5,.62,-6);texPlane(1.35,.58,'bale-result.jpg',-5,.62,-5.43);box(1.4,.65,1.0,0x80765f,-5,.18,-5.2);texPlane(1.25,.52,'pallet-rows.jpg',-5,.18,-4.68);box(1.3,.65,1.0,0xaaa08a,-4.2,1.08,-6);texPlane(1.15,.52,'bale-tie.jpg',-4.2,1.08,-5.43);
-  // 货车
-  box(2.8,.35,3.1,0x252b2d,5.5,.35,-5.4);box(2.6,.9,2.8,0x59636a,5.5,.85,-5.5);texPlane(2.4,.8,'warehouse.jpg',5.5,.9,-4.05);box(1.8,1.55,1.7,0x8d2f28,7.3,.95,-6.5);texPlane(1.2,.7,'control-panel.jpg',7.3,1.35,-5.62);
-  cyl(.34,.34,.25,0x111313,6.2,.34,-4.45,Math.PI/2);cyl(.34,.34,.25,0x111313,6.2,.34,-6.55,Math.PI/2);cyl(.34,.34,.25,0x111313,8.2,.34,-4.45,Math.PI/2);cyl(.34,.34,.25,0x111313,8.2,.34,-6.55,Math.PI/2);
-  // 老板 3D NPC 和工人立牌
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0x171d1b);scene.fog=new THREE.Fog(0x171d1b,17,38);
+  const camera=new THREE.PerspectiveCamera(72,1,.1,90);camera.rotation.order='YXZ';
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));
+  if('outputColorSpace' in renderer && THREE.SRGBColorSpace) renderer.outputColorSpace=THREE.SRGBColorSpace;
+  else if('outputEncoding' in renderer && THREE.sRGBEncoding) renderer.outputEncoding=THREE.sRGBEncoding;
+  if('toneMapping' in renderer && THREE.ACESFilmicToneMapping!==undefined) renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.05;
+  three={scene,camera,renderer,tex:{},animated:[]};
+
+  const mat=(color,rough=.82,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
+  const addBox=(w,h,d,color,x,y,z,rough=.82,metal=0,parent=scene)=>{
+    const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,rough,metal));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
+  };
+  const addCylinder=(r1,r2,h,color,x,y,z,rotX=0,rotZ=0,segments=16,parent=scene)=>{
+    const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,segments),mat(color,.72,.35));m.position.set(x,y,z);m.rotation.set(rotX,0,rotZ);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
+  };
+  const addSphere=(r,color,x,y,z,sx=1,sy=1,sz=1,parent=scene)=>{
+    const m=new THREE.Mesh(new THREE.SphereGeometry(r,14,10),mat(color,.94));m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;parent.add(m);return m;
+  };
+  const addLine=(points,color,r=.035,parent=scene)=>{
+    const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(p[0],p[1],p[2])));
+    const m=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(24,points.length*5),r,8,false),mat(color,.58,.15));m.castShadow=true;parent.add(m);return m;
+  };
+  three.addBox=addBox;
+
+  scene.add(new THREE.HemisphereLight(0xc8d5ce,0x3b3025,1.05));
+  const key=new THREE.DirectionalLight(0xffe4bd,2.0);key.position.set(-7,13,8);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);
+  const fill=new THREE.DirectionalLight(0x9bb6c2,.65);fill.position.set(9,7,-8);scene.add(fill);
+
+  // Concrete floor: full 3D slab, expansion joints and painted work lanes.
+  addBox(25,.32,20,0x66645d,0,-.18,0,.98);
+  const floorGrid=mat(0x817d72,.98);
+  for(let x=-11;x<=11;x+=2){const line=addBox(.018,.006,19,0x4c4b46,x,-.012,0);line.castShadow=false}
+  for(let z=-9;z<=9;z+=2){const line=addBox(24,.006,.018,0x4c4b46,0,-.011,z);line.castShadow=false}
+  // Safety lanes and floor markings.
+  for(const x of [-9.7,-8.9,2.4,3.2]){const stripe=addBox(.075,.012,16,0xd3ad58,x,.002,0);stripe.castShadow=false}
+  for(let z=-8;z<=8;z+=1.2){const stripe=addBox(.48,.014,.055,0xd3ad58,-8.9,.008,z);stripe.castShadow=false}
+
+  // Actual warehouse shell: structural columns, wall panels, roof trusses and skylights.
+  for(const x of [-11.5,-7.5,-3.5,.5,4.5,8.5,11.5]){
+    addBox(.22,5.8,.22,0x555a56,x,2.75,-9.5,.75,.35);
+    addBox(.22,5.8,.22,0x555a56,x,2.75,9.5,.75,.35);
+    addBox(.22,5.8,.22,0x555a56,x,2.75,0,.75,.35);
+  }
+  addBox(24,.18,.22,0x4a514d,0,5.75,-9.5,.7,.45);
+  addBox(24,.18,.22,0x4a514d,0,5.75,9.5,.7,.45);
+  for(let z=-9;z<=9;z+=4){
+    addBox(24,.16,.16,0x59605b,0,5.35,z,.7,.4);
+    addBox(.16,.48,.16,0x59605b,-10,5.05,z,.7,.4);
+    addBox(.16,.48,.16,0x59605b,10,5.05,z,.7,.4);
+  }
+  addBox(.18,5.8,19,0x555a56,-11.8,2.8,0,.85,.2);
+  addBox(.18,5.8,19,0x555a56,11.8,2.8,0,.85,.2);
+  // Corrugated wall panels, modeled as geometry rather than photographic planes.
+  for(let y=.45;y<5.5;y+=.42){
+    addBox(.08,.035,18.8,0x69716b,-11.68,y,0,.9,.25);
+    addBox(.08,.035,18.8,0x69716b,11.68,y,0,.9,.25);
+    addBox(23.4,.035,.08,0x68716b,0,y,-9.38,.9,.25);
+  }
+  for(let z=-7;z<=7;z+=2.2){
+    addBox(.04,1.05,.85,0x273a3b,-11.61,3.45,z,.38,.55);
+    addBox(.04,1.05,.85,0x273a3b,11.61,3.45,z,.38,.55);
+  }
+  // Roof rafters and suspended industrial lights.
+  for(let z=-8;z<=8;z+=4){
+    addBox(23,.12,.14,0x424a45,0,5.55,z,.7,.4);
+    const lamp=addBox(1.55,.12,.42,0xe5d9b6,0,5.12,z,.35,.1);
+    const glow=new THREE.PointLight(0xffdca5,1.05,9);glow.position.set(0,4.85,z);scene.add(glow);
+  }
+
+  // Receiving area: loose fiber heaps built from dozens of individual tufts.
+  const fiberColors=[0xb8b1a0,0x8c887d,0x6d6a64,0xc7c0ad,0x9d988b];
+  const fiberMat=fiberColors.map(c=>mat(c,.99));
+  for(let i=0;i<145;i++){
+    const x=-8.1+Math.random()*2.35,z=1.5+Math.random()*2.5;
+    const r=.12+Math.random()*.24;
+    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),fiberMat[i%fiberMat.length]);
+    m.position.set(x,.18+Math.random()*.48,z);m.scale.set(1.35,.55,.9);m.rotation.set(Math.random(),Math.random()*3,Math.random());m.castShadow=true;scene.add(m);
+  }
+  // Sorting table, rollers, legs, reject bins and a conveyor.
+  addBox(3.8,.18,1.55,0x343a38,-1.1,1.02,-4.4,.55,.45);
+  addBox(3.55,.1,1.32,0x8a887c,-1.1,1.16,-4.4,.8,.1);
+  for(let x=-2.65;x<=.45;x+=.38)addCylinder(.075,.075,1.28,0x343a3a,x,1.28,-4.4,Math.PI/2,0,12);
+  for(const x of [-2.65,.45])for(const z of [-4.95,-3.85])addBox(.12,.92,.12,0x414744,x,.52,z,.7,.35);
+  for(const x of [-2.15,-1.1,-.05]){addBox(.66,.45,.7,0x38413d,x,.35,-6.15);addBox(.68,.05,.72,0x9b5b3e,x,.6,-6.15)}
+  addBox(3.2,.16,2.6,0x343a37,-1.1,.12,-7.7,.85,.3);
+  for(let x=-2.5;x<=.3;x+=.45)addCylinder(.07,.07,2.35,0x4a514e,x,.3,-7.7,Math.PI/2,0,12);
+
+  // Hydraulic baler: four structural columns, cross-beams, platen, hydraulic ram and access gate.
+  const bx=5.25,bz=1.15;
+  for(const x of [bx-1.25,bx+1.25])for(const z of [bz-.9,bz+.9]){
+    addBox(.18,2.85,.18,0x46514c,x,1.47,z,.58,.65);
+    addBox(.27,.12,.27,0x8b8e82,x,.12,z,.55,.55);
+  }
+  addBox(2.75,.22,2.05,0x4d5751,bx,2.82,bz,.58,.55);
+  addBox(2.75,.2,2.05,0x4d5751,bx,.16,bz,.58,.55);
+  addBox(2.35,.16,.16,0x9a9b8f,bx,2.55,bz-.88,.42,.65);
+  addBox(2.35,.16,.16,0x9a9b8f,bx,2.55,bz+.88,.42,.65);
+  const platen=addBox(2.18,.22,1.55,0x7e8981,bx,2.12,bz,.42,.7);three.pressPlaten=platen;three.animated.push(platen);
+  addCylinder(.24,.24,1.05,0xb6b9ad,bx,3.34,bz,0,0,20);
+  addCylinder(.34,.34,.2,0x555e59,bx,3.9,bz,0,0,20);
+  addBox(2.05,.08,1.42,0x242a27,bx,.35,bz,.96,.1);
+  // Safety mesh doors and yellow-black hazard bars.
+  for(const x of [bx-1.38,bx+1.38])addBox(.055,1.9,.055,0xd1a13e,x,1.15,bz+1.02,.6,.35);
+  addBox(2.7,.06,.06,0xd1a13e,bx,2.05,bz+1.02,.55,.3);
+  addBox(.72,.82,.12,0x29312e,bx+1.48,1.05,bz-.25,.65,.4);
+  for(let i=0;i<3;i++)addBox(.48,.025,.015,0xe6b34d,bx+1.48,1.28+i*.18,bz-.175,.45,.3);
+  // Visible hydraulic hoses.
+  addLine([[bx+.5,3.65,bz],[bx+.85,3.45,bz+.25],[bx+.85,2.9,bz+.25],[bx+1.05,2.65,bz+.25]],0x252a29,.045);
+  addLine([[bx-.5,3.65,bz],[bx-.82,3.4,bz-.22],[bx-.82,2.9,bz-.22],[bx-1.05,2.65,bz-.22]],0x252a29,.045);
+  // Operator console with physical buttons and gauge.
+  addBox(.68,1.15,.48,0x38423e,bx-1.9,.83,bz-.65,.5,.5);
+  addBox(.58,.28,.035,0x17201e,bx-1.9,1.22,bz-.39,.35,.3);
+  addCylinder(.085,.085,.045,0x4caa76,bx-2.05,1.22,bz-.35,Math.PI/2,0,16);
+  addCylinder(.085,.085,.045,0xc64d3d,bx-1.8,1.22,bz-.35,Math.PI/2,0,16);
+  addCylinder(.17,.17,.045,0xd8d2bd,bx-1.9,1.58,bz-.35,Math.PI/2,0,24);
+
+  // Bale on the press bed: volumetric irregular fiber surface and five real strap loops.
+  const baleX=bx,baleY=.88,baleZ=bz;
+  const bale=addBox(1.62,.92,1.18,0x928a78,baleX,baleY,baleZ,.99,.02);three.baleMesh=bale;
+  const baleFuzz=mat(0xb7ad98,.99);
+  for(let i=0;i<95;i++){
+    const x=baleX-.78+Math.random()*1.56,y=baleY-.44+Math.random()*.88,z=baleZ-.56+Math.random()*1.12;
+    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(.035+Math.random()*.045,0),baleFuzz);m.position.set(x,y,z);m.scale.set(1.4,.7,1);scene.add(m);
+  }
+  const strapMat=mat(0xdbc58a,.55,.15);
+  for(let i=0;i<5;i++){
+    const x=baleX-.62+i*.31;
+    const pts=[[x,baleY+.47,baleZ-.61],[x,baleY+.47,baleZ+.61],[x,baleY-.47,baleZ+.61],[x,baleY-.47,baleZ-.61],[x,baleY+.47,baleZ-.61]].map(p=>new THREE.Vector3(...p));
+    const curve=new THREE.CatmullRomCurve3(pts,true);
+    const strap=new THREE.Mesh(new THREE.TubeGeometry(curve,48,.027,8,true),strapMat);strap.castShadow=true;scene.add(strap);
+  }
+
+  // Pallet bay: actual timber runners and stacked bales.
+  const px=-5.4,pz=-6.1;
+  for(let z=-.62;z<=.62;z+=.62)addBox(2.25,.12,.16,0x765137,px,.16,pz+z,.9,.05);
+  for(let x=-.82;x<=.82;x+=.82)addBox(.16,.24,1.42,0x9a7049,px+x,.08,pz,.9,.02);
+  const baleColors=[0x9a927f,0x77776e,0xb0a68f,0x8b8170];
+  for(let row=0;row<2;row++)for(let col=0;col<2;col++){
+    const b=addBox(.98,.62,.9,baleColors[(row+col)%4],px-.5+col,pz?(.53+row*.64):.53,pz-.18+row*.18,.98,.01);
+    for(let k=0;k<3;k++)addBox(.025,.65,.94,0xd7c28d,b.position.x-.31+k*.31,b.position.y,b.position.z,.55,.1);
+  }
+
+  // Full-length 9.6 m box truck, separated cab, chassis, wheels and cargo bay.
+  const tx=7.9,tz=-3.35;
+  addBox(2.45,.28,9.6,0x303638,tx,.72,tz,.7,.55);
+  addBox(2.42,2.75,7.15,0xaeb4b2,tx,2.18,tz+.45,.72,.28);
+  addBox(2.48,.12,7.2,0x6b7471,tx,.93,tz+.45,.65,.55);
+  // Rear cargo opening and inner floor visible from the bay.
+  addBox(2.25,.08,6.95,0x5c5144,tx,1.02,tz+.45,.95,.08);
+  addBox(2.4,2.72,.12,0x7c8580,tx,2.16,tz-3.18,.75,.35);
+  addBox(2.4,2.72,.12,0x7c8580,tx,2.16,tz+4.08,.75,.35);
+  addBox(.12,2.72,7.2,0x858e89,tx-1.2,2.16,tz+.45,.75,.35);
+  addBox(.12,2.72,7.2,0x858e89,tx+1.2,2.16,tz+.45,.75,.35);
+  // Cab at the front end.
+  addBox(2.38,1.95,2.25,0x8b342b,tx,1.78,tz-5.7,.55,.28);
+  addBox(2.08,.92,.08,0x253b40,tx,2.23,tz-6.86,.24,.4);
+  addBox(.12,.12,.12,0xe8d6a2,tx-1.13,1.1,tz-6.65,.3,.1);
+  addBox(.12,.12,.12,0xe8d6a2,tx+1.13,1.1,tz-6.65,.3,.1);
+  for(const x of [tx-1.3,tx+1.3])for(const z of [tz-4.6,tz-2.2,tz+2.5]){
+    addCylinder(.48,.48,.25,0x171a1a,x,.48,z,Math.PI/2,0,24);
+    addCylinder(.24,.24,.26,0x9b9d98,x,.48,z,Math.PI/2,0,20);
+  }
+  // Load bales visible inside the open cargo bay.
+  for(let row=0;row<2;row++)for(let col=0;col<2;col++)for(let layer=0;layer<2;layer++){
+    const cargo=addBox(.88,.55,.95,[0x9b927e,0x807d70,0xb3a78e,0x8c806f][(row+col+layer)%4],tx-.52+col*1.02,1.34+layer*.57,tz-.9+row*1.35,.98,.01);
+    for(let k=0;k<3;k++)addBox(.022,.57,.98,0xd8c58e,cargo.position.x-.28+k*.28,cargo.position.y,cargo.position.z,.55,.08);
+  }
+
+  // Human boss NPC: modeled torso, head, neck, arms and legs (no photo billboard).
   const bossGroup=new THREE.Group();
-  const bossBody=new THREE.Mesh(new THREE.CylinderGeometry(.28,.34,1.25,14),new THREE.MeshStandardMaterial({color:0x2b3130,roughness:.8}));bossBody.position.y=.85;bossGroup.add(bossBody);
-  const bossHead=new THREE.Mesh(new THREE.SphereGeometry(.26,16,12),new THREE.MeshStandardMaterial({color:0x8a6a55,roughness:.8}));bossHead.position.y=1.72;bossGroup.add(bossHead);
-  const bossFace=new THREE.Mesh(new THREE.PlaneGeometry(.42,.52),new THREE.MeshStandardMaterial({map:getTex('boss.jpg'),roughness:.8}));bossFace.position.set(0,1.72,.22);bossGroup.add(bossFace);
-  bossGroup.position.set(state.boss.x,0,state.boss.z);three.scene.add(bossGroup);three.boss=bossGroup;
-  texPlane(.8,1.8,'worker.jpg',-7.6,1.5,1.8,.55);
-  // 工位标识
-  makeLabel(t('roamFloor'),-6,3,2.65);makeLabel(t('roamSort'),-1,-4,2.55);makeLabel(t('roamBaler'),5,1,2.85);makeLabel(t('roamPallet'),-5,-6,2.55);makeLabel(t('roamTruck'),6,-6,2.65);
+  const skin=mat(0xb98261,.9),shirt=mat(0x303b37,.85),pants=mat(0x242a28,.9),shoe=mat(0x171b1a,.8);
+  const torso=new THREE.Mesh(new THREE.BoxGeometry(.62,.88,.34),shirt);torso.position.y=1.28;bossGroup.add(torso);
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.16,10),skin);neck.position.y=1.79;bossGroup.add(neck);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.24,18,14),skin);head.position.y=2.04;head.scale.set(.88,1.08,.9);bossGroup.add(head);
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(.245,16,8,0,Math.PI*2,0,Math.PI*.48),mat(0x292522,.95));hair.position.set(0,2.12,0);bossGroup.add(hair);
+  for(const side of [-1,1]){
+    const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.095,.55,4,8),shirt);arm.position.set(side*.39,1.28,0);arm.rotation.z=side*.12;bossGroup.add(arm);
+    const hand=new THREE.Mesh(new THREE.SphereGeometry(.105,10,8),skin);hand.position.set(side*.4,.94,.02);bossGroup.add(hand);
+    const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.12,.56,4,8),pants);leg.position.set(side*.17,.48,0);bossGroup.add(leg);
+    const foot=new THREE.Mesh(new THREE.BoxGeometry(.22,.12,.38),shoe);foot.position.set(side*.17,.12,.08);bossGroup.add(foot);
+  }
+  bossGroup.position.set(state.boss.x,0,state.boss.z);scene.add(bossGroup);three.boss=bossGroup;
+  // Worker silhouettes are also 3D mannequins, not flat photo cutouts.
+  function makeWorker(x,z,shirtColor){
+    const g=new THREE.Group();
+    const body=new THREE.Mesh(new THREE.BoxGeometry(.48,.78,.3),mat(shirtColor,.9));body.position.y=1.15;g.add(body);
+    const h=new THREE.Mesh(new THREE.SphereGeometry(.2,12,10),skin);h.position.y=1.72;g.add(h);
+    for(const side of [-1,1]){
+      const a=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.48,3,7),mat(shirtColor,.9));a.position.set(side*.3,1.2,0);a.rotation.z=side*.15;g.add(a);
+      const l=new THREE.Mesh(new THREE.CapsuleGeometry(.1,.48,3,7),pants);l.position.set(side*.13,.42,0);g.add(l);
+    }
+    g.position.set(x,0,z);scene.add(g);return g;
+  }
+  makeWorker(-3.6, -3.1,0x49695d);makeWorker(-.2,-5.1,0x6b6252);makeWorker(2.6,3.5,0x56636b);
+
+  // Workstation signs and physical zone markers.
+  makeLabel(t('roamFloor'),-7.4,3,3.0);makeLabel(t('roamSort'),-1.1,-4.3,2.8);makeLabel(t('roamBaler'),5.2,1.1,3.25);makeLabel(t('roamPallet'),-5.4,-6.1,2.7);makeLabel(t('roamTruck'),7.9,-3.4,3.65);
+  // Painted zone plates on the floor.
+  for(const [x,z,c] of [[-7.4,3,0x8a754c],[-1.1,-4.3,0x55766b],[5.2,1.1,0x8b6b3d],[-5.4,-6.1,0x6b755e],[7.9,-3.4,0x6c7370]]){
+    const plate=addBox(2.2,.025,1.25,c,x,.025,z,.92,.05);plate.material.transparent=true;plate.material.opacity=.25;
+  }
+
   resizeThree();bindRoamControls();requestAnimationFrame(tickThree);
 }
 function resizeThree(){
@@ -1569,6 +1737,11 @@ function tickThree(){
     else els.roamPrompt.classList.add('hidden');
   }
   three.camera.position.set(r.x,1.6,r.z);three.camera.rotation.y=r.yaw;three.camera.rotation.x=r.pitch;
+  if(three.pressPlaten){
+    const phase=state.machine&&state.machine.pressure?Math.min(1,state.machine.pressure/100):0;
+    const target=2.12-phase*.95;
+    three.pressPlaten.position.y+=(target-three.pressPlaten.position.y)*Math.min(1,dt*7);
+  }
   three.renderer.render(three.scene,three.camera);
 }
 function bindRoamControls(){

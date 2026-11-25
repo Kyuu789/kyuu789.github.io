@@ -1756,7 +1756,7 @@ function initThree(){
   }
 
   canvas.addEventListener('click',e=>{
-    if(!state.roam.active||!state.roam.sorting||!three.sortJunk)return;
+    if(!state.roam.active||!state.roam.sorting||!three.sortJunk||Math.hypot(state.roam.x+1.1,state.roam.z+4.4)>5.5)return;
     const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
     three.raycaster.setFromCamera(three.pointer,camera);
     const targets=three.sortJunk.filter(g=>g&&g.visible),hits=three.raycaster.intersectObjects(targets,true);
@@ -1813,7 +1813,8 @@ function tickThree(){
     updateBoss3D(dt);
     if(r.sorting)syncSortProps();
     const spot=r.sorting?null:nearestSpot();r.nearest=spot;
-    if(spot){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=t(spot.key);els.interactBtn.disabled=!spot.can()}
+    if(r.sorting&&Math.hypot(r.x+1.1,r.z+4.4)<5.5){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=lang==='zh'?'点击台面异物 · 清理后去打包':'Tap contaminants · finish at the baler';els.interactBtn.textContent=lang==='zh'?'送去打包':'Send to baler';els.interactBtn.disabled=false}
+    else if(spot){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=t(spot.key);els.interactBtn.textContent=t('interact');els.interactBtn.disabled=!spot.can()}
     else els.roamPrompt.classList.add('hidden');
   }
   three.camera.position.set(r.x,1.6,r.z);three.camera.rotation.y=r.yaw;three.camera.rotation.x=r.pitch;
@@ -1866,7 +1867,7 @@ function bindRoamControls(){
   const endPointer=e=>{if(lookPointer===e.pointerId)lookPointer=null;if(joyPointer===e.pointerId){joyPointer=null;state.roam.joyX=0;state.roam.joyY=0;els.joyKnob.style.transform='translate(-50%,-50%)'}};
   window.addEventListener('pointerup',endPointer);window.addEventListener('pointercancel',endPointer);
   els.joyBase.addEventListener('pointerdown',e=>{joyPointer=e.pointerId;e.preventDefault()});
-  els.interactBtn.addEventListener('click',()=>{const s=state.roam.nearest;if(s&&s.can())s.run()});
+  els.interactBtn.addEventListener('click',()=>{if(state.roam.sorting){setScene('sort',true);sendBaler();return}const s=state.roam.nearest;if(s&&s.can())s.run()});
   els.roamBack.addEventListener('click',enterRoam);
 }
 

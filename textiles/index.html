@@ -1657,11 +1657,29 @@ function initThree(){
     addCylinder(.48,.48,.25,0x171a1a,x,.48,z,Math.PI/2,0,24);
     addCylinder(.24,.24,.26,0x9b9d98,x,.48,z,Math.PI/2,0,20);
   }
-  // Load bales visible inside the open cargo bay.
-  for(let row=0;row<2;row++)for(let col=0;col<2;col++)for(let layer=0;layer<2;layer++){
-    const cargo=addBox(.88,.55,.95,[0x9b927e,0x807d70,0xb3a78e,0x8c806f][(row+col+layer)%4],tx-.52+col*1.02,1.34+layer*.57,tz-.9+row*1.35,.98,.01);
-    for(let k=0;k<3;k++)addBox(.022,.57,.98,0xd8c58e,cargo.position.x-.28+k*.28,cargo.position.y,cargo.position.z,.55,.08);
+  // Six cargo slots appear only as bales are actually loaded during the shift.
+  const cargoColors=[0x9b927e,0x807d70,0xb3a78e,0x8c806f,0xa49b88,0x77766d];
+  three.truckCargoSlots=[];
+  for(let i=0;i<6;i++){
+    const cargoGroup=new THREE.Group();cargoGroup.position.set(tx,0,tz);cargoGroup.visible=false;scene.add(cargoGroup);
+    const col=i%2,row=Math.floor(i/2),cx=col===0?-.52:.52,cz=-2.1+row*2.1,cy=1.34;
+    addBox(.9,.55,1.18,cargoColors[i],cx,cy,cz,.98,.01,cargoGroup);
+    for(let k=0;k<3;k++)addBox(.024,.57,1.2,0xd8c58e,cx-.29+k*.29,cy,cz,.55,.08,cargoGroup);
+    three.truckCargoSlots.push(cargoGroup);
   }
+  // A compact industrial forklift: counterweight, seat, overhead guard, mast and twin forks.
+  const forklift=new THREE.Group();forklift.position.set(5.15,0,-5.7);scene.add(forklift);three.forklift=forklift;three.forkliftBaseX=5.15;three.forkliftPhase=2;three.lastForkliftCount=state.truck.forklift;
+  addBox(1.15,.34,1.38,0xd6a33e,0,.55,0,.58,.35,forklift);
+  addBox(.55,.48,.55,0x303936,-.18,.94,-.12,.65,.35,forklift);
+  addBox(.72,.07,.72,0x222a27,-.18,1.22,-.12,.6,.4,forklift);
+  for(const x of [-.48,.48])for(const z of [-.48,.48]){
+    addCylinder(.28,.28,.18,0x202321,x,.34,z,Math.PI/2,Math.PI/2,20,forklift);
+    addCylinder(.13,.13,.19,0x9da39c,x,.34,z,Math.PI/2,Math.PI/2,16,forklift);
+  }
+  for(const z of [-.42,.42])addBox(.08,1.65,.08,0x343c38,.68,1.05,z,.5,.5,forklift);
+  addBox(.1,.08,1.0,0x343c38,.68,1.88,0,.5,.5,forklift);
+  addBox(1.0,.07,.09,0xe2bb61,1.12,.25,-.29,.55,.4,forklift);
+  addBox(1.0,.07,.09,0xe2bb61,1.12,.25,.29,.55,.4,forklift);
 
   // Human boss NPC: modeled torso, head, neck, arms and legs (no photo billboard).
   const bossGroup=new THREE.Group();
@@ -1755,6 +1773,8 @@ function tickThree(){
     if(three.pressRod){const bottom=three.pressPlaten.position.y+.11,top=2.815,length=Math.max(.08,top-bottom);three.pressRod.scale.y=length;three.pressRod.position.y=(top+bottom)/2;}
   }
   if(three.sortRollers)three.sortRollers.forEach(roller=>{roller.rotation.z+=dt*2.4;});
+  if(three.truckCargoSlots){const truck=state.truck||{};three.truckCargoSlots.forEach((slot,i)=>{slot.visible=!!(truck.arrived&&i<truck.loaded)});}
+  if(three.forklift){const count=state.truck?state.truck.forklift:three.lastForkliftCount;if(count<three.lastForkliftCount)three.forkliftPhase=0;three.lastForkliftCount=count;if(three.forkliftPhase<1.2){three.forkliftPhase+=dt;three.forklift.position.x=three.forkliftBaseX+.9*Math.sin(Math.min(1,three.forkliftPhase/1.2)*Math.PI)}else three.forklift.position.x=three.forkliftBaseX;}
   if(three.machineGate){
     const target=state.machine&&state.machine.door?three.gateClosedY:three.gateOpenY;
     three.machineGate.rotation.y+=(target-three.machineGate.rotation.y)*Math.min(1,dt*5);

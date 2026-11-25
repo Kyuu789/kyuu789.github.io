@@ -1663,9 +1663,9 @@ function initThree(){
   const head=new THREE.Mesh(new THREE.SphereGeometry(.24,18,14),skin);head.position.y=2.04;head.scale.set(.88,1.08,.9);bossGroup.add(head);
   const hair=new THREE.Mesh(new THREE.SphereGeometry(.245,16,8,0,Math.PI*2,0,Math.PI*.48),mat(0x292522,.95));hair.position.set(0,2.12,0);bossGroup.add(hair);
   for(const side of [-1,1]){
-    const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.095,.55,4,8),shirt);arm.position.set(side*.39,1.28,0);arm.rotation.z=side*.12;bossGroup.add(arm);
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.68,10),shirt);arm.position.set(side*.39,1.28,0);arm.rotation.z=side*.12;bossGroup.add(arm);
     const hand=new THREE.Mesh(new THREE.SphereGeometry(.105,10,8),skin);hand.position.set(side*.4,.94,.02);bossGroup.add(hand);
-    const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.12,.56,4,8),pants);leg.position.set(side*.17,.48,0);bossGroup.add(leg);
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.72,10),pants);leg.position.set(side*.17,.48,0);bossGroup.add(leg);
     const foot=new THREE.Mesh(new THREE.BoxGeometry(.22,.12,.38),shoe);foot.position.set(side*.17,.12,.08);bossGroup.add(foot);
   }
   bossGroup.position.set(state.boss.x,0,state.boss.z);scene.add(bossGroup);three.boss=bossGroup;
@@ -1675,8 +1675,8 @@ function initThree(){
     const body=new THREE.Mesh(new THREE.BoxGeometry(.48,.78,.3),mat(shirtColor,.9));body.position.y=1.15;g.add(body);
     const h=new THREE.Mesh(new THREE.SphereGeometry(.2,12,10),skin);h.position.y=1.72;g.add(h);
     for(const side of [-1,1]){
-      const a=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.48,3,7),mat(shirtColor,.9));a.position.set(side*.3,1.2,0);a.rotation.z=side*.15;g.add(a);
-      const l=new THREE.Mesh(new THREE.CapsuleGeometry(.1,.48,3,7),pants);l.position.set(side*.13,.42,0);g.add(l);
+      const a=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.58,9),mat(shirtColor,.9));a.position.set(side*.3,1.2,0);a.rotation.z=side*.15;g.add(a);
+      const l=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.58,9),pants);l.position.set(side*.13,.42,0);g.add(l);
     }
     g.position.set(x,0,z);scene.add(g);return g;
   }

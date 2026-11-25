@@ -1060,9 +1060,10 @@ els.phoneClose.addEventListener('click',closePhone);
 /* ===== 素材加载 ===== */
 function loadAssets(){
   let done=0; const total=BOOT_ASSETS.length;
-  const mark=()=>{done++;const pct=Math.round(done/total*100);els.bootFill.style.width=pct+'%';els.bootPct.textContent=pct+'%';if(done>=total)setTimeout(()=>{const boot=$('#bootScreen');if(boot)boot.classList.add('loaded')},250)};
+  const finish=()=>{done=total;const pct=100;els.bootFill.style.width=pct+'%';els.bootPct.textContent=pct+'%';const boot=$('#bootScreen');if(boot)setTimeout(()=>boot.classList.add('loaded'),250)};
+  const mark=()=>{if(done>=total)return;done++;const pct=Math.round(done/total*100);els.bootFill.style.width=pct+'%';els.bootPct.textContent=pct+'%';if(done>=total)finish()};
   BOOT_ASSETS.forEach(src=>{const im=new Image();im.onload=mark;im.onerror=mark;im.src='assets/'+src});
-  setTimeout(mark,2500);
+  setTimeout(finish,3000);
 }
 loadAssets();
 applyI18n();

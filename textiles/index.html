@@ -1667,12 +1667,12 @@ function initThree(){
   addCylinder(.085,.085,.045,0xc64d3d,bx-1.8,1.22,bz-.35,Math.PI/2,0,16);
   addCylinder(.17,.17,.045,0xd8d2bd,bx-1.9,1.58,bz-.35,Math.PI/2,0,24);
   // Large, tactile controls on the operator-facing side of the console.
-  addMachineTarget('feed','LOAD',bx-2.12,1.2,bz+.02,0x4fbd83);
-  addMachineTarget('clear','CLEAR JAM',bx-1.9,1.2,bz+.02,0xd6a34e);
-  addMachineTarget('press','PRESS',bx-1.68,1.2,bz+.02,0xd45a48);
-  addMachineTarget('tie','TIE STRAPS',bx-2.12,.88,bz+.02,0x5d9fc4);
-  addMachineTarget('eject','EJECT',bx-1.68,.88,bz+.02,0xd5b95d);
-  addMachineTarget('gate','SAFETY GATE',bx,1.12,bz+1.02,0xe1b54d);
+  addMachineTarget('feed','LOAD',bx-2.12,1.2,bz-.25,0x4fbd83);
+  addMachineTarget('clear','CLEAR JAM',bx-1.9,1.2,bz-.25,0xd6a34e);
+  addMachineTarget('press','PRESS',bx-1.68,1.2,bz-.25,0xd45a48);
+  addMachineTarget('tie','TIE STRAPS',bx-2.12,.88,bz-.25,0x5d9fc4);
+  addMachineTarget('eject','EJECT',bx-1.68,.88,bz-.25,0xd5b95d);
+  addMachineTarget('gate','SAFETY GATE',bx,1.12,bz+1.48,0xe1b54d);
 
   // Bale on the press bed: volumetric irregular fiber surface and five real strap loops.
   const baleX=bx,baleY=.88,baleZ=bz;
@@ -1784,7 +1784,7 @@ function initThree(){
   }
 
   canvas.addEventListener('click',e=>{
-    if(!state.roam.active)return;
+    if(!state.roam.active&&state.scene!=='baler')return;
     const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
     three.raycaster.setFromCamera(three.pointer,camera);
     if(state.roam.sorting&&three.sortJunk&&Math.hypot(state.roam.x+1.1,state.roam.z+4.4)<=5.5){
@@ -1883,11 +1883,11 @@ function tickThree(){
   three.renderer.render(three.scene,three.camera);
 }
 function bindRoamControls(){
-  window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();roamKeys[k]=true;if(k==='e'&&state.roam.active){e.preventDefault();els.interactBtn.click()}});
+  window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();roamKeys[k]=true;if(k==='e'&&state.roam.active){e.preventDefault();els.interactBtn.click()}else if(k==='e'&&state.scene==='baler'){e.preventDefault();press()}});
   window.addEventListener('keyup',e=>{roamKeys[e.key.toLowerCase()]=false});
   window.addEventListener('resize',resizeThree);
   els.stage.addEventListener('pointerdown',e=>{
-    if(!state.roam.active||e.target.closest('button,.view,.roam-controls,.hud,.boss-panel'))return;
+    if((!state.roam.active&&state.scene!=='baler')||e.target.closest('button,.view,.roam-controls,.hud,.boss-panel'))return;
     lookPointer=e.pointerId;lastLookX=e.clientX;lastLookY=e.clientY;
   });
   window.addEventListener('pointermove',e=>{

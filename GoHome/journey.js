@@ -547,7 +547,7 @@
     if (fat !== null && eaten !== null) {
       foodLine = " 第一程还吃掉 " + eaten + " 口，体重到 " + fat + "%，居然没卡在闸机口。";
     }
-    finalText.textContent = "检票、认车、山路、夜路，四程都闯过来了。" + foodLine + " 院里的灯还亮着，锅里的水已经开了。";
+    finalText.textContent = "检票、砍价、山路、夜路，四程都闯过来了。" + foodLine + " 院里的灯还亮着，锅里的水已经开了。";
     finalMiss.textContent = state.totalMiss;
     const stars = state.totalMiss === 0 ? 5 : state.totalMiss <= 2 ? 4 : state.totalMiss <= 4 ? 3 : 2;
     finalStars.innerHTML = [0, 1, 2, 3, 4].map(i => '<span class="' + (i < stars ? "" : "dim") + '">★</span>').join("");

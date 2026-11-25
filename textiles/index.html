@@ -924,7 +924,8 @@ function setScene(name,instant=false){
   els.bossPanel.classList.toggle('hidden',hideIdle);
   els.idleBar.classList.toggle('hidden',hideIdle);
   state.roam.active=name==='roam';
-  els.roamControls.classList.toggle('hidden',!state.roam.active);
+  const interactive3D=['baler','truck'].includes(name);
+  els.roamControls.classList.toggle('hidden',!state.roam.active&&!interactive3D);
   els.roamPrompt.classList.toggle('hidden',!state.roam.active);
   const inStation=['floor','sort','baler','pallet','truck'].includes(name);
   els.roamBack.classList.toggle('hidden',!inStation||!state.running);
@@ -1880,13 +1881,15 @@ function tickThree(){
   const now=performance.now(),dt=Math.min(.05,(now-lastFrame)/1000);lastFrame=now;
   const r=state.roam;
   if(!state.started)r.yaw+=dt*.12;
-  if(r.active){
+  if(r.active||state.scene==='baler'||state.scene==='truck'){
     updateRoamMovement(dt);
-    if(r.sorting)syncSortProps();
-    const near=nearestSpot(),spot=r.sorting&&near&&near.id==='sort'?null:near;r.nearest=spot;
-    if(r.sorting&&Math.hypot(r.x+1.1,r.z+4.4)<5.5){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=lang==='zh'?'点击台面异物 · 清理后去打包':'Tap contaminants · finish at the baler';els.interactBtn.textContent=lang==='zh'?'送去打包':'Send to baler';els.interactBtn.disabled=false}
-    else if(spot){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=t(spot.key);els.interactBtn.textContent=t('interact');els.interactBtn.disabled=!spot.can()}
-    else els.roamPrompt.classList.add('hidden');
+    if(r.active){
+      if(r.sorting)syncSortProps();
+      const near=nearestSpot(),spot=r.sorting&&near&&near.id==='sort'?null:near;r.nearest=spot;
+      if(r.sorting&&Math.hypot(r.x+1.1,r.z+4.4)<5.5){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=lang==='zh'?'点击台面异物 · 清理后去打包':'Tap contaminants · finish at the baler';els.interactBtn.textContent=lang==='zh'?'送去打包':'Send to baler';els.interactBtn.disabled=false}
+      else if(spot){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=t(spot.key);els.interactBtn.textContent=t('interact');els.interactBtn.disabled=!spot.can()}
+      else els.roamPrompt.classList.add('hidden');
+    }
   }
   if(state.running)updateBoss3D(dt);
   three.camera.position.set(r.x,1.6,r.z);three.camera.rotation.y=r.yaw;three.camera.rotation.x=r.pitch;

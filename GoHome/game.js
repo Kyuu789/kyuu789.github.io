@@ -42,6 +42,7 @@
     return img;
   }
 
+  const metroBg = loadImg("assets/scenes/metro-platform.webp");
   const heroStage = [
     loadImg("assets/hero/fat-1.webp"),
     loadImg("assets/hero/fat-2.webp"),
@@ -358,12 +359,21 @@
   /* ---------- 绘制 ---------- */
   function drawBackground() {
     const scroll = state.elapsed * (145 + (state.elapsed / LEVEL_SECONDS) * 40);
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, "#15544a");
-    g.addColorStop(0.55, "#0f3d35");
-    g.addColorStop(1, "#082821");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
+    if (metroBg.complete && metroBg.naturalWidth) {
+      const scale = Math.max(W / metroBg.naturalWidth, H / metroBg.naturalHeight);
+      const iw = metroBg.naturalWidth * scale;
+      const ih = metroBg.naturalHeight * scale;
+      ctx.drawImage(metroBg, (W - iw) / 2, (H - ih) / 2, iw, ih);
+      ctx.fillStyle = "rgba(4,22,18,.58)";
+      ctx.fillRect(0, 0, W, H);
+    } else {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#15544a");
+      g.addColorStop(0.55, "#0f3d35");
+      g.addColorStop(1, "#082821");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
 
     // 地面砖缝
     ctx.strokeStyle = "rgba(190,230,205,.09)";

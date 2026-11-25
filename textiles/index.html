@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#08110f">
+<meta name="format-detection" content="telephone=no,email=no,address=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>废毛打包间 · WASTE WOOL SHIFT</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b1513'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='monospace' font-size='38' fill='%23e6ae52'%3EW%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://miaoda.feishu.cn">
@@ -20,7 +23,7 @@
 }
 *{box-sizing:border-box}
 html{height:100%;margin:0;background:#07100e}
-body{min-height:100vh;height:100vh;margin:0;background:radial-gradient(900px 500px at 50% -20%,#183029 0%,#07100e 58%,#040807 100%);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+body{min-height:100vh;min-height:100svh;height:100vh;height:100svh;margin:0;background:radial-gradient(900px 500px at 50% -20%,#183029 0%,#07100e 58%,#040807 100%);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 button{font:inherit;color:inherit}
 button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
 .hidden{display:none!important}
@@ -31,7 +34,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
 .chip,.step{border-radius:3px}
 
 /* HUD */
-#app{position:relative;height:100vh;height:100svh;display:grid;grid-template-rows:70px minmax(0,1fr)}
+#app{position:relative;height:100vh;height:100svh;display:grid;grid-template-rows:70px minmax(0,1fr);overflow:hidden}
 .hud{position:relative;z-index:20;display:grid;grid-template-columns:minmax(190px,1fr) minmax(230px,320px) auto minmax(190px,1fr);align-items:center;gap:18px;padding:10px 24px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(8,16,14,.96),rgba(8,16,14,.78));box-shadow:0 8px 26px rgba(0,0,0,.32);backdrop-filter:blur(12px)}
 .brand{display:flex;align-items:center;gap:11px;min-width:0}
 .brand-mark{width:40px;height:40px;border:1px solid rgba(230,174,82,.55);display:grid;place-items:center;background:linear-gradient(135deg,rgba(230,174,82,.18),rgba(230,174,82,.02));box-shadow:inset 0 0 18px rgba(230,174,82,.12);flex:0 0 auto}
@@ -202,6 +205,27 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
 .pallet-row{display:flex;gap:7px;justify-content:center;margin:14px 0;flex-wrap:wrap}
 .pallet-row span{width:42px;height:30px;border:1px solid rgba(131,182,157,.4);background:rgba(131,182,157,.12);font-family:var(--mono);font-size:10px;display:grid;place-items:center}
 
+/* Truck loading */
+.truck-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;width:min(720px,94vw);padding:18px;border:1px solid rgba(205,222,210,.3);background:rgba(7,14,13,.9);box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+.truck-stage{display:grid;grid-template-rows:1fr 112px;gap:12px;margin:14px 0}
+.truck-truck{position:relative;display:grid;grid-template-columns:92px 1fr;gap:0;min-height:150px}
+.truck-cab{border:1px solid rgba(230,174,82,.35);background:linear-gradient(160deg,#263c35,#12201c);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:10px 0 0 10px}
+.truck-cab b{font-size:18px;color:var(--amber2);letter-spacing:.12em}.truck-cab span{font-family:var(--mono);font-size:9px;color:var(--muted)}
+.truck-bed{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;padding:12px;border:1px solid rgba(205,222,210,.22);background:rgba(0,0,0,.28);border-left:0}
+.truck-slot{border:1px dashed rgba(205,222,210,.28);min-height:120px;display:grid;place-items:center;font-family:var(--mono);font-size:10px;color:var(--muted);position:relative}
+.truck-slot.loaded{border-style:solid;border-color:rgba(131,182,157,.55);background:radial-gradient(circle,rgba(131,182,157,.22),rgba(0,0,0,.3));color:#e8f1e8}
+.truck-slot .bale-mini{font-size:11px;text-align:center;line-height:1.3}
+.truck-ground{display:flex;gap:10px;align-items:stretch;overflow-x:auto;padding:6px 2px}
+.ground-bale{min-width:96px;border:1px solid rgba(205,222,210,.25);background:#0d1715;padding:9px;cursor:pointer;text-align:center;transition:transform .15s,border-color .15s}
+.ground-bale:hover{transform:translateY(-3px);border-color:var(--amber2)}
+.ground-bale .bale-weight{font-family:var(--mono);font-size:18px;color:var(--amber2)}
+.ground-bale .bale-grade{font-size:10px;color:var(--muted);margin-top:3px}
+.truck-meta{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:12px}
+.truck-meta b{font-family:var(--mono);color:var(--text);margin-left:5px}
+.truck-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.truck-actions .btn{min-width:112px}
+.truck-hint{margin:10px 0 0;font-size:10px;color:var(--muted);line-height:1.5;text-align:center}
+
 /* Boot loader */
 #bootScreen{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:radial-gradient(900px 500px at 50% -20%,#183029 0%,#07100e 58%,#040807 100%);transition:opacity .35s ease,visibility .35s ease}
 #bootScreen.loaded{opacity:0;visibility:hidden;pointer-events:none}
@@ -228,6 +252,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
 .boss-gauge{height:5px;background:rgba(255,255,255,.08);margin:7px 0 6px;overflow:hidden}
 .boss-gauge i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--amber));transition:width .2s ease}
 .boss-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted)}
+.boss-cash{margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--amber2)}
 .idle-bar{position:absolute;left:50%;bottom:24px;z-index:8;display:flex;gap:8px;transform:translateX(-50%);padding:7px;border:1px solid rgba(205,222,210,.2);border-radius:10px;background:linear-gradient(180deg,rgba(8,16,14,.86),rgba(8,16,14,.78)),url('assets/break.jpg') center/cover;backdrop-filter:blur(8px)}
 .idle-btn{min-height:38px;padding:0 12px;border:1px solid rgba(205,222,210,.24);background:rgba(10,19,17,.86);color:var(--text);cursor:pointer;font-size:11px;letter-spacing:.06em;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .idle-btn:hover{border-color:rgba(230,174,82,.7)}
@@ -338,6 +363,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
   .boss-task{min-height:26px;font-size:10px}
   .idle-bar{bottom:12px;gap:6px}
   .idle-btn{min-height:34px;padding:0 9px;font-size:10px}
+  .truck-card{width:100%;padding:12px;top:118px;bottom:12px;transform:translateX(-50%);overflow-y:auto}.truck-truck{grid-template-columns:64px 1fr}.truck-bed{grid-template-columns:repeat(3,1fr);gap:5px;padding:8px}.truck-slot{min-height:82px}.ground-bale{min-width:80px;padding:7px}.truck-meta{gap:10px}.truck-actions .btn{min-width:0;flex:1}
   .phone{height:88vh;border-radius:20px}
   .machine-readout{left:12px;top:36px;bottom:auto;width:auto;min-width:156px;padding:6px 9px 7px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
   .machine-readout span{display:none}.machine-readout b{font-size:24px}.machine-readout #baleBatch{font-size:9px;margin:0}
@@ -521,6 +547,32 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
       </div>
     </section>
 
+    <section class="view" id="truckView">
+      <img class="backdrop" src="assets/warehouse.jpg" alt="warehouse truck bay">
+      <div class="vignette"></div>
+      <div class="truck-card">
+        <p class="kicker" data-i18n="truckKicker">9.6M DAYUN / 装车发运</p>
+        <div class="truck-stage">
+          <div class="truck-truck">
+            <div class="truck-cab"><b>大运</b><span>9.6m</span></div>
+            <div class="truck-bed" id="truckSlots"></div>
+          </div>
+          <div class="truck-ground" id="truckGround"></div>
+        </div>
+        <div class="truck-meta">
+          <span data-i18n="truckTimer">装车限时</span><b id="truckTimer">45s</b>
+          <span data-i18n="truckLoaded">已装</span><b id="truckLoaded">0/6</b>
+          <span data-i18n="truckRevenue">预计货款</span><b id="truckRevenue">¥0</b>
+        </div>
+        <div class="truck-actions">
+          <button class="btn" id="forkliftBtn"><span data-i18n="forklift">铲车</span> ×<span id="forkliftCount">2</span></button>
+          <button class="btn" id="secureBtn" data-i18n="secure">绑绳加固</button>
+          <button class="btn primary" id="departBtn" data-i18n="depart">发车卖货</button>
+        </div>
+        <p class="truck-hint" id="truckHint" data-i18n="truckHint">点地上的包人力扛上车；超重包容易打滑，铲车一次装一包。</p>
+      </div>
+    </section>
+
     <section class="view" id="endView">
       <img class="backdrop" src="assets/warehouse.jpg" alt="finished bale warehouse">
       <div class="vignette"></div>
@@ -536,6 +588,8 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
           <div><span data-i18n="defects">故障/失误</span><b id="endDefects">0</b></div>
           <div><span data-i18n="safety">安全</span><b id="endSafety">100</b></div>
           <div><span data-i18n="wage">工资</span><b id="endWage">0<small>¥</small></b></div>
+          <div><span data-i18n="bossCash">老板货款</span><b id="endBossCash">0<small>¥</small></b></div>
+          <div><span data-i18n="soldKg">已售毛料</span><b id="endSoldKg">0<small>kg</small></b></div>
           <div><span data-i18n="caughtBoss">被抓摸鱼</span><b id="endCaughtBoss">0</b></div>
           <div><span data-i18n="tasksDone">完成任务</span><b id="endTasks">0</b></div>
         </div>
@@ -551,6 +605,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
         <div class="boss-task" id="bossTask">—</div>
         <div class="boss-gauge"><i id="bossTaskFill"></i></div>
         <div class="boss-meta"><span id="bossTaskTime">0s</span><span id="bossTaskProg">0/0</span></div>
+        <div class="boss-cash" id="bossCashLine" data-i18n="bossCash">老板货款 ¥0</div>
       </div>
     </aside>
 
@@ -602,6 +657,7 @@ const MATERIALS = {
   mixedC:{zh:'杂色 C',en:'Mixed C',shortZh:'地脚毛',shortEn:'Floor sweep',img:'pile-mixed.jpg',grade:'C',gradeVal:55,color:'mixed'}
 };
 const SHIFT_SECONDS=300, TARGET_BALES=6, MIN_BALE=150, MAX_BALE=190, UNIT_KG=15, WIRE_PER_BALE=5, CART_CAP=200;
+const TRUCK_CAP=6, TRUCK_ARRIVE=4, TRUCK_SECONDS=45, FORKLIFT_USES=2, PRICE_PER_KG=1.2;
 const TIE_NODES={t1:{x:15,y:34},t2:{x:30,y:34},t3:{x:50,y:34},t4:{x:70,y:34},t5:{x:85,y:34},b1:{x:15,y:72},b2:{x:30,y:72},b3:{x:50,y:72},b4:{x:70,y:72},b5:{x:85,y:72}};
 const TIE_PAIRS=[['t1','b2'],['t2','b1'],['t3','b3'],['t4','b5'],['t5','b4']];
 const BOOT_ASSETS=['floor.jpg','pile-white.jpg','pile-dark.jpg','pile-mixed.jpg','baler.jpg','bale-tie.jpg','bale-result.jpg','warehouse.jpg','sort-table.jpg','sort-conveyor.jpg','sort-facility.jpg','pallet-rows.jpg','pallet-round.jpg','control-panel.jpg','gauge.jpg','worker.jpg','boss.jpg','douyin-cover.jpg','break.jpg'];
@@ -613,8 +669,8 @@ const TASK_TYPES=[
   {id:'load',key:'taskLoad',target:300,progress:()=>state.loadedKg}
 ];
 const I18N = {
-  zh:{appTitle:'废毛打包间',clock:'班次',remaining:'剩余',qualified:'合格',output:'产量',stock:'丝道',stationFloor:'收毛区',stationSort:'分拣台',stationBaler:'液压打包',floorNote:'点料堆装车 · 10–13 次 = 150–190kg',cart:'周转车 / CART',empty:'空车',foreign0:'异物 0',toSort:'去分拣台',sortTitle:'分拣 / SORT',weight:'重量',grade:'品级',purity:'挑出',left:'遗留',sendBaler:'送入打包机',chamber:'压仓 / CHAMBER',gate:'安全门',control:'控制台 / CONTROL',pressure:'液压压力',feed:'倒料',close:'关门',press:'下压',repress:'补压',tie:'穿丝',eject:'出包',stuck:'压仓卡毛',clear:'清理',wire:'打包丝 / WIRE',fourTies:'穿 5 道',tieHint:'按住上排节点，滑到下排对应节点，拉出五根 X | X 包带；连错会松脱。',quality:'品质',scoreWeight:'重量',scorePurity:'纯净',scoreGrade:'品级',scoreBind:'打包',palletKicker:'PALLET BAY',of6:'/ 6 包合格',avg:'平均包重',rejected:'返工包',caught:'挑出异物',defects:'故障/失误',safety:'安全',endTitleDone:'目标达成 · 可以交班',endTitleEnd:'本班结束 · 还差一截',startSub:'把地上的废毛，压成能上垛的包。',target:'目标',bales:'包',baleSize:'单包',shiftTime:'班时',flow1:'收集',flow2:'分拣',flow3:'液压打包',flow4:'穿丝',flow5:'码垛',start:'接班',again:'再来一班',wireStock:'丝道',gradeChip:'品级',emptyBatch:'空车',mixColor:'混色',empty0:'—',bootLoading:'正在加载车间素材…',wage:'工资',boss:'老板',water:'喝水',snack:'吃东西',phone:'手机',caughtBoss:'被抓摸鱼',tasksDone:'完成任务',taskBales:'合格打包',taskSort:'挑净异物',taskJam:'清理卡毛',taskStraps:'完成穿丝',taskLoad:'装车产量',bossAway:'背身摸鱼',bossWatch:'正在巡视',taskDone:'任务完成 · 加工资',taskMiss:'任务超时 · 扣工资加派',caughtMsg:'被老板发现摸鱼 · 扣工资加任务',phoneHome:'手机桌面',wechat:'微信',douyin:'抖音',wife:'老婆',send:'发送',like:'点赞',comment:'评论',drinkMsg:'喝口水缓一缓',snackMsg:'吃口饼干垫肚子'},
-  en:{appTitle:'Waste Wool Shift',clock:'Shift',remaining:'Left',qualified:'Pass',output:'Output',stock:'Wires',stationFloor:'Recovery',stationSort:'Sorting',stationBaler:'Hydraulic Baler',floorNote:'Click piles to load · 10–13 loads = 150–190kg',cart:'CART',empty:'Empty cart',foreign0:'Contaminants 0',toSort:'To sorting line',sortTitle:'SORTING LINE',weight:'Weight',grade:'Grade',purity:'Picked',left:'Left',sendBaler:'Send to baler',chamber:'CHAMBER',gate:'Gate',control:'CONTROL',pressure:'Hydraulic pressure',feed:'Load',close:'Close gate',press:'Press down',repress:'Repress',tie:'Tie',eject:'Eject',stuck:'Fiber jam',clear:'Clear',wire:'BALE WIRE',fourTies:'Tie 5 wires',tieHint:'Press a top node and drag to its bottom node to draw the five X | X straps; wrong links come loose.',quality:'Quality',scoreWeight:'Weight',scorePurity:'Purity',scoreGrade:'Grade',scoreBind:'Binding',palletKicker:'PALLET BAY',of6:'/ 6 bales passed',avg:'Avg bale',rejected:'Rejected',caught:'Contaminants',defects:'Faults',safety:'Safety',endTitleDone:'Shift target met',endTitleEnd:'Shift ended · short of target',startSub:'Press loose mill waste into stackable bales.',target:'Target',bales:'bales',baleSize:'Bale',shiftTime:'Shift',flow1:'Collect',flow2:'Sort',flow3:'Bale',flow4:'Tie',flow5:'Stack',start:'Start shift',again:'Next shift',wireStock:'Wires',gradeChip:'Grade',emptyBatch:'Empty cart',mixColor:'Mixed color',empty0:'—',bootLoading:'Loading shift assets…',wage:'Wage',boss:'Boss',water:'Water',snack:'Snack',phone:'Phone',caughtBoss:'Caught idle',tasksDone:'Tasks done',taskBales:'Qualified bales',taskSort:'Catch waste',taskJam:'Clear jams',taskStraps:'Tie straps',taskLoad:'Load cart',bossAway:'Back turned',bossWatch:'Watching',taskDone:'Task done · bonus',taskMiss:'Task missed · pay cut',caughtMsg:'Caught slacking · pay cut and extra task',phoneHome:'Phone',wechat:'WeChat',douyin:'TikTok',wife:'Wife',send:'Send',like:'Like',comment:'Comment',drinkMsg:'Take a sip',snackMsg:'Bite a biscuit'}
+  zh:{appTitle:'废毛打包间',clock:'班次',remaining:'剩余',qualified:'合格',output:'产量',stock:'丝道',stationFloor:'收毛区',stationSort:'分拣台',stationBaler:'液压打包',floorNote:'点料堆装车 · 10–13 次 = 150–190kg',cart:'周转车 / CART',empty:'空车',foreign0:'异物 0',toSort:'去分拣台',sortTitle:'分拣 / SORT',weight:'重量',grade:'品级',purity:'挑出',left:'遗留',sendBaler:'送入打包机',chamber:'压仓 / CHAMBER',gate:'安全门',control:'控制台 / CONTROL',pressure:'液压压力',feed:'倒料',close:'关门',press:'下压',repress:'补压',tie:'穿丝',eject:'出包',stuck:'压仓卡毛',clear:'清理',wire:'打包丝 / WIRE',fourTies:'穿 5 道',tieHint:'按住上排节点，滑到下排对应节点，拉出五根 X | X 包带；连错会松脱。',truckKicker:'9.6米大运 · 装车发运',truckTimer:'装车限时',truckLoaded:'已装',truckRevenue:'预计货款',forklift:'铲车',secure:'绑绳加固',depart:'发车卖货',truckHint:'点地上的包人力扛上车；超重包容易打滑，铲车一次装一包。',bossCash:'老板货款',soldKg:'已售毛料',quality:'品质',scoreWeight:'重量',scorePurity:'纯净',scoreGrade:'品级',scoreBind:'打包',palletKicker:'PALLET BAY',of6:'/ 6 包合格',avg:'平均包重',rejected:'返工包',caught:'挑出异物',defects:'故障/失误',safety:'安全',endTitleDone:'目标达成 · 可以交班',endTitleEnd:'本班结束 · 还差一截',startSub:'把地上的废毛，压成能上垛的包。',target:'目标',bales:'包',baleSize:'单包',shiftTime:'班时',flow1:'收集',flow2:'分拣',flow3:'液压打包',flow4:'穿丝',flow5:'码垛',start:'接班',again:'再来一班',wireStock:'丝道',gradeChip:'品级',emptyBatch:'空车',mixColor:'混色',empty0:'—',bootLoading:'正在加载车间素材…',wage:'工资',boss:'老板',water:'喝水',snack:'吃东西',phone:'手机',caughtBoss:'被抓摸鱼',tasksDone:'完成任务',taskBales:'合格打包',taskSort:'挑净异物',taskJam:'清理卡毛',taskStraps:'完成穿丝',taskLoad:'装车产量',bossAway:'背身摸鱼',bossWatch:'正在巡视',taskDone:'任务完成 · 加工资',taskMiss:'任务超时 · 扣工资加派',caughtMsg:'被老板发现摸鱼 · 扣工资加任务',phoneHome:'手机桌面',wechat:'微信',douyin:'抖音',wife:'老婆',send:'发送',like:'点赞',comment:'评论',drinkMsg:'喝口水缓一缓',snackMsg:'吃口饼干垫肚子'},
+  en:{appTitle:'Waste Wool Shift',clock:'Shift',remaining:'Left',qualified:'Pass',output:'Output',stock:'Wires',stationFloor:'Recovery',stationSort:'Sorting',stationBaler:'Hydraulic Baler',floorNote:'Click piles to load · 10–13 loads = 150–190kg',cart:'CART',empty:'Empty cart',foreign0:'Contaminants 0',toSort:'To sorting line',sortTitle:'SORTING LINE',weight:'Weight',grade:'Grade',purity:'Picked',left:'Left',sendBaler:'Send to baler',chamber:'CHAMBER',gate:'Gate',control:'CONTROL',pressure:'Hydraulic pressure',feed:'Load',close:'Close gate',press:'Press down',repress:'Repress',tie:'Tie',eject:'Eject',stuck:'Fiber jam',clear:'Clear',wire:'BALE WIRE',fourTies:'Tie 5 wires',tieHint:'Press a top node and drag to its bottom node to draw the five X | X straps; wrong links come loose.',truckKicker:'9.6M DAYUN / LOAD & SHIP',truckTimer:'Loading time',truckLoaded:'Loaded',truckRevenue:'Est. sale',forklift:'Forklift',secure:'Secure ropes',depart:'Drive & sell',truckHint:'Tap a ground bale to carry it aboard; heavy bales may slip, forklift loads one bale per charge.',bossCash:'Boss proceeds',soldKg:'Sold fiber',quality:'Quality',scoreWeight:'Weight',scorePurity:'Purity',scoreGrade:'Grade',scoreBind:'Binding',palletKicker:'PALLET BAY',of6:'/ 6 bales passed',avg:'Avg bale',rejected:'Rejected',caught:'Contaminants',defects:'Faults',safety:'Safety',endTitleDone:'Shift target met',endTitleEnd:'Shift ended · short of target',startSub:'Press loose mill waste into stackable bales.',target:'Target',bales:'bales',baleSize:'Bale',shiftTime:'Shift',flow1:'Collect',flow2:'Sort',flow3:'Bale',flow4:'Tie',flow5:'Stack',start:'Start shift',again:'Next shift',wireStock:'Wires',gradeChip:'Grade',emptyBatch:'Empty cart',mixColor:'Mixed color',empty0:'—',bootLoading:'Loading shift assets…',wage:'Wage',boss:'Boss',water:'Water',snack:'Snack',phone:'Phone',caughtBoss:'Caught idle',tasksDone:'Tasks done',taskBales:'Qualified bales',taskSort:'Catch waste',taskJam:'Clear jams',taskStraps:'Tie straps',taskLoad:'Load cart',bossAway:'Back turned',bossWatch:'Watching',taskDone:'Task done · bonus',taskMiss:'Task missed · pay cut',caughtMsg:'Caught slacking · pay cut and extra task',phoneHome:'Phone',wechat:'WeChat',douyin:'TikTok',wife:'Wife',send:'Send',like:'Like',comment:'Comment',drinkMsg:'Take a sip',snackMsg:'Bite a biscuit'}
 };
 let lang = localStorage.getItem('tw-lang') || 'zh';
 const t = k => (I18N[lang]&&I18N[lang][k]) || I18N.zh[k] || k;
@@ -625,6 +681,7 @@ const state = {
   bale:null,machine:{loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false},
   wireStock:30,qualified:0,output:0,rejected:0,acceptedWeights:[],acceptedBales:[],
   wage:0,caughtCount:0,tasksDone:0,tasksMissed:0,loadedKg:0,jamsCleared:0,strapsTied:0,
+  bossCash:0,soldBales:0,soldKg:0,truck:{arrived:false,loaded:0,slotIds:[],groundIds:[],forklift:FORKLIFT_USES,secured:false,timer:TRUCK_SECONDS,loadedBales:[],revenue:0},
   boss:{watching:false,phaseLeft:4,task:null,extraTasks:0},
   phoneOpen:false,phoneApp:'home',
   musicOn:localStorage.getItem('tw-music')!=='0',sfxOn:localStorage.getItem('tw-sfx')!=='0'
@@ -642,13 +699,14 @@ const els={
   tieLayer:$('#tieLayer'),tiePhoto:$('#tiePhoto'),tieLines:$('#tieLines'),tieProgress:$('#tieProgress'),resultLayer:$('#resultLayer'),resultStamp:$('#resultStamp'),resultWeight:$('#resultWeight'),resultQuality:$('#resultQuality'),resultReason:$('#resultReason'),resultActions:$('#resultActions'),
   scoreWeight:$('#scoreWeight'),scorePurity:$('#scorePurity'),scoreGrade:$('#scoreGrade'),scoreBind:$('#scoreBind'),scoreWeightV:$('#scoreWeightV'),scorePurityV:$('#scorePurityV'),scoreGradeV:$('#scoreGradeV'),scoreBindV:$('#scoreBindV'),
   palletTitle:$('#palletTitle'),palletMeta:$('#palletMeta'),palletRow:$('#palletRow'),
-  endKicker:$('#endKicker'),endQualified:$('#endQualified'),endOutput:$('#endOutput'),endAvg:$('#endAvg'),endRejects:$('#endRejects'),endCaught:$('#endCaught'),endDefects:$('#endDefects'),endSafety:$('#endSafety'),endGrade:$('#endGrade'),endTitle:$('#endTitle'),endTags:$('#endTags'),againBtn:$('#againBtn'),
-  wage:$('#wage'),bossPanel:$('#bossPanel'),bossState:$('#bossState'),bossTask:$('#bossTask'),bossTaskFill:$('#bossTaskFill'),bossTaskTime:$('#bossTaskTime'),bossTaskProg:$('#bossTaskProg'),idleBar:$('.idle-bar'),
+  truckView:$('#truckView'),truckSlots:$('#truckSlots'),truckGround:$('#truckGround'),truckTimer:$('#truckTimer'),truckLoaded:$('#truckLoaded'),truckRevenue:$('#truckRevenue'),forkliftBtn:$('#forkliftBtn'),forkliftCount:$('#forkliftCount'),secureBtn:$('#secureBtn'),departBtn:$('#departBtn'),
+  endKicker:$('#endKicker'),endQualified:$('#endQualified'),endOutput:$('#endOutput'),endAvg:$('#endAvg'),endRejects:$('#endRejects'),endCaught:$('#endCaught'),endDefects:$('#endDefects'),endSafety:$('#endSafety'),endGrade:$('#endGrade'),endTitle:$('#endTitle'),endTags:$('#endTags'),endBossCash:$('#endBossCash'),endSoldKg:$('#endSoldKg'),againBtn:$('#againBtn'),
+  wage:$('#wage'),bossPanel:$('#bossPanel'),bossState:$('#bossState'),bossTask:$('#bossTask'),bossTaskFill:$('#bossTaskFill'),bossTaskTime:$('#bossTaskTime'),bossTaskProg:$('#bossTaskProg'),bossCashLine:$('#bossCashLine'),idleBar:$('.idle-bar'),
   waterBtn:$('#waterBtn'),snackBtn:$('#snackBtn'),phoneBtn:$('#phoneBtn'),phoneLayer:$('#phoneLayer'),phoneScreen:$('#phoneScreen'),phoneClose:$('#phoneClose'),
   endWage:$('#endWage'),endCaughtBoss:$('#endCaughtBoss'),endTasks:$('#endTasks'),bootFill:$('#bootFill'),bootPct:$('#bootPct'),
   fade:$('#fade'),toast:$('#toast'),startModal:$('#startModal'),startBtn:$('#startBtn'),langBtn:$('#langBtn'),musicBtn:$('#musicBtn'),sfxBtn:$('#sfxBtn')
 };
-let timerId=null, musicTimer=null, palletTimer=null;
+let timerId=null, musicTimer=null, palletTimer=null, truckTimer=null;
 
 /* ===== 音频 ===== */
 const AudioSys={
@@ -730,10 +788,10 @@ function toast(msg,kind=''){els.toast.textContent=msg;els.toast.className='toast
 /* ===== 基础工具 ===== */
 function fmtClock(){const e=SHIFT_SECONDS-state.remaining,m=8*60+Math.floor(e/60);return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}
 function fmtLeft(s){const m=Math.floor(Math.max(0,s)/60),r=Math.max(0,s)%60;return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`}
-function updateHud(){els.clock.textContent=fmtClock();els.timer.textContent=fmtLeft(state.remaining);els.shiftFill.style.width=Math.min(100,(SHIFT_SECONDS-state.remaining)/SHIFT_SECONDS*100)+'%';els.qualified.textContent=state.qualified;els.output.textContent=state.output;els.wireHud.textContent=state.wireStock;els.wage.textContent=Math.max(0,Math.round(state.wage))}
+function updateHud(){els.clock.textContent=fmtClock();els.timer.textContent=fmtLeft(state.remaining);els.shiftFill.style.width=Math.min(100,(SHIFT_SECONDS-state.remaining)/SHIFT_SECONDS*100)+'%';els.qualified.textContent=state.qualified;els.output.textContent=state.output;els.wireHud.textContent=state.wireStock;els.wage.textContent=Math.max(0,Math.round(state.wage));els.bossCashLine.textContent=`${t('bossCash')} ¥${Math.round(state.bossCash)}`}
 function setScene(name,instant=false){
   if(state.scene===name)return;
-  const views={floor:els.floorView,sort:els.sortView,baler:els.balerView,pallet:els.palletView,end:els.endView};
+  const views={floor:els.floorView,sort:els.sortView,baler:els.balerView,pallet:els.palletView,truck:els.truckView,end:els.endView};
   const old=views[state.scene], next=views[name];
   if(old)old.classList.remove('active');
   if(next)next.classList.add('active');
@@ -971,13 +1029,77 @@ function nextShiftCycle(){
   setScene('floor');updateFloor();
   if(state.qualified>=TARGET_BALES){state.running=false;setTimeout(finishShift,900)}
 }
+function unsoldBales(){return state.acceptedBales.filter(b=>!b.sold)}
 function goPallet(){
   const n=state.acceptedBales.length;
   els.palletTitle.textContent=`#${String(n).padStart(2,'0')} ${lang==='zh'?'包上垛':'stacked'}`;
   els.palletMeta.textContent=`${state.acceptedBales[n-1].weight}kg · ${state.acceptedBales[n-1].grade||''}`;
   els.palletRow.innerHTML=state.acceptedBales.map((b,i)=>`<span>#${String(i+1).padStart(2,'0')}</span>`).join('');
   setScene('pallet');AudioSys.tone('thud');
-  clearTimeout(palletTimer); palletTimer=setTimeout(()=>{nextShiftCycle()},1200);
+  clearTimeout(palletTimer);
+  palletTimer=setTimeout(()=>{
+    if(unsoldBales().length>=TRUCK_ARRIVE&&!state.truck.arrived)goTruck(); else nextShiftCycle();
+  },1200);
+}
+function calcBalePrice(b){let p=b.weight*PRICE_PER_KG; if(b.grade==='A')p*=1.2; else if(b.grade==='B')p*=1.1; else p*=.9; return Math.round(p)}
+function goTruck(){
+  const t=state.truck;
+  t.arrived=true;t.loaded=0;t.slotIds=[];t.groundIds=state.acceptedBales.map((b,i)=>!b.sold?i:-1).filter(i=>i>=0);
+  t.forklift=FORKLIFT_USES;t.secured=false;t.timer=TRUCK_SECONDS;t.loadedBales=[];t.revenue=0;
+  setScene('truck');updateTruck();AudioSys.tone('horn' in AudioSys?'horn':'clank');
+  clearInterval(truckTimer);
+  truckTimer=setInterval(()=>{t.timer--;updateTruck();if(t.timer<=0)departTruck(true)},1000);
+}
+function updateTruck(){
+  const t=state.truck;
+  els.truckSlots.innerHTML=Array.from({length:TRUCK_CAP},(_,i)=>{
+    const aid=t.slotIds[i];
+    if(aid==null)return `<div class="truck-slot">空 ${i+1}</div>`;
+    const b=state.acceptedBales[aid];
+    return `<div class="truck-slot loaded"><div class="bale-mini"><b>${b.weight}kg</b><br>${b.grade||''}</div></div>`;
+  }).join('');
+  els.truckGround.innerHTML=t.groundIds.map((aid,i)=>{
+    const b=state.acceptedBales[aid];
+    return `<button class="ground-bale" data-ground="${i}"><div class="bale-weight">${b.weight}kg</div><div class="bale-grade">${b.grade||''} · ¥${calcBalePrice(b)}</div></button>`;
+  }).join('')||`<div class="truck-hint">${lang==='zh'?'地上已没有待装包':'No bales left on the ground'}</div>`;
+  els.truckTimer.textContent=`${Math.max(0,t.timer)}s`;
+  els.truckLoaded.textContent=`${t.loaded}/${TRUCK_CAP}`;
+  els.truckRevenue.textContent=`¥${t.revenue}`;
+  els.forkliftCount.textContent=t.forklift;
+  els.forkliftBtn.disabled=t.forklift<=0||t.loaded>=TRUCK_CAP;
+  els.secureBtn.disabled=t.loaded===0;
+  els.departBtn.disabled=t.loaded===0;
+}
+function loadBale(groundIndex,useForklift=false){
+  const t=state.truck;
+  if(!t.arrived||t.loaded>=TRUCK_CAP||t.timer<=0)return;
+  const aid=t.groundIds[groundIndex]; if(aid==null)return;
+  const b=state.acceptedBales[aid];
+  if(!useForklift){
+    if(b.weight>170&&Math.random()<.22){state.wage=Math.max(0,state.wage-5);toast(lang==='zh'?'超重包打滑，没扛上车':'Heavy bale slipped · left aboard','bad');AudioSys.tone('bad');return}
+  }else{
+    if(t.forklift<=0){toast(lang==='zh'?'铲车电量用完':'Forklift charge empty','bad');return}
+    t.forklift--;
+  }
+  t.groundIds.splice(groundIndex,1);t.slotIds.push(aid);t.loadedBales.push(b);t.loaded++;
+  t.revenue=t.loadedBales.reduce((sum,x)=>sum+calcBalePrice(x),0);
+  AudioSys.tone('thud');updateTruck();
+  if(t.loaded>=TRUCK_CAP)toast(lang==='zh'?'车厢装满，可以发车':'Truck bed full · drive out','good');
+}
+function secureLoad(){const t=state.truck;if(!t.arrived||t.loaded===0)return;t.secured=true;toast(lang==='zh'?'包带已绑紧，不易散包':'Ropes secured · bales held tight','good');AudioSys.tone('wire');updateTruck()}
+function departTruck(auto=false){
+  const t=state.truck;if(!t.arrived)return;
+  clearInterval(truckTimer);
+  let revenue=t.revenue;
+  if(!t.secured)revenue=Math.round(revenue*.9);
+  state.bossCash+=revenue;state.soldBales+=t.loaded;state.soldKg+=t.loadedBales.reduce((a,b)=>a+b.weight,0);
+  state.wage+=t.loaded*8;
+  t.loadedBales.forEach(b=>b.sold=true);
+  toast(lang==='zh'?`货车发车 · 老板货款 ¥${revenue}`:`Truck departed · boss proceeds ¥${revenue}`,auto?'bad':'good');
+  AudioSys.tone(auto?'bad':'good');
+  t.arrived=false;t.loadedBales=[];t.slotIds=[];t.groundIds=[];
+  updateHud();
+  if(state.remaining<=0||state.finished)finishShift(); else nextShiftCycle();
 }
 
 /* ===== 老板派工与摸鱼 ===== */
@@ -1060,12 +1182,14 @@ function startShift(){
   AudioSys.ensure();AudioSys.startMusic();toast(lang==='zh'?'接班 · 先装满一车':'Start shift · load a cart');
 }
 function resetState(){
-  clearInterval(timerId);timerId=null;clearTimeout(palletTimer);palletTimer=null;
+  clearInterval(timerId);timerId=null;clearTimeout(palletTimer);palletTimer=null;clearInterval(truckTimer);truckTimer=null;
   state.started=false;state.running=false;state.finished=false;state.scene='floor';state.remaining=SHIFT_SECONDS;
   state.cart={total:0,materials:{},colors:{}};state.sortItems=[];state.missed=0;state.caught=0;state.defects=0;
   state.bale=null;state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false};
   state.wireStock=30;state.qualified=0;state.output=0;state.rejected=0;state.acceptedWeights=[];state.acceptedBales=[];
   state.wage=0;state.caughtCount=0;state.tasksDone=0;state.tasksMissed=0;state.loadedKg=0;state.jamsCleared=0;state.strapsTied=0;
+  state.bossCash=0;state.soldBales=0;state.soldKg=0;
+  state.truck={arrived:false,loaded:0,slotIds:[],groundIds:[],forklift:FORKLIFT_USES,secured:false,timer:TRUCK_SECONDS,loadedBales:[],revenue:0};
   state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0};state.phoneOpen=false;state.wechatMsgs=[];
   els.phoneLayer.classList.add('hidden');
   els.sortLayer.innerHTML='';els.tieLayer.classList.add('hidden');els.resultLayer.classList.add('hidden');
@@ -1073,7 +1197,7 @@ function resetState(){
   resetTieBoard();updateHud();
 }
 function finishShift(){
-  if(state.finished)return;state.finished=true;state.running=false;clearInterval(timerId);timerId=null;clearTimeout(palletTimer);palletTimer=null;clearTimeout(toast._t);els.toast.className='toast';
+  if(state.finished)return;state.finished=true;state.running=false;clearInterval(timerId);timerId=null;clearTimeout(palletTimer);palletTimer=null;clearInterval(truckTimer);truckTimer=null;clearTimeout(toast._t);els.toast.className='toast';
   els.tieLayer.classList.add('hidden');els.resultLayer.classList.add('hidden');updateEnd();setScene('end');
 }
 function updateEnd(){
@@ -1082,7 +1206,7 @@ function updateEnd(){
   els.endKicker.textContent=`SHIFT REPORT / ${fmtClock()}`;
   els.endQualified.textContent=state.qualified;els.endOutput.innerHTML=`${state.output}<small>kg</small>`;els.endAvg.innerHTML=`${avg}<small>kg</small>`;
   els.endRejects.textContent=state.rejected;els.endCaught.textContent=state.caught;els.endDefects.textContent=state.defects;els.endSafety.textContent='100';
-  els.endWage.innerHTML=`${Math.max(0,Math.round(state.wage))}<small>¥</small>`;els.endCaughtBoss.textContent=state.caughtCount;els.endTasks.textContent=state.tasksDone;
+  els.endWage.innerHTML=`${Math.max(0,Math.round(state.wage))}<small>¥</small>`;els.endBossCash.innerHTML=`${Math.round(state.bossCash)}<small>¥</small>`;els.endSoldKg.textContent=state.soldKg;els.endCaughtBoss.textContent=state.caughtCount;els.endTasks.textContent=state.tasksDone;
   els.endGrade.textContent=grade;els.endGrade.style.color=state.qualified>=6?'var(--green)':state.qualified>=4?'var(--amber2)':'var(--red)';
   els.endTitle.textContent=state.qualified>=6?t('endTitleDone'):t('endTitleEnd');
   els.endTags.innerHTML=state.acceptedWeights.length?state.acceptedWeights.map((w,i)=>`<span>#${String(i+1).padStart(2,'0')} ${w}kg</span>`).join(''):`<span class="empty">${lang==='zh'?'没有合格包 · 下一班先挑纯色毛':'No passed bales · sort clean fiber next shift'}</span>`;
@@ -1106,6 +1230,10 @@ window.addEventListener('touchcancel',()=>{state.machine.gesture=null;$$('.tie-n
 window.addEventListener('pointercancel',()=>{state.machine.gesture=null;$$('.tie-node').forEach(n=>n.classList.remove('active'))});
 document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('dblclick',e=>e.preventDefault());
+els.truckGround.addEventListener('click',e=>{const b=e.target.closest('.ground-bale');if(b)loadBale(+b.dataset.ground,false)});
+els.forkliftBtn.addEventListener('click',()=>loadBale(0,true));
+els.secureBtn.addEventListener('click',secureLoad);
+els.departBtn.addEventListener('click',()=>departTruck(false));
 els.resultActions.addEventListener('click',e=>{const btn=e.target.closest('[data-result]');if(!btn)return;afterResult(btn.dataset.result==='stack')});
 els.startBtn.addEventListener('click',startShift);
 els.againBtn.addEventListener('click',startShift);
@@ -1119,11 +1247,11 @@ els.phoneClose.addEventListener('click',closePhone);
 
 /* ===== 素材加载 ===== */
 function loadAssets(){
-  let done=0; const total=BOOT_ASSETS.length;
-  const finish=()=>{done=total;const pct=100;els.bootFill.style.width=pct+'%';els.bootPct.textContent=pct+'%';const boot=$('#bootScreen');if(boot)setTimeout(()=>boot.classList.add('loaded'),250)};
-  const mark=()=>{if(done>=total)return;done++;const pct=Math.round(done/total*100);els.bootFill.style.width=pct+'%';els.bootPct.textContent=pct+'%';if(done>=total)finish()};
+  let done=0,finished=false; const total=BOOT_ASSETS.length;
+  const finish=()=>{if(finished)return;finished=true;done=total;const pct=100;els.bootFill.style.width=pct+'%';els.bootPct.textContent=pct+'%';const boot=$('#bootScreen');if(boot)setTimeout(()=>boot.classList.add('loaded'),250)};
+  const mark=()=>{if(finished)return;done++;const pct=Math.round(done/total*100);els.bootFill.style.width=pct+'%';els.bootPct.textContent=pct+'%';if(done>=total)finish()};
   BOOT_ASSETS.forEach(src=>{const im=new Image();im.onload=mark;im.onerror=mark;im.src='assets/'+src});
-  setTimeout(finish,3000);
+  setTimeout(finish,8000);
 }
 loadAssets();
 applyI18n();

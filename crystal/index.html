@@ -1,0 +1,1849 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4efe7">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23173f2d'/%3E%3Cstop offset='.6' stop-color='%237a9e86'/%3E%3Cstop offset='1' stop-color='%23d6c5a8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-size='30' text-anchor='middle' fill='%23fbf8f2' font-family='serif'%3E%E7%9F%8B%3C/text%3E%3C/svg%3E">
+<title>晶序 · 水晶摆盘台</title>
+<style>
+  :root{
+    --bg:#f3eee6;
+    --paper:#fbf8f2;
+    --paper-2:#f7f2ea;
+    --ink:#20312a;
+    --ink-soft:#44554b;
+    --muted:#879188;
+    --line:#e4dccf;
+    --line-strong:#d5cabb;
+    --green:#1e4d39;
+    --green-2:#3a6d58;
+    --green-3:#dce9df;
+    --gold:#b18b57;
+    --gold-soft:#eadbc2;
+    --rose:#c88c85;
+    --danger:#a65348;
+    --stage:#122019;
+    --shadow-lg:0 25px 60px rgba(49,41,31,.12);
+    --shadow-md:0 12px 30px rgba(49,41,31,.08);
+    --shadow-sm:0 4px 14px rgba(49,41,31,.06);
+    --radius:22px;
+    --radius-sm:15px;
+    --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+    --serif:"Iowan Old Style","Palatino Linotype","Songti SC","STSong",Georgia,serif;
+  }
+  body[data-theme="night"]{
+    --bg:#0e1612;
+    --paper:#17221c;
+    --paper-2:#1b2a22;
+    --ink:#eef3ec;
+    --ink-soft:#c0cdc3;
+    --muted:#8e9e93;
+    --line:#2a3a30;
+    --line-strong:#3a4c3f;
+    --green:#a8d2b7;
+    --green-2:#82b596;
+    --green-3:#243a2d;
+    --gold:#d4b27c;
+    --gold-soft:#3b3223;
+    --rose:#d7a49d;
+    --danger:#e08a7d;
+    --stage:#08100c;
+    --shadow-lg:0 25px 60px rgba(0,0,0,.35);
+    --shadow-md:0 12px 30px rgba(0,0,0,.25);
+    --shadow-sm:0 4px 14px rgba(0,0,0,.18);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    transition:background .35s ease,color .35s ease;
+  }
+  body::before{
+    content:"";
+    position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:
+      radial-gradient(circle at 8% 12%, rgba(208,188,147,.18), transparent 34%),
+      radial-gradient(circle at 92% 8%, rgba(134,180,153,.15), transparent 30%),
+      radial-gradient(circle at 72% 92%, rgba(201,146,138,.10), transparent 38%),
+      linear-gradient(135deg, transparent 0 60%, rgba(255,255,255,.16) 100%);
+  }
+  body::after{
+    content:"";
+    position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.16;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+    mix-blend-mode:multiply;
+  }
+  body[data-theme="night"]::after{mix-blend-mode:screen;opacity:.06}
+  a{color:inherit;text-decoration:none}
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{cursor:pointer}
+  img{max-width:100%;display:block}
+  ::selection{background:rgba(30,77,57,.2);color:var(--ink)}
+
+  .shell{max-width:1560px;margin:0 auto;padding:0 28px}
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(250,247,241,.78);
+    border-bottom:1px solid rgba(91,80,64,.12);
+    backdrop-filter:blur(18px) saturate(1.2);
+    -webkit-backdrop-filter:blur(18px) saturate(1.2);
+  }
+  body[data-theme="night"] .topbar{background:rgba(15,24,19,.78);border-bottom-color:rgba(255,255,255,.08)}
+  .topbar-inner{max-width:1560px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;gap:22px}
+  .brand{display:flex;align-items:center;gap:11px;flex:0 0 auto}
+  .brand-mark{
+    width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+    color:#fdfaf4;font-family:var(--serif);font-size:21px;
+    background:
+      radial-gradient(circle at 30% 24%,rgba(255,255,255,.8),transparent 26%),
+      radial-gradient(circle at 68% 80%,#557a63,transparent 55%),
+      linear-gradient(135deg,#173f2d,#7a9e86 62%,#d6c5a8);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.26),0 5px 14px rgba(28,56,40,.2);
+  }
+  .brand-copy{display:flex;flex-direction:column;line-height:1.15}
+  .brand-copy strong{font-family:var(--serif);font-size:19px;letter-spacing:.08em;font-weight:600}
+  .brand-copy small{font-size:8px;letter-spacing:.26em;color:var(--muted);margin-top:4px}
+  .nav{
+    margin-left:auto;display:flex;align-items:center;gap:4px;padding:4px;
+    border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.26);
+    overflow:auto;scrollbar-width:none;
+  }
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{
+    white-space:nowrap;padding:7px 13px;border-radius:999px;font-size:12px;color:var(--muted);
+    transition:.24s ease;letter-spacing:.04em;
+  }
+  .nav a:hover{color:var(--ink);background:rgba(255,255,255,.35)}
+  body[data-theme="night"] .nav a:hover{background:rgba(255,255,255,.06)}
+  .nav a.active{background:var(--green);color:#fbf8f1;box-shadow:0 5px 12px rgba(30,77,57,.24)}
+  body[data-theme="night"] .nav a.active{background:#d3e9d9;color:#122019;box-shadow:none}
+  .top-tools{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+  .local-badge{
+    display:flex;align-items:center;gap:6px;color:var(--muted);font-size:10px;letter-spacing:.08em;
+  }
+  .local-badge i{width:6px;height:6px;border-radius:50%;background:var(--green-2);display:block;box-shadow:0 0 0 4px rgba(58,109,88,.1)}
+  .theme-btn{
+    border:1px solid var(--line);background:rgba(255,255,255,.28);border-radius:999px;
+    padding:7px 11px;font-size:11px;color:var(--ink-soft);transition:.2s;
+  }
+  .theme-btn:hover{border-color:var(--green-2);color:var(--green)}
+  body[data-theme="night"] .theme-btn{background:rgba(255,255,255,.06)}
+
+  main{padding:26px 0 70px}
+  .page{display:none}
+  .page.active{display:block;animation:pageIn .55s cubic-bezier(.22,.8,.24,1) both}
+  @keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .eyebrow{
+    display:flex;align-items:center;gap:9px;color:var(--muted);
+    font-size:9px;letter-spacing:.24em;text-transform:uppercase;font-weight:600;
+  }
+  .eyebrow::before{content:"";width:18px;height:1px;background:var(--line-strong)}
+  .display{font-family:var(--serif);font-weight:500;letter-spacing:-.02em;line-height:1.1;margin:0}
+  .display em{font-style:normal;color:var(--green-2)}
+  .body-copy{color:var(--muted);font-size:13px;line-height:1.75;margin:12px 0 0}
+  .tiny{font-size:10px;color:var(--muted);letter-spacing:.06em}
+  .rule{height:1px;background:var(--line);border:0;margin:18px 0}
+  .btn{
+    border:1px solid var(--line-strong);background:var(--paper);color:var(--ink);
+    border-radius:999px;padding:9px 15px;font-size:12px;transition:.22s ease;
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  }
+  .btn:hover{border-color:var(--green-2);color:var(--green);transform:translateY(-1px)}
+  .btn.primary{background:var(--green);border-color:var(--green);color:#fcf9f3}
+  .btn.primary:hover{background:var(--green-2);border-color:var(--green-2);color:#fff}
+  body[data-theme="night"] .btn.primary{background:#cde5d6;border-color:#cde5d6;color:#132017}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--muted);padding-left:8px;padding-right:8px}
+  .btn.ghost:hover{color:var(--ink);background:rgba(0,0,0,.03)}
+  .icon-btn{
+    width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:transparent;
+    display:grid;place-items:center;color:var(--muted);font-size:15px;line-height:1;transition:.2s;
+  }
+  .icon-btn:hover{border-color:var(--green-2);color:var(--green);background:var(--paper)}
+  .panel{
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow-sm);
+  }
+  .panel-pad{padding:18px}
+
+  .studio-layout{display:grid;grid-template-columns:260px minmax(0,1fr) 392px;gap:20px;align-items:start}
+  .rail{position:sticky;top:92px;display:flex;flex-direction:column;gap:15px;min-width:0}
+  .rail-head{padding:4px 4px 0}
+  .rail-head .display{font-size:33px;margin-top:10px}
+  .rail-head .body-copy{max-width:238px}
+  .rail-panel{padding:15px}
+  .rail-panel .block-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .block-title strong{font-size:11px;letter-spacing:.12em;color:var(--ink);font-weight:600}
+  .block-title span{font-size:9px;letter-spacing:.1em;color:var(--muted)}
+  .color-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .color-chip{
+    display:flex;align-items:center;gap:7px;min-width:0;border:1px solid transparent;
+    background:transparent;border-radius:9px;padding:6px 7px;text-align:left;transition:.18s;
+  }
+  .color-chip:hover{background:var(--paper-2);border-color:var(--line)}
+  .color-chip.active{background:var(--green-3);border-color:rgba(58,109,88,.22)}
+  body[data-theme="night"] .color-chip.active{background:#253c2e;border-color:#3d5e4a}
+  .color-chip .dot{width:15px;height:15px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1),0 2px 5px rgba(0,0,0,.08)}
+  .color-chip .name{font-size:11px;white-space:nowrap}
+  .color-chip .count{margin-left:auto;font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .color-chip.active .name{color:var(--green);font-weight:600}
+  .size-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .size-chip{
+    border:1px solid var(--line);background:var(--paper);border-radius:9px;padding:8px 4px;
+    font-size:11px;color:var(--ink-soft);transition:.18s;font-variant-numeric:tabular-nums;
+  }
+  .size-chip:hover{border-color:var(--green-2);color:var(--green)}
+  .size-chip.active{background:var(--green);border-color:var(--green);color:#fbf8f2}
+  body[data-theme="night"] .size-chip.active{background:#cde5d6;border-color:#cde5d6;color:#132017}
+  .custom-size{display:flex;align-items:center;gap:7px;margin-top:8px}
+  .custom-size label{font-size:10px;color:var(--muted);white-space:nowrap}
+  .custom-size input{
+    width:100%;min-width:0;border:1px solid var(--line);background:var(--paper-2);
+    border-radius:8px;padding:7px 9px;font-size:12px;color:var(--ink);outline:none;
+  }
+  .custom-size input:focus{border-color:var(--green-2)}
+  .wrist-row{display:flex;align-items:center;gap:8px}
+  .wrist-row input{
+    width:78px;border:1px solid var(--line);background:var(--paper-2);border-radius:9px;
+    padding:8px 9px;font-size:13px;outline:none;color:var(--ink);font-variant-numeric:tabular-nums;
+  }
+  .wrist-row input:focus{border-color:var(--green-2)}
+  .formula{
+    margin-top:11px;padding:11px 12px;border-radius:12px;background:var(--green-3);
+    display:flex;align-items:flex-end;justify-content:space-between;gap:8px;
+  }
+  body[data-theme="night"] .formula{background:#20352a}
+  .formula .num{font-family:var(--serif);font-size:30px;line-height:1;color:var(--green);letter-spacing:-.03em}
+  .formula .num small{font-family:var(--sans);font-size:10px;letter-spacing:.08em;margin-left:3px}
+  .formula .formula-note{font-size:9px;line-height:1.5;color:var(--muted);text-align:right}
+  .rail-note{font-size:9px;color:var(--muted);line-height:1.6;margin:10px 2px 0}
+
+  .library-panel{min-width:0}
+  .library-head{display:flex;align-items:end;justify-content:space-between;gap:16px;padding:4px 2px 14px}
+  .library-head h2{font-family:var(--serif);font-size:25px;line-height:1.1;margin:7px 0 0;font-weight:500;letter-spacing:-.02em}
+  .library-head .head-note{font-size:10px;color:var(--muted);letter-spacing:.06em;text-align:right;line-height:1.6}
+  .search-row{display:flex;gap:8px;align-items:center;margin:0 0 12px}
+  .search-box{
+    flex:1;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--paper);
+    border-radius:11px;padding:8px 11px;box-shadow:var(--shadow-sm);
+  }
+  .search-box span{font-size:13px;color:var(--muted);line-height:1}
+  .search-box input{flex:1;border:0;background:transparent;outline:none;font-size:12px;min-width:0}
+  .search-box input::placeholder{color:var(--muted)}
+  .category-row{display:flex;gap:6px;overflow:auto;padding-bottom:3px;margin-bottom:13px;scrollbar-width:none}
+  .category-row::-webkit-scrollbar{display:none}
+  .cat-chip{
+    flex:0 0 auto;border:1px solid var(--line);background:transparent;border-radius:999px;
+    padding:6px 10px;font-size:10px;color:var(--muted);transition:.18s;white-space:nowrap;
+  }
+  .cat-chip:hover{border-color:var(--green-2);color:var(--green)}
+  .cat-chip.active{background:var(--green);border-color:var(--green);color:#fbf8f2}
+  body[data-theme="night"] .cat-chip.active{background:#cde5d6;border-color:#cde5d6;color:#132017}
+
+  .stone-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+  .library-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .library-colors{grid-template-columns:repeat(5,minmax(0,1fr));max-width:760px;margin-bottom:16px}
+  .stone-card{
+    position:relative;min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:18px;
+    overflow:hidden;box-shadow:var(--shadow-sm);transition:transform .25s ease,box-shadow .25s ease,border-color .25s;
+    cursor:pointer;
+  }
+  .stone-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:var(--line-strong)}
+  .stone-visual{
+    position:relative;height:156px;background-size:cover;background-position:center 35%;background-color:var(--paper-2);
+  }
+  .stone-visual.has-photo::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(12,28,19,.02) 30%,rgba(12,28,19,.58) 100%);
+  }
+  .stone-visual.img-white{background-image:url('assets/white-quartz.jpg')}
+  .stone-visual.img-amethyst{background-image:url('assets/amethyst.jpg')}
+  .stone-visual.img-citrine{background-image:url('assets/citrine.jpg')}
+  .stone-visual.img-rose{background-image:url('assets/rose-quartz.jpg')}
+  .stone-visual.img-smoky{background-image:url('assets/smoky-quartz.jpg');background-size:118%;background-position:center 28%}
+  .stone-visual.img-green{background-image:url('assets/green-phantom.jpg')}
+  .stone-visual.img-red{background-image:url('assets/red-agate.jpg')}
+  .stone-visual.img-aqua{background-image:url('assets/aquamarine.jpg')}
+  .stone-visual.img-obsidian{background-image:url('assets/obsidian.jpg')}
+  .stone-visual.img-gold{background-image:url('assets/gold-rutile.jpg')}
+  .stone-visual.img-super7{background-image:url('assets/super-seven.jpg')}
+  .stone-visual.img-strawberry{background-image:url('assets/strawberry.jpg')}
+  .stone-visual.fallback{
+    display:grid;place-items:center;
+    background:
+      radial-gradient(circle at 50% 42%,rgba(255,255,255,.58),transparent 40%),
+      radial-gradient(circle at 70% 70%,rgba(76,105,84,.2),transparent 52%),
+      linear-gradient(145deg,var(--c1),var(--c2) 48%,var(--c3));
+  }
+  body[data-theme="night"] .stone-visual.fallback{filter:saturate(.85) brightness(.84)}
+  .fallback-orb{
+    position:relative;display:block;width:94px;height:94px;border-radius:50%;
+    background:
+      radial-gradient(circle at 30% 23%,rgba(255,255,255,.95) 0 6%,rgba(255,255,255,.4) 13%,transparent 28%),
+      radial-gradient(circle at 68% 78%,var(--c3),transparent 58%),
+      linear-gradient(135deg,var(--c1),var(--c2) 50%,var(--c3));
+    box-shadow:inset -9px -12px 20px rgba(0,0,0,.14),inset 7px 8px 16px rgba(255,255,255,.5),0 10px 24px rgba(22,36,28,.18);
+    border:1px solid rgba(255,255,255,.35);
+  }
+  .fallback-orb::before{
+    content:"";position:absolute;width:28px;height:14px;border-radius:50%;
+    background:rgba(255,255,255,.58);filter:blur(1px);left:19%;top:14%;transform:rotate(-30deg);
+  }
+  .fallback-orb::after{content:"";position:absolute;inset:0;border-radius:50%;opacity:0;pointer-events:none}
+  .stone-color-dot{
+    position:absolute;left:11px;top:11px;width:12px;height:12px;border-radius:50%;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),0 2px 6px rgba(0,0,0,.18);z-index:2;
+  }
+  .add-btn{
+    position:absolute;right:10px;top:10px;z-index:3;width:31px;height:31px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.34);background:rgba(22,35,28,.44);color:#fff;
+    display:grid;place-items:center;font-size:17px;line-height:1;backdrop-filter:blur(8px);
+    transition:.2s;
+  }
+  .add-btn:hover{background:var(--green);border-color:var(--green);transform:rotate(90deg)}
+  .stone-card-body{padding:12px 13px 13px}
+  .stone-name-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .stone-name-row h3{font-family:var(--serif);font-size:17px;font-weight:600;margin:0;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stone-name-row .en{font-size:8px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stone-tags{display:flex;gap:5px;margin-top:7px;align-items:center}
+  .stone-tags span{font-size:8px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 6px;white-space:nowrap}
+  .stone-tags .owned{color:var(--green);border-color:rgba(58,109,88,.24);background:rgba(58,109,88,.07)}
+  .stone-note{font-size:11px;color:var(--ink-soft);line-height:1.6;margin:8px 0 0;min-height:34px}
+  .stone-foot{display:flex;align-items:center;justify-content:space-between;margin-top:9px;gap:8px}
+  .stone-foot .sizes{font-size:9px;color:var(--muted);letter-spacing:.06em}
+  .stone-foot .hint{font-size:9px;color:var(--green-2);opacity:0;transform:translateX(-4px);transition:.22s}
+  .stone-card:hover .stone-foot .hint{opacity:1;transform:none}
+  .empty-library{grid-column:1/-1;padding:42px 18px;text-align:center;color:var(--muted);font-size:12px;border:1px dashed var(--line-strong);border-radius:16px}
+
+  .preview-panel{position:sticky;top:92px;background:var(--paper);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow-lg);overflow:hidden}
+  .preview-head{padding:17px 17px 0;display:flex;align-items:start;justify-content:space-between;gap:10px}
+  .preview-head .eyebrow{font-size:8px}
+  .preview-head h2{font-family:var(--serif);font-size:22px;line-height:1.1;margin:7px 0 0;font-weight:500}
+  .preview-head .preview-live{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--green-2);letter-spacing:.08em;margin-top:4px}
+  .preview-live i{width:5px;height:5px;border-radius:50%;background:var(--green-2);display:block;animation:breathe 2.4s ease-in-out infinite}
+  @keyframes breathe{0%,100%{opacity:.45;box-shadow:0 0 0 0 rgba(58,109,88,.18)}50%{opacity:1;box-shadow:0 0 0 5px rgba(58,109,88,.08)}}
+  .preview-tabs{display:flex;gap:2px;border:1px solid var(--line);background:var(--paper-2);border-radius:999px;padding:3px}
+  .preview-tabs button{border:0;background:transparent;border-radius:999px;padding:5px 8px;font-size:9px;color:var(--muted);transition:.18s;white-space:nowrap}
+  .preview-tabs button.active{background:var(--paper);color:var(--green);box-shadow:var(--shadow-sm)}
+  .stage-wrap{padding:13px 15px 0}
+  .preview-stage{
+    position:relative;aspect-ratio:1/1;border-radius:19px;overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 40%,rgba(88,128,105,.25),transparent 52%),
+      radial-gradient(circle at 50% 50%,#244234 0%,#14251c 52%,#0d1712 100%);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 16px 40px rgba(255,255,255,.04),0 14px 30px rgba(16,28,21,.24);
+  }
+  .preview-stage.dark-tray{background:radial-gradient(circle at 50% 40%,rgba(104,145,119,.22),transparent 55%),radial-gradient(circle at 50% 50%,#21382b,#0b120e 76%)}
+  .stage-lines{
+    position:absolute;inset:0;pointer-events:none;opacity:.2;
+    background-image:linear-gradient(rgba(220,235,224,.17) 1px,transparent 1px),linear-gradient(90deg,rgba(220,235,224,.17) 1px,transparent 1px);
+    background-size:26px 26px;
+    mask-image:radial-gradient(circle at 50% 50%,#000 0%,transparent 78%);
+    -webkit-mask-image:radial-gradient(circle at 50% 50%,#000 0%,transparent 78%);
+  }
+  .stage-label{position:absolute;left:13px;top:11px;color:rgba(235,245,236,.62);font-size:8px;letter-spacing:.18em;line-height:1.6;z-index:3}
+  .stage-label strong{display:block;color:rgba(255,255,255,.86);font-weight:500;letter-spacing:.06em;font-size:9px}
+  .stage-foot{position:absolute;left:13px;right:13px;bottom:11px;display:flex;justify-content:space-between;align-items:end;gap:10px;color:rgba(238,247,239,.6);font-size:9px;letter-spacing:.06em;z-index:3}
+  .stage-foot .stage-count{font-family:var(--serif);font-size:19px;color:#f5fbf5;line-height:1;letter-spacing:0}
+  .stage-foot small{display:block;font-size:8px;letter-spacing:.12em;color:rgba(238,247,239,.52);margin-top:4px}
+  .ring-guide{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:1px dashed rgba(230,244,234,.16);border-radius:50%;pointer-events:none}
+  .bead{
+    position:absolute;left:0;top:0;width:var(--size);height:var(--size);border-radius:50%;
+    background:
+      radial-gradient(circle at 31% 24%,rgba(255,255,255,.98) 0 5%,rgba(255,255,255,.44) 12%,transparent 27%),
+      radial-gradient(circle at 69% 78%,var(--c3) 0 6%,transparent 57%),
+      linear-gradient(135deg,var(--c1),var(--c2) 48%,var(--c3));
+    border:1px solid rgba(255,255,255,.4);
+    box-shadow:inset -6px -9px 13px rgba(0,0,0,.18),inset 4px 5px 9px rgba(255,255,255,.52),0 5px 13px rgba(3,10,6,.36);
+    transform:translate(-50%,-50%);
+    overflow:hidden;isolation:isolate;
+  }
+  .bead::before{
+    content:"";position:absolute;left:19%;top:13%;width:34%;height:16%;border-radius:50%;
+    background:rgba(255,255,255,.7);filter:blur(1px);transform:rotate(-30deg);z-index:2;
+  }
+  .bead::after{content:"";position:absolute;inset:0;border-radius:50%;opacity:0;pointer-events:none}
+  .tex-clear::after{opacity:.25;background:linear-gradient(140deg,rgba(255,255,255,.6),transparent 48%,rgba(255,255,255,.22))}
+  .tex-hair::after{opacity:.48;background:repeating-linear-gradient(104deg,transparent 0 3px,rgba(255,255,255,.3) 3px 4px,transparent 4px 8px);mix-blend-mode:screen}
+  .tex-phantom::after{opacity:.8;background:radial-gradient(ellipse at 46% 72%,var(--c3) 0 7%,rgba(255,255,255,.12) 28%,transparent 58%);mix-blend-mode:multiply}
+  .tex-band::after{opacity:.55;background:linear-gradient(118deg,transparent 0 44%,rgba(255,255,255,.34) 46%,rgba(0,0,0,.16) 49%,transparent 52% 100%)}
+  .tex-glitter::after{opacity:.5;background-image:radial-gradient(circle,rgba(255,255,255,.9) 0 1px,transparent 1.5px);background-size:6px 6px;mix-blend-mode:screen}
+  .tex-star::after{opacity:.7;background:
+      radial-gradient(circle,transparent 0 24%,rgba(255,255,255,.28) 25% 26%,transparent 27%),
+      linear-gradient(0deg,transparent 0 47%,rgba(255,255,255,.28) 48% 49%,transparent 50%),
+      linear-gradient(90deg,transparent 0 47%,rgba(255,255,255,.28) 48% 49%,transparent 50%)}
+  .tex-cat::after{opacity:.55;background:linear-gradient(112deg,transparent 0 43%,rgba(255,255,255,.46) 44% 47%,transparent 48% 100%)}
+  .tex-solid::after{opacity:.32;background:radial-gradient(circle at 66% 22%,rgba(255,255,255,.34),transparent 45%)}
+  .bead.spacer{
+    background:radial-gradient(circle at 33% 25%,#fff8d7 0 5%,#e4c785 16%,transparent 32%),
+      linear-gradient(135deg,#946c39,#ead6a7 48%,#8f6735);
+    border-color:rgba(255,237,196,.6);
+    box-shadow:inset -5px -6px 10px rgba(57,34,9,.3),inset 3px 4px 7px rgba(255,255,255,.52),0 4px 10px rgba(0,0,0,.3);
+  }
+  .bead.spacer::after{opacity:.55;background:radial-gradient(circle,transparent 0 49%,rgba(255,247,215,.5) 51% 54%,transparent 56%)}
+  .grid-center{box-shadow:inset -12px -15px 24px rgba(0,0,0,.22),inset 8px 9px 18px rgba(255,255,255,.5),0 14px 30px rgba(0,0,0,.34)}
+  .stage-empty{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:rgba(229,241,231,.62);text-align:center;padding:20px;z-index:2;
+  }
+  .stage-empty .empty-ring{width:88px;height:88px;border:1px dashed rgba(220,238,225,.38);border-radius:50%;display:grid;place-items:center;margin-bottom:14px}
+  .stage-empty .empty-ring span{font-family:var(--serif);font-size:30px;color:rgba(241,248,242,.44)}
+  .stage-empty p{font-size:10px;letter-spacing:.12em;margin:0;line-height:1.7}
+
+  .preview-meta{padding:12px 17px 0}
+  .preview-meta h3{font-family:var(--serif);font-size:17px;margin:0;line-height:1.2;font-weight:600}
+  .preview-meta p{font-size:9px;color:var(--muted);margin:4px 0 0;letter-spacing:.05em;line-height:1.6}
+  .preview-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 17px 0}
+  .control-cluster{display:flex;gap:4px;flex-wrap:wrap}
+  .mini-tab{border:1px solid var(--line);background:transparent;border-radius:999px;padding:4px 8px;font-size:9px;color:var(--muted);transition:.18s;white-space:nowrap}
+  .mini-tab:hover{border-color:var(--green-2);color:var(--green)}
+  .mini-tab.active{background:var(--green-3);border-color:rgba(58,109,88,.24);color:var(--green)}
+  body[data-theme="night"] .mini-tab.active{background:#243d2d;border-color:#42624d;color:#d1e7d8}
+  .tray{border-top:1px solid var(--line);margin-top:13px;padding:11px 15px 0}
+  .tray-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+  .tray-head strong{font-size:10px;letter-spacing:.1em;color:var(--ink-soft);font-weight:600}
+  .tray-head span{font-size:9px;color:var(--muted)}
+  .tray-list{display:flex;flex-wrap:wrap;gap:6px;max-height:142px;overflow:auto;padding-bottom:2px;scrollbar-width:thin}
+  .tray-list::-webkit-scrollbar{width:3px}
+  .tray-list::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:9px}
+  .tray-chip{
+    display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--paper-2);
+    border-radius:999px;padding:4px 6px 4px 5px;font-size:10px;color:var(--ink-soft);cursor:grab;
+    user-select:none;max-width:100%;transition:.18s;
+  }
+  .tray-chip:hover{border-color:var(--line-strong);background:var(--paper)}
+  .tray-chip:active{cursor:grabbing}
+  .tray-chip .dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;background:var(--c1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}
+  .tray-chip .idx{font-size:8px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .tray-chip .remove{border:0;background:transparent;color:var(--muted);font-size:12px;line-height:1;padding:0 2px;border-radius:50%}
+  .tray-chip .remove:hover{color:var(--danger)}
+  .tray-empty{font-size:10px;color:var(--muted);padding:7px 0 4px}
+  .preview-foot{padding:12px 15px 16px}
+  .plan-row{display:flex;gap:6px;align-items:center;margin-top:10px}
+  .plan-row input{
+    flex:1;min-width:0;border:1px solid var(--line);background:var(--paper-2);border-radius:9px;
+    padding:7px 9px;font-size:10px;outline:none;color:var(--ink);
+  }
+  .plan-row input:focus{border-color:var(--green-2)}
+  .plan-row button{border:0;border-radius:9px;background:var(--green);color:#fbf8f2;padding:7px 10px;font-size:10px}
+  .plan-row button:hover{background:var(--green-2)}
+  .foot-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+  .foot-actions .btn{padding:6px 9px;font-size:10px}
+  .foot-actions .btn.primary{background:var(--green)}
+  .stage-caption{font-size:9px;color:var(--muted);margin-top:8px;line-height:1.6}
+
+  .page-hero{display:flex;justify-content:space-between;align-items:end;gap:36px;padding:24px 4px 26px}
+  .page-hero .display{font-size:clamp(42px,4vw,66px);max-width:780px;margin-top:10px}
+  .page-hero p{max-width:450px}
+  .hero-side{flex:0 0 270px;display:flex;flex-direction:column;gap:10px;padding-bottom:5px}
+  .hero-side .stat{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0}
+  .hero-side .stat span{font-size:10px;color:var(--muted);letter-spacing:.08em}
+  .hero-side .stat strong{font-family:var(--serif);font-size:25px;line-height:1;font-weight:500}
+  .hero-side .stat small{font-size:9px;color:var(--muted);margin-left:3px}
+  .library-page-tools{display:flex;align-items:center;gap:8px;margin:-8px 0 16px;flex-wrap:wrap}
+  .library-page-tools .search-box{max-width:380px}
+  .owned-toggle{border:1px solid var(--line);background:transparent;border-radius:999px;padding:7px 11px;font-size:10px;color:var(--muted);transition:.18s}
+  .owned-toggle.active{border-color:var(--green);color:var(--green);background:var(--green-3)}
+  body[data-theme="night"] .owned-toggle.active{background:#243d2d;border-color:#42624d;color:#d1e7d8}
+
+  .inventory-layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;align-items:start}
+  .inventory-panel{padding:18px}
+  .inventory-head{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:13px}
+  .inventory-head h2{font-family:var(--serif);font-size:28px;margin:0;font-weight:500}
+  .inventory-head p{font-size:10px;color:var(--muted);margin:4px 0 0}
+  .inventory-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0}
+  .filter-pill{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 9px;font-size:9px;color:var(--muted)}
+  .filter-pill.active{background:var(--green);border-color:var(--green);color:#fbf8f2}
+  body[data-theme="night"] .filter-pill.active{background:#cde5d6;border-color:#cde5d6;color:#132017}
+  .select{
+    border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;
+    padding:6px 8px;font-size:10px;outline:none;
+  }
+  .inventory-total{margin-left:auto;font-size:10px;color:var(--muted);display:flex;align-items:baseline;gap:5px}
+  .inventory-total strong{font-family:var(--serif);font-size:21px;color:var(--ink);font-weight:500}
+  .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+  .stock-table{width:100%;border-collapse:collapse;min-width:760px}
+  .stock-table th{font-size:9px;letter-spacing:.08em;color:var(--muted);font-weight:500;text-align:left;padding:10px 10px;border-bottom:1px solid var(--line);background:var(--paper-2);white-space:nowrap}
+  .stock-table td{padding:10px 10px;border-bottom:1px solid var(--line);font-size:11px;vertical-align:middle}
+  .stock-table tr:last-child td{border-bottom:0}
+  .stock-name{display:flex;align-items:center;gap:8px;min-width:150px}
+  .stock-orb{width:27px;height:27px;border-radius:50%;flex:0 0 auto;background:linear-gradient(135deg,var(--c1),var(--c2) 48%,var(--c3));box-shadow:inset -3px -4px 7px rgba(0,0,0,.18),inset 3px 3px 5px rgba(255,255,255,.5)}
+  .stock-name strong{font-family:var(--serif);font-size:13px;font-weight:600;display:block;line-height:1.2}
+  .stock-name small{font-size:8px;color:var(--muted);letter-spacing:.06em}
+  .pill-type{font-size:8px;padding:2px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+  .pill-type.wish{color:var(--gold);border-color:rgba(177,139,87,.3);background:rgba(177,139,87,.07)}
+  .stock-note{color:var(--muted);font-size:9px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stock-actions{display:flex;gap:4px;justify-content:flex-end}
+  .stock-empty{border:1px dashed var(--line-strong);border-radius:15px;padding:48px 20px;text-align:center;color:var(--muted);font-size:12px}
+  .stock-empty strong{display:block;font-family:var(--serif);font-size:21px;color:var(--ink);font-weight:500;margin-bottom:7px}
+  .inventory-aside{padding:18px}
+  .aside-title{font-size:10px;letter-spacing:.13em;color:var(--muted);margin-bottom:9px}
+  .aside-note{font-size:11px;line-height:1.8;color:var(--ink-soft)}
+  .aside-stat{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding:11px 0;gap:10px}
+  .aside-stat span{font-size:10px;color:var(--muted)}
+  .aside-stat strong{font-family:var(--serif);font-size:22px;font-weight:500;line-height:1}
+  .aside-actions{display:flex;flex-direction:column;gap:7px;margin-top:15px}
+  .aside-actions .btn{width:100%}
+
+  .plans-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .scheme-card{
+    position:relative;overflow:hidden;border:1px solid var(--line);border-radius:20px;background:var(--paper);
+    padding:16px;box-shadow:var(--shadow-sm);min-height:185px;display:flex;flex-direction:column;transition:.24s;
+  }
+  .scheme-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+  .scheme-card::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,var(--c1),transparent 48%,var(--c3));opacity:.2;pointer-events:none}
+  .scheme-card .scheme-orbs{display:flex;gap:6px;align-items:end;position:relative;z-index:1;margin-bottom:16px}
+  .scheme-orb{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--b));box-shadow:inset -3px -4px 7px rgba(0,0,0,.18),inset 3px 3px 5px rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.3)}
+  .scheme-orb:nth-child(2){transform:translateY(-9px);width:35px;height:35px}
+  .scheme-orb:nth-child(3){transform:translateY(-3px);width:27px;height:27px}
+  .scheme-orb:nth-child(4){transform:translateY(-13px);width:23px;height:23px}
+  .scheme-card .scheme-kicker{font-size:8px;letter-spacing:.16em;color:var(--muted);position:relative;z-index:1}
+  .scheme-card h3{font-family:var(--serif);font-size:22px;font-weight:500;margin:5px 0 4px;position:relative;z-index:1;line-height:1.1}
+  .scheme-card p{font-size:10px;color:var(--muted);line-height:1.6;margin:0 0 13px;position:relative;z-index:1;flex:1}
+  .scheme-card .scheme-apply{align-self:flex-start;border:1px solid var(--line-strong);background:rgba(255,255,255,.34);border-radius:999px;padding:6px 11px;font-size:10px;color:var(--ink);position:relative;z-index:1}
+  .scheme-card .scheme-apply:hover{background:var(--green);border-color:var(--green);color:#fff}
+  .saved-plans{margin-top:20px}
+  .saved-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .saved-card{border:1px solid var(--line);border-radius:15px;padding:13px;background:var(--paper)}
+  .saved-card h3{font-family:var(--serif);font-size:17px;margin:0 0 4px;font-weight:500}
+  .saved-card p{font-size:9px;color:var(--muted);margin:0 0 10px}
+  .saved-card .saved-actions{display:flex;gap:5px}
+  .saved-card .saved-actions button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 8px;font-size:9px;color:var(--muted)}
+  .saved-card .saved-actions button:hover{border-color:var(--green-2);color:var(--green)}
+  .saved-card .saved-actions .danger:hover{border-color:var(--danger);color:var(--danger)}
+  .science-section{margin-top:26px}
+  .section-head{display:flex;align-items:end;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .section-head h2{font-family:var(--serif);font-size:25px;margin:0;font-weight:500}
+  .section-head p{font-size:10px;color:var(--muted);margin:0 0 3px}
+  .science-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+  .science-card{border:1px solid var(--line);border-radius:16px;background:var(--paper);padding:13px;min-height:150px}
+  .science-card .sci-top{display:flex;align-items:center;gap:8px}
+  .science-card .sci-orb{width:26px;height:26px;border-radius:50%;flex:0 0 auto;background:linear-gradient(135deg,var(--c1),var(--c2),var(--c3));box-shadow:inset -3px -3px 5px rgba(0,0,0,.18),inset 2px 2px 4px rgba(255,255,255,.5)}
+  .science-card h3{font-family:var(--serif);font-size:15px;margin:0;font-weight:600}
+  .science-card .sci-en{font-size:8px;color:var(--muted);letter-spacing:.1em}
+  .science-card p{font-size:10px;color:var(--ink-soft);line-height:1.65;margin:10px 0 0}
+  .science-card .sci-tip{font-size:9px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px;margin-top:9px}
+
+  .toast{
+    position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);z-index:80;
+    background:var(--green);color:#fbf8f2;border-radius:999px;padding:10px 17px;font-size:11px;
+    box-shadow:0 14px 30px rgba(15,35,24,.28);opacity:0;pointer-events:none;transition:.28s;
+    max-width:min(92vw,420px);text-align:center;line-height:1.4;
+  }
+  body[data-theme="night"] .toast{background:#d3e9d9;color:#122019}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  dialog{
+    width:min(92vw,580px);border:1px solid var(--line);border-radius:20px;background:var(--paper);
+    color:var(--ink);padding:0;box-shadow:0 30px 80px rgba(0,0,0,.25);overflow:hidden;
+  }
+  dialog::backdrop{background:rgba(12,20,15,.55);backdrop-filter:blur(8px)}
+  .modal-head{padding:18px 20px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:start;gap:12px}
+  .modal-head h3{font-family:var(--serif);font-size:23px;margin:0;font-weight:500}
+  .modal-head p{font-size:10px;color:var(--muted);margin:5px 0 0}
+  .modal-body{padding:16px 20px 4px;max-height:68vh;overflow:auto}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .field{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .field.full{grid-column:1/-1}
+  .field label{font-size:9px;color:var(--muted);letter-spacing:.08em}
+  .field input,.field select,.field textarea{
+    width:100%;border:1px solid var(--line);background:var(--paper-2);border-radius:9px;
+    padding:8px 9px;font-size:11px;outline:none;color:var(--ink);min-width:0;
+  }
+  .field textarea{resize:vertical;min-height:56px}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green-2)}
+  .check-line{display:flex;align-items:center;gap:8px;padding:8px 0 2px;font-size:10px;color:var(--muted)}
+  .check-line input{accent-color:var(--green)}
+  .modal-foot{padding:12px 20px 18px;display:flex;justify-content:flex-end;gap:8px}
+  .modal-foot .btn{min-width:84px}
+  .subtle-list{font-size:10px;color:var(--muted);line-height:1.8;padding:0 2px}
+
+  @media(max-width:1260px){
+    .studio-layout{grid-template-columns:235px minmax(0,1fr) 365px}
+    .stone-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .rail-head .display{font-size:31px}
+  }
+  @media(max-width:1100px){
+    .studio-layout{grid-template-columns:230px minmax(0,1fr)}
+    .preview-panel{position:static;grid-column:1/-1}
+    .rail{position:static}
+    .stone-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .library-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .inventory-layout{grid-template-columns:minmax(0,1fr)}
+    .science-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media(max-width:820px){
+    .shell{padding:0 16px}
+    .topbar-inner{padding:10px 16px;gap:10px}
+    .brand-copy small{display:none}
+    .local-badge{display:none}
+    .nav{order:3;width:100%;margin-top:2px}
+    .topbar-inner{flex-wrap:wrap}
+    .top-tools{margin-left:auto}
+    .studio-layout{display:flex;flex-direction:column;gap:14px}
+    .rail{order:2;width:100%}
+    .preview-panel{order:1;width:100%}
+    .library-panel{order:3;width:100%}
+    .rail-head{display:none}
+    .stone-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .page-hero{display:block;padding-top:14px}
+    .page-hero .display{font-size:42px}
+    .hero-side{display:none}
+    .inventory-head{display:block}
+    .plans-grid,.saved-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .science-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .preview-stage{max-width:520px;margin:0 auto}
+  }
+  @media(max-width:560px){
+    .shell{padding:0 12px}
+    .topbar-inner{padding:9px 12px}
+    .brand-mark{width:34px;height:34px;font-size:18px}
+    .brand-copy strong{font-size:16px}
+    .theme-btn{padding:6px 8px;font-size:10px}
+    .nav a{padding:6px 9px;font-size:10px}
+    .stone-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .stone-visual{height:132px}
+    .stone-name-row h3{font-size:15px}
+    .stone-note{font-size:10px;min-height:44px}
+    .plans-grid,.saved-grid,.science-grid{grid-template-columns:1fr 1fr;gap:9px}
+    .science-card{min-height:0}
+    .page-hero .display{font-size:35px}
+    .inventory-panel{padding:12px}
+    .stock-table{min-width:680px}
+    .form-grid{grid-template-columns:1fr}
+    .field.full{grid-column:1}
+    .preview-panel{border-radius:20px}
+    .preview-head{padding:13px 13px 0}
+    .stage-wrap{padding:10px 11px 0}
+    .preview-meta,.preview-controls,.tray,.preview-foot{padding-left:12px;padding-right:12px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  }
+</style>
+</head>
+<body data-theme="ivory">
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#studio" aria-label="晶序首页">
+      <span class="brand-mark">晶</span>
+      <span class="brand-copy"><strong>晶序</strong><small>CRYSTAL ATELIER</small></span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="#studio" data-nav="studio">摆盘台</a>
+      <a href="#library" data-nav="library">水晶库</a>
+      <a href="#inventory" data-nav="inventory">我的库存</a>
+      <a href="#plans" data-nav="plans">方案参考</a>
+    </nav>
+    <div class="top-tools">
+      <div class="local-badge"><i></i><span>本地保存</span></div>
+      <button class="theme-btn" id="themeBtn" type="button">夜岩模式</button>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <!-- ===== 视图：摆盘台 ===== -->
+  <section class="page active" data-view="studio" id="studioPage">
+    <div class="studio-layout">
+      <aside class="rail">
+        <div class="rail-head">
+          <div class="eyebrow">01 / SELECT</div>
+          <h1 class="display">挑一颗颜色，<br><em>绕成你的节奏。</em></h1>
+          <p class="body-copy">按色系选珠，调好毫米，先看一圈，再决定下一颗。手围与珠径会实时换算成颗数。</p>
+        </div>
+
+        <div class="panel rail-panel">
+          <div class="block-title"><strong>色系</strong><span>COLOR</span></div>
+          <div class="color-grid" id="colorFilters"></div>
+        </div>
+
+        <div class="panel rail-panel">
+          <div class="block-title"><strong>珠径</strong><span>BEAD SIZE</span></div>
+          <div class="size-grid" id="sizeChips"></div>
+          <div class="custom-size">
+            <label for="customSize">自定义</label>
+            <input id="customSize" type="number" min="3" max="20" step="0.5" value="8" aria-label="自定义珠子直径，毫米">
+            <span class="tiny">mm</span>
+          </div>
+          <div class="wrist-row" style="margin-top:10px">
+            <label class="tiny" for="wristInput">手围</label>
+            <input id="wristInput" type="number" min="10" max="25" step="0.5" value="16" aria-label="手围，厘米">
+            <span class="tiny">cm</span>
+          </div>
+          <div class="formula">
+            <div class="num"><span id="suggestCount">24</span><small>颗 / 圈</small></div>
+            <div class="formula-note">手围 ÷ 珠径<br>四舍五入后留余量</div>
+          </div>
+          <p class="rail-note">公式会按珠子外径做圆周修正，实际穿绳请再多留 1–2 颗。</p>
+        </div>
+
+        <div class="panel rail-panel">
+          <div class="block-title"><strong>摆盘提示</strong><span>NOTE</span></div>
+          <p class="aside-note" style="font-size:10px">点选卡片加入摆盘；拖动下方的珠子可以调整顺序。单圈适合日常，双圈/三圈更适合做层次。</p>
+        </div>
+      </aside>
+
+      <section class="library-panel">
+        <div class="library-head">
+          <div>
+            <div class="eyebrow">02 / LIBRARY</div>
+            <h2>按颜色，挑一颗。</h2>
+          </div>
+          <div class="head-note"><span id="studioCount">0</span> 个品种<br>点击卡片加入摆盘</div>
+        </div>
+        <div class="search-row">
+          <div class="search-box"><span>⌕</span><input id="studioSearch" type="search" placeholder="搜品种 / 英文名 / 包裹体" aria-label="搜索水晶"></div>
+        </div>
+        <div class="category-row" id="studioCategories"></div>
+        <div class="stone-grid" id="stoneGrid"></div>
+      </section>
+
+      <aside class="preview-panel">
+        <div class="preview-head">
+          <div>
+            <div class="eyebrow">03 / COMPOSE</div>
+            <h2>摆盘台</h2>
+            <div class="preview-live"><i></i><span>实时预览</span></div>
+          </div>
+          <div class="preview-tabs" id="modeTabs">
+            <button type="button" data-mode="bracelet" class="active">手串</button>
+            <button type="button" data-mode="grid">水晶阵</button>
+          </div>
+        </div>
+
+        <div class="stage-wrap">
+          <div class="preview-stage" id="previewStage" aria-label="水晶搭配预览"></div>
+        </div>
+
+        <div class="preview-meta">
+          <h3 id="previewTitle">单圈 · 8mm</h3>
+          <p id="previewSub">手围 16cm · 24 颗 / 圈</p>
+        </div>
+
+        <div class="preview-controls">
+          <div class="control-cluster" id="braceletControls">
+            <button type="button" class="mini-tab active" data-loops="1">单圈</button>
+            <button type="button" class="mini-tab" data-loops="2">双圈</button>
+            <button type="button" class="mini-tab" data-loops="3">三圈</button>
+            <button type="button" class="mini-tab" data-handheld="1">手持</button>
+            <button type="button" class="mini-tab" data-spacer="1">隔珠</button>
+          </div>
+          <div class="control-cluster" id="gridControls" hidden>
+            <button type="button" class="mini-tab active" data-pattern="ring">环形</button>
+            <button type="button" class="mini-tab" data-pattern="plum">梅花</button>
+            <button type="button" class="mini-tab" data-pattern="sym">对称</button>
+            <button type="button" class="mini-tab" data-pattern="free">自由</button>
+          </div>
+        </div>
+
+        <div class="tray">
+          <div class="tray-head"><strong>已选珠子</strong><span id="trayCount">0 颗 · 可拖动排序</span></div>
+          <div class="tray-list" id="trayList"></div>
+        </div>
+
+        <div class="preview-foot">
+          <div class="foot-actions">
+            <button class="btn ghost" type="button" id="undoBtn">撤销</button>
+            <button class="btn ghost" type="button" id="clearBtn">清空</button>
+            <button class="btn" type="button" id="stockBtn">加入库存</button>
+          </div>
+          <div class="plan-row">
+            <input id="planName" type="text" maxlength="24" placeholder="给这套搭配起个名字">
+            <button id="savePlanBtn" type="button">保存</button>
+          </div>
+          <div class="stage-caption">预览为色块与包裹体质感模拟，实物会有天然差异；库存与方案只保存在本机浏览器。</div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===== 视图：水晶库 ===== -->
+  <section class="page" data-view="library" id="libraryPage">
+    <div class="page-hero">
+      <div>
+        <div class="eyebrow">THE LIBRARY / 水晶库</div>
+        <h1 class="display">把颜色，<br><em>收进一枚珠子。</em></h1>
+        <p class="body-copy">按国标定名与常见商业名混合整理：单晶、发晶、幽灵、异象、多矿、玉髓玛瑙、原石造型与光学效应。选择色系后，再决定毫米。</p>
+      </div>
+      <div class="hero-side">
+        <div class="stat"><span>收录品种</span><strong id="libraryStatTotal">0</strong><small>种</small></div>
+        <div class="stat"><span>色系</span><strong>10</strong><small>类</small></div>
+        <div class="stat"><span>珠径</span><strong>6–16</strong><small>mm</small></div>
+      </div>
+    </div>
+    <div class="library-page-tools">
+      <div class="search-box" style="flex:1"><span>⌕</span><input id="librarySearch" type="search" placeholder="搜品种、英文名或一句特点" aria-label="搜索水晶库"></div>
+      <button class="owned-toggle" type="button" id="ownedToggle">只看已入库</button>
+    </div>
+    <div class="category-row" id="libraryCategories"></div>
+    <div class="color-grid library-colors" id="libraryColors"></div>
+    <div class="stone-grid library-grid" id="libraryGrid"></div>
+  </section>
+
+  <!-- ===== 视图：我的库存 ===== -->
+  <section class="page" data-view="inventory" id="inventoryPage">
+    <div class="page-hero">
+      <div>
+        <div class="eyebrow">MY CABINET / 我的库存</div>
+        <h1 class="display">把喜欢的，<br><em>记下来。</em></h1>
+        <p class="body-copy">名称、色系、珠径、数量、价格、日期和备注都留在本机。没有后端，也不会自动上传。</p>
+      </div>
+      <div class="hero-side">
+        <div class="stat"><span>记录条目</span><strong id="invStatItems">0</strong><small>条</small></div>
+        <div class="stat"><span>合计估值</span><strong id="invStatValue">¥0</strong></div>
+        <div class="stat"><span>覆盖色系</span><strong id="invStatColors">0</strong><small>类</small></div>
+      </div>
+    </div>
+    <div class="inventory-layout">
+      <section class="panel inventory-panel">
+        <div class="inventory-head">
+          <div><h2>我的收藏清单</h2><p>按颜色、尺寸、价格排序；只存在当前浏览器。</p></div>
+          <div class="inventory-total"><strong id="invTotal">0</strong><span>件</span></div>
+        </div>
+        <div class="inventory-toolbar">
+          <button class="filter-pill active" type="button" data-stock-filter="all">全部</button>
+          <button class="filter-pill" type="button" data-stock-filter="owned">自有</button>
+          <button class="filter-pill" type="button" data-stock-filter="wish">想入手</button>
+          <select class="select" id="stockSort" aria-label="库存排序">
+            <option value="new">最近添加</option>
+            <option value="price-desc">价格从高到低</option>
+            <option value="price-asc">价格从低到高</option>
+            <option value="size">珠径从大到小</option>
+            <option value="color">按色系</option>
+          </select>
+          <div class="inventory-total" style="margin-left:auto"><span>合计</span><strong id="invFilteredTotal">0</strong><span>件</span></div>
+        </div>
+        <div id="stockTableWrap"></div>
+      </section>
+      <aside class="panel inventory-aside">
+        <div class="aside-title">CABINET NOTES</div>
+        <p class="aside-note">库存是给自己看的，不是给平台看的。价格可以记总价，也可以记单颗价，备注里写清产地、体色、棉裂和配珠。</p>
+        <div class="aside-stat"><span>自有件数</span><strong id="invOwned">0</strong></div>
+        <div class="aside-stat"><span>想入手</span><strong id="invWish">0</strong></div>
+        <div class="aside-stat"><span>最高单价</span><strong id="invMaxPrice">¥0</strong></div>
+        <div class="aside-actions">
+          <button class="btn primary" type="button" id="addStockBtn">＋ 手动添加一条</button>
+          <button class="btn" type="button" id="exportStockBtn">复制导出清单</button>
+          <button class="btn ghost" type="button" id="clearStockBtn">清空库存</button>
+        </div>
+        <p class="rail-note">想入手也建议先记录，等价格合适再决定；不要因为“看起来像”就下单。</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===== 视图：方案参考 ===== -->
+  <section class="page" data-view="plans" id="plansPage">
+    <div class="page-hero">
+      <div>
+        <div class="eyebrow">REFERENCE / 方案参考</div>
+        <h1 class="display">先看一套，<br><em>再改一颗。</em></h1>
+        <p class="body-copy">预设配色可以直接套用到摆盘台；也可以把自己保存的方案留在这里，下次继续改。</p>
+      </div>
+      <div class="hero-side">
+        <div class="stat"><span>预设方案</span><strong id="planStatSchemes">0</strong><small>套</small></div>
+        <div class="stat"><span>我的方案</span><strong id="planStatSaved">0</strong><small>套</small></div>
+        <div class="stat"><span>科普卡</span><strong id="planStatScience">0</strong><small>张</small></div>
+      </div>
+    </div>
+    <div class="section-head"><h2>预设配色</h2><p>点击套用，再回摆盘台改珠径</p></div>
+    <div class="plans-grid" id="schemeGrid"></div>
+    <div class="saved-plans">
+      <div class="section-head"><h2>我保存的方案</h2><p id="savedHint">只在本机浏览器保留</p></div>
+      <div class="saved-grid" id="savedPlans"></div>
+    </div>
+    <div class="science-section">
+      <div class="section-head"><h2>一分钟小科普</h2><p>先看特点，再决定要不要为它花钱</p></div>
+      <div class="science-grid" id="scienceGrid"></div>
+    </div>
+  </section>
+</main>
+
+<dialog id="stockDialog">
+  <form method="dialog" id="stockForm">
+    <div class="modal-head">
+      <div><h3 id="stockDialogTitle">记录一颗水晶</h3><p>字段会保存到当前浏览器，可随时导出。</p></div>
+      <button class="icon-btn" type="button" id="closeStockDialog" aria-label="关闭">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="stockStone">品种</label>
+          <select id="stockStone"></select>
+        </div>
+        <div class="field full">
+          <label for="stockName">名称 / 自定义备注名</label>
+          <input id="stockName" type="text" maxlength="40" placeholder="例如：白水晶 8mm 单圈">
+        </div>
+        <div class="field">
+          <label for="stockFamily">色系</label>
+          <select id="stockFamily"></select>
+        </div>
+        <div class="field">
+          <label for="stockCategory">品类</label>
+          <select id="stockCategory"></select>
+        </div>
+        <div class="field">
+          <label for="stockSize">珠径 mm</label>
+          <input id="stockSize" type="number" min="2" max="30" step="0.5" value="8">
+        </div>
+        <div class="field">
+          <label for="stockQty">数量</label>
+          <input id="stockQty" type="number" min="1" max="999" step="1" value="1">
+        </div>
+        <div class="field">
+          <label for="stockPrice">购入价 / 参考价（元）</label>
+          <input id="stockPrice" type="number" min="0" step="0.01" value="0">
+        </div>
+        <div class="field">
+          <label for="stockDate">入手日期</label>
+          <input id="stockDate" type="date">
+        </div>
+        <div class="field full">
+          <label for="stockNote">备注（产地 / 体色 / 棉裂 / 配珠）</label>
+          <textarea id="stockNote" maxlength="160" placeholder="例如：巴西料，近净体，少量棉，配银隔珠"></textarea>
+        </div>
+        <label class="check-line full"><input id="stockWish" type="checkbox"> 先加入“想入手”，还没有买</label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" type="button" id="cancelStock">取消</button>
+      <button class="btn primary" type="submit">保存记录</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const FAMILIES = {
+  white:  { name:'白色', en:'WHITE',       dot:'linear-gradient(135deg,#ffffff,#dfe9e1,#aebfb4)', desc:'净透、银白与雾气' },
+  purple: { name:'紫色', en:'VIOLET',      dot:'linear-gradient(135deg,#eadcff,#a987cc,#5f438b)', desc:'从浅紫到浓紫' },
+  yellow: { name:'黄色', en:'CITRINE',     dot:'linear-gradient(135deg,#fff5c8,#e8c566,#a97822)', desc:'柠檬黄到蜜糖金' },
+  pink:   { name:'粉色', en:'ROSE',        dot:'linear-gradient(135deg,#fff0f4,#efbdc9,#c27f92)', desc:'柔粉、草莓与奶油' },
+  smoky:  { name:'茶色', en:'SMOKY',       dot:'linear-gradient(135deg,#d9c7b5,#987b63,#46352c)', desc:'茶、烟与墨的深浅' },
+  green:  { name:'绿色', en:'GREEN',       dot:'linear-gradient(135deg,#e5f5e8,#8fc7a8,#356f52)', desc:'苔绿、湖水与森林' },
+  red:    { name:'红色', en:'RUBY',        dot:'linear-gradient(135deg,#ffe3d8,#d77c69,#8c2f2a)', desc:'酒红、柿子与石榴' },
+  blue:   { name:'蓝色', en:'AQUA',        dot:'linear-gradient(135deg,#e0f5ff,#84c3df,#2d6f94)', desc:'海盐、湖蓝与天空' },
+  black:  { name:'黑色', en:'OBSIDIAN',    dot:'linear-gradient(135deg,#9da4ae,#3a3f49,#11131a)', desc:'黑曜、墨碧与深发' },
+  multi:  { name:'异象', en:'PHANTOM',     dot:'linear-gradient(135deg,#f5e5c9,#c3a06b,#65533b)', desc:'包裹体与多矿共生' }
+};
+
+const CATEGORIES = ['全部','单晶','发晶','幽灵','异象','多矿','玉髓玛瑙','原石造型','光学'];
+
+const STONES = [
+  { id:'white-clear', name:'白水晶', en:'Clear Quartz', family:'white', category:'单晶', texture:'clear',
+    tone:['#ffffff','#edf3ed','#b8cbc3'], img:'img-white', sizes:[6,8,10,12,14],
+    note:'净透的底色，什么都不抢。' },
+  { id:'white-silver', name:'银发晶', en:'Silver Rutilated', family:'white', category:'发晶', texture:'hair',
+    tone:['#fbfdfb','#dfe7e4','#889f98'], sizes:[6,8,10,12],
+    note:'银白发丝，冷调光泽。' },
+  { id:'white-rabbit', name:'白兔毛', en:'White Rabbit Hair', family:'white', category:'发晶', texture:'hair',
+    tone:['#fffefa','#efe9df','#b9afa1'], sizes:[6,8,10],
+    note:'细密兔毛，柔雾感很强。' },
+  { id:'white-phantom', name:'白幽灵', en:'White Phantom', family:'white', category:'幽灵', texture:'phantom',
+    tone:['#fbfdfb','#dfe8e3','#aebeb2'], sizes:[8,10,12],
+    note:'白雾层叠，像一小片云。' },
+  { id:'herkimer', name:'闪灵钻', en:'Herkimer Diamond', family:'white', category:'原石造型', texture:'clear',
+    tone:['#ffffff','#e8f2ec','#a6c5bb'], sizes:[4,6,8],
+    note:'双尖原石，晶体感比圆珠更锋利。' },
+
+  { id:'purple-amethyst', name:'紫水晶', en:'Amethyst', family:'purple', category:'单晶', texture:'clear',
+    tone:['#eee4ff','#b99ad9','#654487'], img:'img-amethyst', sizes:[6,8,10,12,14],
+    note:'从薰衣草到乌拉圭浓紫，最经典的一颗。' },
+  { id:'purple-ametrine', name:'紫黄晶', en:'Ametrine', family:'purple', category:'单晶', texture:'band',
+    tone:['#f3e8ff','#c9a5d8','#d1ad53'], sizes:[8,10,12],
+    note:'紫与黄在同一条晶带里过渡。' },
+  { id:'purple-super7', name:'超七', en:'Super Seven', family:'purple', category:'多矿', texture:'glitter',
+    tone:['#efe7fb','#aa87c0','#523b61'], img:'img-super7', sizes:[6,8,10,12],
+    note:'紫发晶、云母、黄磷矿等多矿共生，颗颗不同。' },
+  { id:'purple-aurora', name:'极光23', en:'Auralite 23', family:'purple', category:'多矿', texture:'glitter',
+    tone:['#e9e3f2','#9a7aa9','#43364c'], sizes:[8,10,12],
+    note:'多矿包裹体密集，光下像一小片夜空。' },
+
+  { id:'yellow-citrine', name:'黄水晶', en:'Citrine', family:'yellow', category:'单晶', texture:'clear',
+    tone:['#fff7d2','#eac66a','#aa7725'], img:'img-citrine', sizes:[6,8,10,12,14],
+    note:'柠檬黄到蜜糖金，显白又明快。' },
+  { id:'yellow-gold', name:'金发晶', en:'Gold Rutilated', family:'yellow', category:'发晶', texture:'hair',
+    tone:['#fff7d8','#e4bd55','#927024'], img:'img-gold', sizes:[6,8,10,12,14],
+    note:'金色发丝顺着珠体走，光感最直接。' },
+  { id:'yellow-rabbit', name:'黄兔毛', en:'Yellow Rabbit Hair', family:'yellow', category:'发晶', texture:'hair',
+    tone:['#fff8df','#e5c47c','#a17b3e'], sizes:[8,10,12],
+    note:'细软黄兔毛，比金发晶更柔。' },
+  { id:'yellow-phantom', name:'黄幽灵', en:'Yellow Phantom', family:'yellow', category:'幽灵', texture:'phantom',
+    tone:['#fff4cf','#dec06d','#91712f'], sizes:[8,10,12],
+    note:'黄色包裹体像一层层沙丘。' },
+  { id:'yellow-glue', name:'黄胶花', en:'Yellow Glue Flower', family:'yellow', category:'异象', texture:'band',
+    tone:['#fff4d1','#dfc179','#9b7d42'], sizes:[8,10,12],
+    note:'黄色胶花在晶体内裂成花。' },
+  { id:'yellow-tiger', name:'黄虎眼', en:'Tiger Eye', family:'yellow', category:'玉髓玛瑙', texture:'cat',
+    tone:['#f2d79c','#b88a43','#5f4524'], sizes:[6,8,10,12],
+    note:'丝绢光带随角度移动，很稳的黄。' },
+
+  { id:'pink-rose', name:'粉晶', en:'Rose Quartz', family:'pink', category:'单晶', texture:'clear',
+    tone:['#fff1f5','#f2c0cc','#c78395'], img:'img-rose', sizes:[6,8,10,12,14],
+    note:'柔粉入门款，奶油体还是冰透体看预算。' },
+  { id:'pink-red-rabbit', name:'红兔毛', en:'Red Rabbit Hair', family:'pink', category:'发晶', texture:'hair',
+    tone:['#ffe8eb','#e8a3a7','#a95158'], sizes:[6,8,10],
+    note:'红色细兔毛，粉里带一点暖。' },
+  { id:'pink-strawberry', name:'草莓晶', en:'Strawberry Quartz', family:'pink', category:'异象', texture:'glitter',
+    tone:['#ffeef0','#e9aab0','#a7505b'], img:'img-strawberry', sizes:[6,8,10,12],
+    note:'细小红色包裹体，像草莓籽。' },
+  { id:'pink-phantom', name:'粉幽灵', en:'Pink Phantom', family:'pink', category:'幽灵', texture:'phantom',
+    tone:['#ffeef3','#e7b0bf','#a8687d'], sizes:[8,10,12],
+    note:'粉色层叠包裹体，柔但不寡淡。' },
+
+  { id:'smoky-smoky', name:'烟晶', en:'Smoky Quartz', family:'smoky', category:'单晶', texture:'clear',
+    tone:['#d9cabb','#9b7d65','#4e3b31'], img:'img-smoky', sizes:[8,10,12,14,16],
+    note:'茶灰色透明体，中性、耐看。' },
+  { id:'smoky-tea', name:'茶晶', en:'Tea Quartz', family:'smoky', category:'单晶', texture:'clear',
+    tone:['#e3d3c2','#a58568','#5c4536'], sizes:[6,8,10,12,14],
+    note:'茶色深浅跨度大，适合做隔珠。' },
+  { id:'smoky-mo', name:'墨晶', en:'Smoky / Morion', family:'smoky', category:'单晶', texture:'solid',
+    tone:['#b7aaa0','#5f5048','#211a19'], sizes:[8,10,12,14],
+    note:'近黑茶晶，透光才看见茶底。' },
+
+  { id:'green-phantom', name:'绿幽灵', en:'Green Phantom', family:'green', category:'幽灵', texture:'phantom',
+    tone:['#e8f6e7','#8cc6a0','#2f6448'], img:'img-green', sizes:[8,10,12,14],
+    note:'聚宝盆、千层、满天星，包裹体形态比颜色更重要。' },
+  { id:'green-rutile', name:'绿发晶', en:'Green Rutilated', family:'green', category:'发晶', texture:'hair',
+    tone:['#eaf7e9','#94c49c','#3e6e4d'], sizes:[6,8,10,12],
+    note:'绿色发丝细密，清爽不厚重。' },
+  { id:'green-aventurine', name:'东陵玉', en:'Aventurine', family:'green', category:'玉髓玛瑙', texture:'glitter',
+    tone:['#e9f4df','#9ec58a','#507542'], sizes:[6,8,10,12,14],
+    note:'细碎云母闪光，性价比高的绿色。' },
+  { id:'green-chalcedony', name:'绿玉髓', en:'Green Chalcedony', family:'green', category:'玉髓玛瑙', texture:'solid',
+    tone:['#e7f8ee','#8ed0ae','#3f8663'], sizes:[6,8,10,12],
+    note:'果冻质感，颜色均匀，适合做过渡。' },
+  { id:'green-chlorite', name:'绿泥石', en:'Chlorite Quartz', family:'green', category:'异象', texture:'phantom',
+    tone:['#dfefe1','#7cae8c','#335b42'], sizes:[8,10,12],
+    note:'绿色矿泥包裹，常和幽灵一起出现。' },
+
+  { id:'red-rutile', name:'红发晶', en:'Red Rutilated', family:'red', category:'发晶', texture:'hair',
+    tone:['#ffe5df','#d68175','#8a302e'], sizes:[6,8,10,12],
+    note:'红色发丝，暖调显白。' },
+  { id:'red-phantom', name:'红幽灵', en:'Red Phantom', family:'red', category:'幽灵', texture:'phantom',
+    tone:['#ffe6df','#d17d71','#86332f'], sizes:[8,10,12],
+    note:'红色包裹体成层，像一小片晚霞。' },
+  { id:'red-glue', name:'红胶花', en:'Red Glue Flower', family:'red', category:'异象', texture:'band',
+    tone:['#ffdfd7','#cf7b6f','#8c342d'], sizes:[8,10,12],
+    note:'红色胶花沿裂隙生长，每一颗都不同。' },
+  { id:'red-agate', name:'红玛瑙', en:'Red Agate', family:'red', category:'玉髓玛瑙', texture:'band',
+    tone:['#ffe4dc','#d96f5e','#8b2a24'], img:'img-red', sizes:[6,8,10,12,14,16],
+    note:'颜色饱满、价格友好，本命年常见。' },
+  { id:'red-garnet', name:'石榴石', en:'Garnet', family:'red', category:'单晶', texture:'clear',
+    tone:['#f6d9d8','#a63e49','#47141f'], sizes:[4,6,8,10],
+    note:'酒红高净，小珠径更显精致。' },
+
+  { id:'blue-aquamarine', name:'海蓝宝', en:'Aquamarine', family:'blue', category:'单晶', texture:'clear',
+    tone:['#e4f7ff','#83c3dc','#2e6e8d'], img:'img-aqua', sizes:[6,8,10,12,14],
+    note:'海水蓝与冰透体，浅色更日常。' },
+  { id:'blue-larimar', name:'海纹石', en:'Larimar', family:'blue', category:'玉髓玛瑙', texture:'band',
+    tone:['#e2f7fa','#8bcbd2','#3b7f8d'], sizes:[8,10,12],
+    note:'蓝白龟背纹，像把海面收进珠子。' },
+  { id:'blue-dumortierite', name:'蓝线石', en:'Dumortierite Quartz', family:'blue', category:'多矿', texture:'hair',
+    tone:['#e7f2fa','#87a9c8','#3a5878'], sizes:[8,10,12],
+    note:'蓝线石纤维在晶体内成束。' },
+  { id:'blue-needle', name:'蓝针水晶', en:'Blue Needle Quartz', family:'blue', category:'异象', texture:'hair',
+    tone:['#effaff','#a7d7e7','#4a8296'], sizes:[8,10,12],
+    note:'细小蓝针，光下才明显。' },
+  { id:'blue-chalcedony', name:'蓝玉髓', en:'Blue Chalcedony', family:'blue', category:'玉髓玛瑙', texture:'solid',
+    tone:['#e8f8ff','#9ad2e6','#4d8da7'], sizes:[6,8,10,12],
+    note:'奶油蓝、果冻光，很温柔。' },
+  { id:'blue-amazonite', name:'天河石', en:'Amazonite', family:'blue', category:'玉髓玛瑙', texture:'band',
+    tone:['#e4f5f0','#88c4bb','#3f8178'], sizes:[6,8,10,12],
+    note:'蓝绿底带白色格子纹，辨识度高。' },
+
+  { id:'black-rutile', name:'黑发晶', en:'Black Rutilated', family:'black', category:'发晶', texture:'hair',
+    tone:['#aeb3bb','#505661','#171a20'], sizes:[8,10,12],
+    note:'黑色发丝冷静利落，适合做隔珠。' },
+  { id:'black-tourmaline', name:'黑碧玺', en:'Black Tourmaline', family:'black', category:'单晶', texture:'solid',
+    tone:['#9ca3a9','#424851','#101319'], sizes:[6,8,10,12],
+    note:'纯黑不透，压得住整串颜色。' },
+  { id:'black-obsidian', name:'黑曜石', en:'Obsidian', family:'black', category:'原石造型', texture:'solid',
+    tone:['#b0b6bd','#474d57','#0d1015'], img:'img-obsidian', sizes:[6,8,10,12,14,16],
+    note:'玻璃光泽，彩虹眼是加分项。' },
+
+  { id:'multi-color-phantom', name:'彩幽灵', en:'Rainbow Phantom', family:'multi', category:'幽灵', texture:'phantom',
+    tone:['#f7e5c4','#c3907b','#4e6e57'], sizes:[8,10,12],
+    note:'红黄绿多层包裹，像一块小地形。' },
+  { id:'multi-glue', name:'彩胶花', en:'Rainbow Glue Flower', family:'multi', category:'异象', texture:'band',
+    tone:['#fbe7cf','#c89b76','#5f6f5e'], sizes:[8,10,12],
+    note:'多色胶花沿裂隙铺开，适合做主珠。' },
+  { id:'multi-phantom', name:'幻影水晶', en:'Phantom Quartz', family:'multi', category:'异象', texture:'band',
+    tone:['#f7ecd5','#c0a88e','#59685e'], sizes:[8,10,12],
+    note:'层状幻影像山脊，越透越好看。' },
+  { id:'multi-water', name:'水胆水晶', en:'Enhydro Quartz', family:'multi', category:'异象', texture:'clear',
+    tone:['#f9f4e8','#d7c9ad','#7c8874'], sizes:[8,10,12],
+    note:'晶体里有气泡和水，属于观赏型。' },
+  { id:'multi-skeleton', name:'骸骨水晶', en:'Skeletal Quartz', family:'multi', category:'原石造型', texture:'clear',
+    tone:['#f4f0e4','#c9c0aa','#767e6c'], sizes:[8,10,12],
+    note:'阶梯状晶面，原石感很强。' },
+  { id:'multi-cluster', name:'晶簇 / 水晶洞', en:'Cluster / Geode', family:'multi', category:'原石造型', texture:'clear',
+    tone:['#f8f5eb','#d0c8b2','#7e8978'], sizes:[6,8,10],
+    note:'摆盘时做中心，不适合日常佩戴。' },
+  { id:'multi-grape', name:'葡萄石水晶', en:'Prehnite Quartz', family:'multi', category:'多矿', texture:'phantom',
+    tone:['#e9f3dc','#a9c58d','#627950'], sizes:[8,10,12],
+    note:'青葡萄色包裹体，清爽少见。' },
+  { id:'multi-pyrite', name:'黄铁矿水晶', en:'Pyrite Quartz', family:'multi', category:'多矿', texture:'glitter',
+    tone:['#f4e2b7','#c8a366','#675437'], sizes:[8,10,12],
+    note:'金属光泽矿点，和绿幽灵很容易混。' },
+  { id:'multi-calcite', name:'方解石水晶', en:'Calcite Quartz', family:'multi', category:'多矿', texture:'band',
+    tone:['#f4eee1','#cec2ae','#7d8471'], sizes:[8,10,12],
+    note:'白色/蜜色共生矿，层次感强。' },
+
+  { id:'optical-cat', name:'石英猫眼', en:'Cat’s Eye Quartz', family:'multi', category:'光学', texture:'cat',
+    tone:['#efe8d9','#c2b49c','#6c7565'], sizes:[8,10,12,14],
+    note:'移动光带，珠面要正才好看。' },
+  { id:'optical-star', name:'星光粉晶', en:'Star Rose Quartz', family:'pink', category:'光学', texture:'star',
+    tone:['#fff0f4','#e7b8c5','#a96e81'], sizes:[10,12,14],
+    note:'六射星光，需要强光或太阳下观察。' }
+];
+
+const SCHEMES = [
+  { id:'moon-veil', title:'月光白', en:'WHITE VEIL', desc:'白水晶、银发晶、白幽灵、闪灵钻。适合冷白皮与极简衣橱。', stones:['white-clear','white-silver','white-phantom','herkimer'], bead:8, colors:['#ffffff','#e6ece6','#a9bcb1'] },
+  { id:'violet-mist', title:'紫雾', en:'VIOLET MIST', desc:'紫水晶、紫黄晶、超七、极光23。浓淡紫交错，别全选深紫。', stones:['purple-amethyst','purple-ametrine','purple-super7','purple-aurora'], bead:8, colors:['#eee2ff','#ae8acb','#5d3c7d'] },
+  { id:'honey-glow', title:'蜜糖光', en:'HONEY GLOW', desc:'黄水晶、金发晶、黄幽灵、黄虎眼。暖金调，适合秋冬和木质配饰。', stones:['yellow-citrine','yellow-gold','yellow-phantom','yellow-tiger'], bead:8, colors:['#fff2bf','#e5bd58','#9b6d22'] },
+  { id:'rose-milk', title:'草莓奶昔', en:'ROSE MILK', desc:'粉晶、草莓晶、红兔毛、白水晶。粉白过渡，甜但不腻。', stones:['pink-rose','pink-strawberry','pink-red-rabbit','white-clear'], bead:8, colors:['#fff0f4','#eab3c3','#b86980'] },
+  { id:'sea-salt', title:'海盐', en:'SEA SALT', desc:'海蓝宝、蓝玉髓、海纹石、天河石。蓝白配色，夏天最清爽。', stones:['blue-aquamarine','blue-chalcedony','blue-larimar','blue-amazonite'], bead:8, colors:['#e2f5ff','#91c9df','#397c9d'] },
+  { id:'forest-floor', title:'森林地表', en:'FOREST FLOOR', desc:'绿幽灵、绿发晶、东陵玉、绿玉髓。绿色深浅分区，不要一颗一个绿。', stones:['green-phantom','green-rutile','green-aventurine','green-chalcedony'], bead:8, colors:['#e4f3e5','#8bc19e','#356b4d'] },
+  { id:'night-run', title:'夜行', en:'NIGHT RUN', desc:'黑曜石、黑发晶、茶晶、黑碧玺。用茶晶做过渡，整串才不会死黑。', stones:['black-obsidian','black-rutile','smoky-smoky','black-tourmaline'], bead:10, colors:['#aeb3ba','#4b515b','#13161c'] },
+  { id:'sunset-stone', title:'落日石', en:'SUNSET STONE', desc:'红玛瑙、石榴石、红发晶、金发晶。红金撞色，适合做本命年或礼物。', stones:['red-agate','red-garnet','red-rutile','yellow-gold'], bead:8, colors:['#ffdcd2','#cf7564','#87302a'] }
+];
+
+const SCIENCE = [
+  { title:'白水晶', en:'CLEAR QUARTZ', tone:['#ffffff','#e7efe9','#b4c6bd'], text:'最基础的透明石英。看白水晶先看体，再看棉裂；全净体价格会明显高一档。', tip:'日常佩戴避免长时间暴晒和磕碰。' },
+  { title:'紫水晶', en:'AMETHYST', tone:['#eee2ff','#ae8acb','#5b3a7a'], text:'颜色从浅薰衣草到乌拉圭深紫。天然紫水晶常有色带，整颗均匀浓紫反而要多留一个心眼。', tip:'别用高温清洗，颜色会变淡。' },
+  { title:'粉晶', en:'ROSE QUARTZ', tone:['#fff0f4','#eab3c3','#b56b7d'], text:'从奶油粉到冰透粉。星光粉晶要看星线，普通粉晶看体色和棉。不要把所有粉色都叫“马粉”。', tip:'避免长期暴晒，粉色会变浅。' },
+  { title:'绿幽灵', en:'GREEN PHANTOM', tone:['#e4f3e5','#8bc19e','#356b4d'], text:'绿色包裹体在晶体里分层生长。聚宝盆看“盆形”，千层看层次，满天星看分布，不是越绿越贵。', tip:'包裹体形态比单纯颜色更影响价格。' },
+  { title:'金发晶', en:'GOLD RUTILE', tone:['#fff4c8','#e1bb54','#8f6c22'], text:'金红石针在晶体里成束。看发丝顺不顺、密不密、晶体透不透；粗发和细发是两种审美，不必硬比。', tip:'发丝越密不一定越好，底子干净更重要。' },
+  { title:'海蓝宝', en:'AQUAMARINE', tone:['#e2f5ff','#8ac5dd','#2d6f8d'], text:'海水蓝的绿柱石。颜色、净度、棉裂同时看；浅色海蓝宝更适合日常，浓蓝通常更贵。', tip:'避免高温和剧烈温差。' },
+  { title:'黑曜石', en:'OBSIDIAN', tone:['#b0b6bd','#454b55','#0e1116'], text:'火山玻璃，不是水晶。普通黑曜石看光泽和瑕疵，彩虹眼、蓝眼、金眼是加分项。', tip:'脆，掉落容易崩边。' },
+  { title:'超七', en:'SUPER SEVEN', tone:['#eee5f8','#a482b9','#4e395c'], text:'紫发晶、黄磷矿、云母等多矿共生的商业名。不是每一颗都“七矿齐全”，先看整体美观和自己的预算。', tip:'包裹体越密越花，不等于越高级。' }
+];
+
+const STORAGE = { inventory:'crystal-inventory-v1', plans:'crystal-plans-v1', theme:'crystal-theme' };
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const esc = (str) => String(str ?? '').replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+function readJSON(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch { return fallback; }
+}
+function writeJSON(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode */ }
+}
+function money(n) {
+  const v = Number(n || 0);
+  return '¥' + v.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
+}
+function isoToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function familyOf(stone) { return FAMILIES[stone.family] || FAMILIES.white; }
+function stoneOf(id) { return STONES.find(s => s.id === id); }
+function toneVars(stone) { return `--c1:${stone.tone[0]};--c2:${stone.tone[1]};--c3:${stone.tone[2]}`; }
+function debounce(fn, wait = 160) {
+  let timer;
+  return function(...args) { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), wait); };
+}
+
+const state = {
+  view: 'studio',
+  colors: new Set(),
+  category: '全部',
+  search: '',
+  onlyOwned: false,
+  beadSize: 8,
+  wrist: 16,
+  selected: ['white-clear','purple-amethyst','pink-rose','blue-aquamarine','yellow-gold','green-phantom'],
+  mode: 'bracelet',
+  loops: 1,
+  handheld: false,
+  spacer: false,
+  pattern: 'ring',
+  inventory: readJSON(STORAGE.inventory, []),
+  plans: readJSON(STORAGE.plans, []),
+  stockFilter: 'all',
+  stockSort: 'new',
+  theme: (() => { try { return localStorage.getItem(STORAGE.theme) === 'night' ? 'night' : 'ivory'; } catch { return 'ivory'; } })()
+};
+if (!Array.isArray(state.inventory)) state.inventory = [];
+if (!Array.isArray(state.plans)) state.plans = [];
+
+document.body.dataset.theme = state.theme;
+const themeBtn = $('#themeBtn');
+function updateThemeButton() {
+  themeBtn.textContent = state.theme === 'night' ? '奶白模式' : '夜岩模式';
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', state.theme === 'night' ? '#0e1612' : '#f4efe7');
+}
+themeBtn.addEventListener('click', () => {
+  state.theme = state.theme === 'night' ? 'ivory' : 'night';
+  document.body.dataset.theme = state.theme;
+  try { localStorage.setItem(STORAGE.theme, state.theme); } catch { /* private mode */ }
+  updateThemeButton();
+});
+updateThemeButton();
+
+function renderColorChips() {
+  const allActive = state.colors.size === 0;
+  const allChip = `<button class="color-chip ${allActive ? 'active' : ''}" type="button" data-color="all">
+      <span class="dot" style="background:conic-gradient(#f3e8dc,#c4d4c9,#a88a6f,#f3e8dc)"></span>
+      <span class="name">全部</span><span class="count">${STONES.length}</span>
+    </button>`;
+  const chips = Object.entries(FAMILIES).map(([key, fam]) => {
+    const active = state.colors.has(key);
+    const count = STONES.filter(s => s.family === key).length;
+    return `<button class="color-chip ${active ? 'active' : ''}" type="button" data-color="${key}">
+      <span class="dot" style="background:${fam.dot}"></span>
+      <span class="name">${fam.name}</span><span class="count">${count}</span>
+    </button>`;
+  }).join('');
+  ['#colorFilters','#libraryColors'].forEach(sel => {
+    const el = $(sel);
+    if (el) el.innerHTML = allChip + chips;
+  });
+}
+
+function renderCategoryChips() {
+  const html = CATEGORIES.map(cat => `<button class="cat-chip ${state.category === cat ? 'active' : ''}" type="button" data-category="${cat}">${cat}</button>`).join('');
+  ['#studioCategories','#libraryCategories'].forEach(sel => {
+    const el = $(sel);
+    if (el) el.innerHTML = html;
+  });
+}
+
+function renderSizeChips() {
+  const sizes = [6,8,10,12,14,16];
+  $('#sizeChips').innerHTML = sizes.map(n => `<button class="size-chip ${state.beadSize === n ? 'active' : ''}" type="button" data-size="${n}">${n}mm</button>`).join('');
+  $('#customSize').value = state.beadSize;
+  $('#wristInput').value = state.wrist;
+}
+
+function ownedIds() {
+  return new Set(state.inventory.filter(i => !i.wish).map(i => i.stoneId || i.varietyId).filter(Boolean));
+}
+
+function filteredStones() {
+  const q = state.search.trim().toLowerCase();
+  const owned = ownedIds();
+  return STONES.filter(s => {
+    if (state.colors.size && !state.colors.has(s.family)) return false;
+    if (state.category !== '全部' && s.category !== state.category) return false;
+    if (q) {
+      const hay = `${s.name} ${s.en} ${s.note} ${s.category} ${familyOf(s).name}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (state.onlyOwned && !owned.has(s.id)) return false;
+    return true;
+  });
+}
+
+function stoneCard(stone, ownedSet) {
+  const fam = familyOf(stone);
+  const visual = stone.img
+    ? `<div class="stone-visual has-photo ${stone.img}" style="${toneVars(stone)}">
+         <span class="stone-color-dot" style="background:${fam.dot}"></span>
+         <button class="add-btn" type="button" data-add="${stone.id}" aria-label="把${stone.name}加入摆盘">＋</button>
+       </div>`
+    : `<div class="stone-visual fallback" style="--c1:${stone.tone[0]};--c2:${stone.tone[1]};--c3:${stone.tone[2]}">
+         <span class="fallback-orb tex-${stone.texture}" style="--c1:${stone.tone[0]};--c2:${stone.tone[1]};--c3:${stone.tone[2]}"></span>
+         <span class="stone-color-dot" style="background:${fam.dot}"></span>
+         <button class="add-btn" type="button" data-add="${stone.id}" aria-label="把${stone.name}加入摆盘">＋</button>
+       </div>`;
+  return `<article class="stone-card" data-stone="${stone.id}" title="点击加入摆盘">
+    ${visual}
+    <div class="stone-card-body">
+      <div class="stone-name-row"><h3>${stone.name}</h3><span class="en">${stone.en}</span></div>
+      <div class="stone-tags">
+        <span>${stone.category}</span><span>${fam.name}</span>
+        ${ownedSet.has(stone.id) ? '<span class="owned">已入库</span>' : ''}
+      </div>
+      <p class="stone-note">${stone.note}</p>
+      <div class="stone-foot"><span class="sizes">${stone.sizes.map(n => n + 'mm').join(' · ')}</span><span class="hint">点击加入 →</span></div>
+    </div>
+  </article>`;
+}
+
+function renderLibrary() {
+  const list = filteredStones();
+  const owned = ownedIds();
+  const cardHtml = list.length
+    ? list.map(s => stoneCard(s, owned)).join('')
+    : `<div class="empty-library">没有符合条件的品种。换个色系，或把搜索词缩短一点。</div>`;
+  const studioGrid = $('#stoneGrid');
+  const libraryGrid = $('#libraryGrid');
+  if (studioGrid) studioGrid.innerHTML = cardHtml;
+  if (libraryGrid) libraryGrid.innerHTML = cardHtml;
+  const count = $('#studioCount');
+  if (count) count.textContent = list.length;
+  const stat = $('#libraryStatTotal');
+  if (stat) stat.textContent = list.length;
+  const toggle = $('#ownedToggle');
+  if (toggle) toggle.classList.toggle('active', state.onlyOwned);
+}
+
+function selectedStones() {
+  return state.selected.map(stoneOf).filter(Boolean);
+}
+function beadCount() {
+  const wristMm = state.wrist * 10;
+  return Math.max(1, Math.floor(wristMm / state.beadSize + Math.PI) + 1);
+}
+function countLabel() {
+  const base = beadCount();
+  const loops = state.mode === 'bracelet' ? state.loops : 1;
+  if (state.mode === 'grid') return `阵心 1 颗 · 外圈 ${Math.max(8, selectedStones().length * 2)} 颗`;
+  if (state.handheld) return '108 颗 / 手持';
+  return loops === 1 ? `${base} 颗 / 圈` : `${base} 颗 / 圈 · 共 ${base * loops} 颗`;
+}
+
+function beadHtml(stone, x, y, size, extraClass = '') {
+  return `<div class="bead tex-${stone.texture} ${extraClass}" title="${esc(stone.name)} · ${state.beadSize}mm"
+    style="left:${x}px;top:${y}px;--size:${size}px;--c1:${stone.tone[0]};--c2:${stone.tone[1]};--c3:${stone.tone[2]}"></div>`;
+}
+
+function renderTray() {
+  const tray = $('#trayList');
+  const count = $('#trayCount');
+  if (!tray) return;
+  if (count) count.textContent = state.selected.length ? `${state.selected.length} 颗 · 可拖动排序` : '0 颗 · 从左侧加入';
+  if (!state.selected.length) {
+    tray.innerHTML = `<div class="tray-empty">还没有选珠。点卡片上的 ＋，或先在预设方案里套一套。</div>`;
+    return;
+  }
+  tray.innerHTML = state.selected.map((id, i) => {
+    const s = stoneOf(id);
+    if (!s) return '';
+    return `<span class="tray-chip" draggable="true" data-tray-index="${i}" style="--c1:${s.tone[0]};--c2:${s.tone[1]}">
+      <span class="dot" style="background:linear-gradient(135deg,${s.tone[0]},${s.tone[1]},${s.tone[2]})"></span>
+      <span>${s.name}</span><span class="idx">${i+1}</span>
+      <button class="remove" type="button" data-remove="${i}" aria-label="移除${s.name}">×</button>
+    </span>`;
+  }).join('');
+}
+
+function renderPreview() {
+  const stage = $('#previewStage');
+  if (!stage) return;
+  const selected = selectedStones();
+  const base = beadCount();
+  const loops = state.loops;
+  const handheld = state.mode === 'bracelet' && state.handheld;
+  const stageW = stage.clientWidth || 360;
+  const stageH = stage.clientHeight || stageW;
+  const cx = stageW / 2;
+  const cy = stageH / 2;
+  const min = Math.min(stageW, stageH);
+  const countText = countLabel();
+
+  $('#suggestCount').textContent = base;
+
+  const braceletLabel = handheld
+    ? `<strong>BRACELET / HANDHELD</strong>手持长串预览`
+    : `<strong>BRACELET / ${loops === 1 ? 'SINGLE' : loops === 2 ? 'DOUBLE' : 'TRIPLE'}</strong>${state.spacer ? ' + 隔珠' : ' 绕腕预览'}`;
+  const label = state.mode === 'grid'
+    ? `<div class="stage-label"><strong>GRID / ${({ring:'RING',plum:'PLUM',sym:'SYMMETRY',free:'FREE'})[state.pattern]}</strong>水晶阵摆盘</div>`
+    : `<div class="stage-label">${braceletLabel}</div>`;
+
+  if (!selected.length) {
+    stage.innerHTML = `<div class="stage-lines"></div>${label}
+      <div class="stage-empty"><div class="empty-ring"><span>◇</span></div><p>这个盘面还空着<br>从左边挑一颗颜色，先放进来</p></div>
+      <div class="stage-foot"><span class="stage-count">0</span><small>颗 / 未选</small><span>${state.beadSize}mm · ${state.wrist}cm</span></div>`;
+    $('#previewTitle').textContent = state.mode === 'grid' ? '空盘 · 水晶阵' : '空盘 · 手串';
+    $('#previewSub').textContent = `建议 ${base} 颗 / 圈 · 先选一颗珠子`;
+    renderTray();
+    updateModeUI();
+    return;
+  }
+
+  let markup = `<div class="stage-lines"></div>${label}`;
+  if (state.mode === 'grid') {
+    const pattern = state.pattern;
+    const orbitCount = Math.max(8, Math.min(16, selected.length * 2));
+    const centerStone = selected[0];
+    let positions = [];
+    if (pattern === 'plum') {
+      for (let p = 0; p < 5; p++) {
+        const a = (-Math.PI / 2) + p * (Math.PI * 2 / 5);
+        positions.push({ x: cx + min * .23 * Math.cos(a), y: cy + min * .23 * Math.sin(a), size: 28, stone: selected[(p + 1) % selected.length] });
+        positions.push({ x: cx + min * .38 * Math.cos(a), y: cy + min * .38 * Math.sin(a), size: 32, stone: selected[(p + 2) % selected.length] });
+      }
+    } else if (pattern === 'sym') {
+      for (let i = 0; i < 12; i++) {
+        const side = i < 6 ? -1 : 1;
+        const p = i % 6;
+        const a = (-Math.PI / 3) + p * (Math.PI / 3);
+        positions.push({ x: cx + side * min * .29 * Math.sin(a), y: cy + min * .34 * Math.cos(a), size: 26 + (p % 2) * 5, stone: selected[(i + 1) % selected.length] });
+      }
+    } else if (pattern === 'free') {
+      for (let i = 0; i < orbitCount; i++) {
+        const a = -Math.PI / 2 + i * Math.PI * 2 / orbitCount;
+        const r = min * (.27 + .07 * Math.sin(i * 2.4) + .04 * Math.cos(i * 1.7));
+        positions.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), size: 22 + (i % 3) * 4, stone: selected[(i + 1) % selected.length] });
+      }
+    } else {
+      for (let i = 0; i < orbitCount; i++) {
+        const a = -Math.PI / 2 + i * Math.PI * 2 / orbitCount;
+        positions.push({ x: cx + min * .38 * Math.cos(a), y: cy + min * .38 * Math.sin(a), size: 28, stone: selected[(i + 1) % selected.length] });
+      }
+    }
+    markup += `<div class="ring-guide" style="width:${min*.76}px;height:${min*.76}px"></div>`;
+    markup += beadHtml(centerStone, cx, cy, Math.min(98, min * .29), 'grid-center');
+    markup += positions.map(p => beadHtml(p.stone, p.x, p.y, p.size)).join('');
+    markup += `<div class="stage-foot"><span class="stage-count">${1 + positions.length}</span><small>颗 / 阵心 + 外圈</small><span>${state.beadSize}mm · ${state.wrist}cm</span></div>`;
+    $('#previewTitle').textContent = `水晶阵 · ${({ring:'环形',plum:'梅花',sym:'对称',free:'自由'})[state.pattern]}`;
+    $('#previewSub').textContent = `${centerStone.name} 做阵心 · ${1 + positions.length} 颗 · 每颗 ${state.beadSize}mm`;
+  } else {
+    const rings = handheld ? [.22, .32, .42] : loops === 1 ? [.36] : loops === 2 ? [.28, .40] : [.23, .33, .42];
+    const layerCount = handheld ? 36 : base;
+    let total = 0;
+    rings.forEach((ratio, ringIndex) => {
+      const radius = min * ratio;
+      markup += `<div class="ring-guide" style="width:${radius*2}px;height:${radius*2}px"></div>`;
+      const beadSize = Math.max(7, Math.min(handheld ? 20 : loops > 1 ? 30 : 41, (Math.PI * 2 * radius / layerCount) * .94));
+      const angleOffset = ringIndex * (Math.PI / layerCount) + (ringIndex % 2 ? .14 : -.08);
+      for (let i = 0; i < layerCount; i++) {
+        const a = -Math.PI / 2 + angleOffset + i * Math.PI * 2 / layerCount;
+        const s = selected[(i + ringIndex * layerCount) % selected.length];
+        const x = cx + radius * Math.cos(a);
+        const y = cy + radius * Math.sin(a);
+        if (state.spacer && i % 5 === 4) {
+          markup += `<div class="bead spacer" style="left:${x}px;top:${y}px;--size:${Math.max(8, beadSize*.78)}px"></div>`;
+        } else {
+          markup += beadHtml(s, x, y, beadSize);
+          total++;
+        }
+      }
+    });
+    markup += `<div class="stage-foot"><span class="stage-count">${handheld ? 108 : base}</span><small>${handheld ? '颗 / 手持' : `颗 / 圈${loops > 1 ? ` · ${loops} 圈` : ''}`}</small><span>${state.beadSize}mm · ${state.wrist}cm</span></div>`;
+    $('#previewTitle').textContent = handheld ? `手持 · ${state.beadSize}mm${state.spacer ? ' + 隔珠' : ''}` : `${loops === 1 ? '单圈' : loops === 2 ? '双圈' : '三圈'} · ${state.beadSize}mm${state.spacer ? ' + 隔珠' : ''}`;
+    $('#previewSub').textContent = handheld
+      ? `108 颗 · 三层排列 · 每颗 ${state.beadSize}mm${state.spacer ? ' · 每 5 颗夹一颗隔珠' : ''}`
+      : `手围 ${state.wrist}cm · 建议 ${base} 颗 / 圈${loops > 1 ? ` · 共 ${base * loops} 颗` : ''}${state.spacer ? ' · 每 5 颗夹一颗隔珠' : ''}`;
+  }
+  stage.innerHTML = markup;
+  renderTray();
+  updateModeUI();
+}
+
+function updateModeUI() {
+  $$('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === state.mode));
+  $('#braceletControls').hidden = state.mode !== 'bracelet';
+  $('#gridControls').hidden = state.mode !== 'grid';
+  $$('[data-loops]').forEach(b => b.classList.toggle('active', !state.handheld && Number(b.dataset.loops) === state.loops));
+  $$('[data-handheld]').forEach(b => b.classList.toggle('active', state.handheld));
+  $$('[data-pattern]').forEach(b => b.classList.toggle('active', b.dataset.pattern === state.pattern));
+  $$('[data-spacer]').forEach(b => b.classList.toggle('active', state.spacer));
+}
+
+function addStone(id) {
+  const stone = stoneOf(id);
+  if (!stone) return;
+  if (state.selected.length >= 30) { toast('先到 30 颗了，删掉几颗再加。'); return; }
+  state.selected.push(id);
+  renderTray();
+  renderPreview();
+  toast(`已加入 ${stone.name} · ${state.beadSize}mm`);
+}
+
+function toast(message) {
+  const el = $('#toast');
+  el.textContent = message;
+  el.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+function renderInventory() {
+  const all = state.inventory;
+  const filtered = all.filter(i => {
+    if (state.stockFilter === 'owned') return !i.wish;
+    if (state.stockFilter === 'wish') return !!i.wish;
+    return true;
+  });
+  filtered.sort((a,b) => {
+    if (state.stockSort === 'price-desc') return (Number(b.price)||0) - (Number(a.price)||0);
+    if (state.stockSort === 'price-asc') return (Number(a.price)||0) - (Number(b.price)||0);
+    if (state.stockSort === 'size') return (Number(b.size)||0) - (Number(a.size)||0);
+    if (state.stockSort === 'color') return String(a.family).localeCompare(String(b.family));
+    return (Number(b.createdAt)||0) - (Number(a.createdAt)||0);
+  });
+  const value = all.reduce((sum,i) => sum + (Number(i.price)||0) * (Number(i.qty)||1), 0);
+  const maxPrice = all.reduce((max,i) => Math.max(max, Number(i.price)||0), 0);
+  $('#invStatItems').textContent = all.length;
+  $('#invStatValue').textContent = money(value);
+  $('#invStatColors').textContent = new Set(all.map(i => i.family)).size;
+  $('#invTotal').textContent = all.length;
+  $('#invFilteredTotal').textContent = filtered.length;
+  $('#invOwned').textContent = all.filter(i => !i.wish).length;
+  $('#invWish').textContent = all.filter(i => i.wish).length;
+  $('#invMaxPrice').textContent = money(maxPrice);
+  $$('[data-stock-filter]').forEach(b => b.classList.toggle('active', b.dataset.stockFilter === state.stockFilter));
+  $('#stockSort').value = state.stockSort;
+
+  const wrap = $('#stockTableWrap');
+  if (!all.length) {
+    wrap.innerHTML = `<div class="stock-empty"><strong>清单还是空的</strong>去摆盘台挑一颗，点“加入库存”；或者手动添加第一条记录。</div>`;
+    return;
+  }
+  if (!filtered.length) {
+    wrap.innerHTML = `<div class="stock-empty"><strong>这个分类还没有记录</strong>切换到“全部”，或者换一条筛选。</div>`;
+    return;
+  }
+  const rows = filtered.map(item => {
+    const stone = stoneOf(item.stoneId);
+    const fam = FAMILIES[item.family] || (stone ? familyOf(stone) : FAMILIES.white);
+    const tone = stone ? stone.tone : ['#ffffff','#e7eee8','#b6c8be'];
+    return `<tr>
+      <td><div class="stock-name"><span class="stock-orb" style="--c1:${tone[0]};--c2:${tone[1]};--c3:${tone[2]}"></span><div><strong>${esc(item.name || stone?.name || '未命名')}</strong><small>${esc(stone?.en || item.category || '')}</small></div></div></td>
+      <td><span class="stock-orb" style="width:10px;height:10px;display:inline-block;vertical-align:-1px;margin-right:4px;--c1:${tone[0]};--c2:${tone[1]};--c3:${tone[2]}"></span>${fam.name}</td>
+      <td>${Number(item.size)||0}mm</td>
+      <td>${Number(item.qty)||1} 件</td>
+      <td>${money(item.price)}</td>
+      <td>${esc(item.date || '—')}</td>
+      <td><span class="pill-type ${item.wish ? 'wish' : ''}">${item.wish ? '想入手' : '自有'}</span></td>
+      <td><div class="stock-note" title="${esc(item.note || '')}">${esc(item.note || '—')}</div></td>
+      <td><div class="stock-actions"><button class="icon-btn" type="button" data-del-stock="${item.id}" title="删除记录" aria-label="删除记录">×</button></div></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `<div class="table-wrap"><table class="stock-table">
+    <thead><tr><th>晶石</th><th>色系</th><th>珠径</th><th>数量</th><th>价格</th><th>入手日期</th><th>类型</th><th>备注</th><th></th></tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+}
+
+function populateStockSelects() {
+  const stoneSel = $('#stockStone');
+  stoneSel.innerHTML = STONES.map(s => `<option value="${s.id}">${s.name} · ${s.en}</option>`).join('');
+  $('#stockFamily').innerHTML = Object.entries(FAMILIES).map(([k,v]) => `<option value="${k}">${v.name}</option>`).join('');
+  $('#stockCategory').innerHTML = CATEGORIES.filter(c => c !== '全部').map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function syncStockFields(id, keepName = false) {
+  const stone = stoneOf(id) || STONES[0];
+  const fam = familyOf(stone);
+  $('#stockStone').value = stone.id;
+  $('#stockFamily').value = stone.family;
+  $('#stockCategory').value = CATEGORIES.includes(stone.category) ? stone.category : '单晶';
+  if (!keepName) $('#stockName').value = `${stone.name} ${state.beadSize}mm`;
+  $('#stockSize').value = state.beadSize;
+  $('#stockDialogTitle').textContent = `记录 ${stone.name}`;
+}
+
+function openStockDialog(varietyId) {
+  const stone = stoneOf(varietyId) || STONES.find(s => s.id === state.selected[0]) || STONES[0];
+  syncStockFields(stone.id, true);
+  $('#stockName').value = `${stone.name} ${state.beadSize}mm`;
+  $('#stockQty').value = 1;
+  $('#stockPrice').value = 0;
+  $('#stockDate').value = isoToday();
+  $('#stockNote').value = '';
+  $('#stockWish').checked = false;
+  if (!$('#stockDialog').open) $('#stockDialog').showModal();
+}
+
+function renderPlans() {
+  const schemeGrid = $('#schemeGrid');
+  schemeGrid.innerHTML = SCHEMES.map(sc => {
+    const orbs = sc.stones.map(id => {
+      const s = stoneOf(id);
+      if (!s) return '';
+      return `<span class="scheme-orb" style="--a:${s.tone[0]};--b:${s.tone[1]}"></span>`;
+    }).join('');
+    return `<article class="scheme-card" style="--c1:${sc.colors[0]};--c2:${sc.colors[1]};--c3:${sc.colors[2]}">
+      <div class="scheme-orbs">${orbs}</div>
+      <div class="scheme-kicker">${sc.en}</div>
+      <h3>${sc.title}</h3>
+      <p>${sc.desc}</p>
+      <button class="scheme-apply" type="button" data-apply-scheme="${sc.id}">套用这套 →</button>
+    </article>`;
+  }).join('');
+  const saved = state.plans;
+  $('#planStatSchemes').textContent = SCHEMES.length;
+  $('#planStatSaved').textContent = saved.length;
+  $('#planStatScience').textContent = SCIENCE.length;
+  const savedWrap = $('#savedPlans');
+  if (!saved.length) {
+    savedWrap.innerHTML = `<div class="empty-library" style="grid-column:1/-1">还没有保存的方案。去摆盘台选好珠子，在右下角起个名字保存。</div>`;
+  } else {
+    savedWrap.innerHTML = saved.map(p => {
+      const names = (p.stones || []).map(id => stoneOf(id)?.name).filter(Boolean).join(' · ');
+      return `<article class="saved-card">
+        <h3>${esc(p.name)}</h3>
+        <p>${esc(names || '空方案')} · ${p.bead || 8}mm · ${p.wrist || 16}cm</p>
+        <div class="saved-actions">
+          <button type="button" data-apply-plan="${p.id}">套用</button>
+          <button type="button" class="danger" data-delete-plan="${p.id}">删除</button>
+        </div>
+      </article>`;
+    }).join('');
+  }
+  $('#scienceGrid').innerHTML = SCIENCE.map(s => `<article class="science-card">
+    <div class="sci-top"><span class="sci-orb" style="--c1:${s.tone[0]};--c2:${s.tone[1]};--c3:${s.tone[2]}"></span><div><h3>${s.title}</h3><div class="sci-en">${s.en}</div></div></div>
+    <p>${s.text}</p><div class="sci-tip">${s.tip}</div>
+  </article>`).join('');
+}
+
+function applyStones(ids, bead, wrist, loops, mode, pattern, label, handheld = false) {
+  state.selected = [...new Set((ids || []).filter(id => stoneOf(id)))].slice(0, 30);
+  if (bead) state.beadSize = Number(bead);
+  if (wrist) state.wrist = Number(wrist);
+  state.loops = [1,2,3].includes(Number(loops)) ? Number(loops) : 1;
+  state.mode = mode === 'grid' ? 'grid' : 'bracelet';
+  state.handheld = !!handheld;
+  state.pattern = ['ring','plum','sym','free'].includes(pattern) ? pattern : 'ring';
+  state.spacer = false;
+  renderSizeChips();
+  renderTray();
+  renderPreview();
+  if (location.hash !== '#studio') {
+    location.hash = '#studio';
+  } else {
+    state.view = 'studio';
+    updatePages();
+    renderPreview();
+  }
+  toast(label || '已套用方案');
+}
+
+function updatePages() {
+  $$('.page').forEach(p => p.classList.toggle('active', p.dataset.view === state.view));
+  $$('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === state.view));
+}
+
+function route() {
+  const view = (location.hash || '#studio').replace(/^#/, '');
+  state.view = ['studio','library','inventory','plans'].includes(view) ? view : 'studio';
+  updatePages();
+  if (state.view === 'studio') requestAnimationFrame(renderPreview);
+  if (state.view === 'library') renderLibrary();
+  if (state.view === 'inventory') renderInventory();
+  if (state.view === 'plans') renderPlans();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text).catch(() => copyTextFallback(text));
+  }
+  return Promise.resolve(copyTextFallback(text));
+}
+function copyTextFallback(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.left = '-9999px';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); } catch {}
+  ta.remove();
+}
+
+function exportInventory() {
+  if (!state.inventory.length) { toast('清单还是空的，先加入几颗。'); return; }
+  const lines = state.inventory.map((i, n) => {
+    const stone = stoneOf(i.stoneId);
+    const fam = FAMILIES[i.family] || (stone ? familyOf(stone) : FAMILIES.white);
+    return `${n+1}. ${i.name || stone?.name || '未命名'}｜${fam.name}｜${i.category || stone?.category || ''}｜${i.size}mm｜${i.qty}件｜${money(i.price)}｜${i.date || ''}｜${i.wish ? '想入手' : '自有'}${i.note ? '｜' + i.note : ''}`;
+  });
+  const text = `晶序 · 我的库存清单\n共 ${state.inventory.length} 条\n\n${lines.join('\n')}\n\n合计估值：${money(state.inventory.reduce((a,i)=>a+(Number(i.price)||0)*(Number(i.qty)||1),0))}`;
+  copyText(text).then(() => toast('清单已复制到剪贴板。')).catch(() => toast('复制失败，请手动选中表格复制。'));
+}
+
+document.addEventListener('click', (event) => {
+  const target = event.target;
+  const add = target.closest('[data-add]');
+  if (add) { event.preventDefault(); event.stopPropagation(); addStone(add.dataset.add); return; }
+  const card = target.closest('[data-stone]');
+  if (card) { addStone(card.dataset.stone); return; }
+
+  const color = target.closest('[data-color]');
+  if (color) {
+    const key = color.dataset.color;
+    if (key === 'all') state.colors.clear();
+    else if (state.colors.has(key)) state.colors.delete(key);
+    else state.colors.add(key);
+    renderColorChips(); renderLibrary(); return;
+  }
+  const category = target.closest('[data-category]');
+  if (category) { state.category = category.dataset.category; renderCategoryChips(); renderLibrary(); return; }
+  const size = target.closest('[data-size]');
+  if (size) { state.beadSize = Number(size.dataset.size); renderSizeChips(); renderPreview(); return; }
+  const mode = target.closest('[data-mode]');
+  if (mode) { state.mode = mode.dataset.mode === 'grid' ? 'grid' : 'bracelet'; if (state.mode === 'grid') state.handheld = false; renderPreview(); return; }
+  const loops = target.closest('[data-loops]');
+  if (loops) { state.handheld = false; state.loops = Number(loops.dataset.loops) || 1; renderPreview(); return; }
+  const handheld = target.closest('[data-handheld]');
+  if (handheld) { state.mode = 'bracelet'; state.handheld = !state.handheld; renderPreview(); return; }
+  const spacer = target.closest('[data-spacer]');
+  if (spacer) { state.spacer = !state.spacer; renderPreview(); return; }
+  const pattern = target.closest('[data-pattern]');
+  if (pattern) { state.pattern = pattern.dataset.pattern; renderPreview(); return; }
+  const remove = target.closest('[data-remove]');
+  if (remove) { event.stopPropagation(); state.selected.splice(Number(remove.dataset.remove), 1); renderTray(); renderPreview(); return; }
+  const stockFilter = target.closest('[data-stock-filter]');
+  if (stockFilter) { state.stockFilter = stockFilter.dataset.stockFilter; renderInventory(); return; }
+  const delStock = target.closest('[data-del-stock]');
+  if (delStock) {
+    state.inventory = state.inventory.filter(i => i.id !== delStock.dataset.delStock);
+    writeJSON(STORAGE.inventory, state.inventory); renderInventory(); renderLibrary(); toast('记录已删除。'); return;
+  }
+  const applyScheme = target.closest('[data-apply-scheme]');
+  if (applyScheme) {
+    const sc = SCHEMES.find(s => s.id === applyScheme.dataset.applyScheme);
+    if (sc) applyStones(sc.stones, sc.bead, 16, 1, 'bracelet', 'ring', `已套用「${sc.title}」`);
+    return;
+  }
+  const applyPlan = target.closest('[data-apply-plan]');
+  if (applyPlan) {
+    const p = state.plans.find(x => String(x.id) === applyPlan.dataset.applyPlan);
+    if (p) applyStones(p.stones, p.bead, p.wrist, p.loops, p.mode, p.pattern, `已套用「${p.name}」`, p.handheld);
+    return;
+  }
+  const delPlan = target.closest('[data-delete-plan]');
+  if (delPlan) {
+    state.plans = state.plans.filter(p => String(p.id) !== delPlan.dataset.deletePlan);
+    writeJSON(STORAGE.plans, state.plans); renderPlans(); toast('方案已删除。'); return;
+  }
+});
+
+$('#studioSearch').addEventListener('input', e => {
+  state.search = e.target.value;
+  if ($('#librarySearch').value !== state.search) $('#librarySearch').value = state.search;
+  renderLibrary();
+});
+$('#librarySearch').addEventListener('input', e => {
+  state.search = e.target.value;
+  if ($('#studioSearch').value !== state.search) $('#studioSearch').value = state.search;
+  renderLibrary();
+});
+$('#ownedToggle').addEventListener('click', () => { state.onlyOwned = !state.onlyOwned; renderLibrary(); });
+$('#customSize').addEventListener('input', e => {
+  const value = Number(e.target.value);
+  if (!Number.isFinite(value) || value < 3 || value > 20) return;
+  state.beadSize = value;
+  renderSizeChips(); renderPreview();
+});
+$('#wristInput').addEventListener('input', e => {
+  const value = Number(e.target.value);
+  if (!Number.isFinite(value) || value < 10 || value > 25) return;
+  state.wrist = value; renderPreview();
+});
+$('#undoBtn').addEventListener('click', () => { if (state.selected.length) { state.selected.pop(); renderTray(); renderPreview(); } });
+$('#clearBtn').addEventListener('click', () => { state.selected = []; renderTray(); renderPreview(); toast('摆盘已清空。'); });
+$('#stockBtn').addEventListener('click', () => openStockDialog(state.selected[0]));
+$('#savePlanBtn').addEventListener('click', () => {
+  if (!state.selected.length) { toast('先选几颗珠子，再保存方案。'); return; }
+  const nameInput = $('#planName');
+  const name = nameInput.value.trim() || `${selectedStones()[0].name} + ${Math.max(0, state.selected.length - 1)} 颗`;
+  state.plans.unshift({
+    id: 'plan-' + Date.now(),
+    name,
+    stones: [...state.selected],
+    bead: state.beadSize,
+    wrist: state.wrist,
+    loops: state.loops,
+    handheld: state.handheld,
+    mode: state.mode,
+    pattern: state.pattern,
+    createdAt: Date.now()
+  });
+  writeJSON(STORAGE.plans, state.plans);
+  nameInput.value = '';
+  renderPlans();
+  toast(`方案「${name}」已保存。`);
+});
+
+$('#stockSort').addEventListener('change', e => { state.stockSort = e.target.value; renderInventory(); });
+$('#addStockBtn').addEventListener('click', () => openStockDialog(state.selected[0]));
+$('#exportStockBtn').addEventListener('click', exportInventory);
+$('#clearStockBtn').addEventListener('click', () => {
+  if (!state.inventory.length) { toast('清单本来就是空的。'); return; }
+  if (!confirm('确定清空所有库存记录？这个操作只影响本机浏览器。')) return;
+  state.inventory = []; writeJSON(STORAGE.inventory, state.inventory); renderInventory(); renderLibrary(); toast('库存已清空。');
+});
+
+$('#closeStockDialog').addEventListener('click', () => $('#stockDialog').close());
+$('#cancelStock').addEventListener('click', () => $('#stockDialog').close());
+$('#stockStone').addEventListener('change', e => syncStockFields(e.target.value));
+$('#stockSize').addEventListener('change', e => {
+  const v = Number(e.target.value) || state.beadSize;
+  const stone = stoneOf($('#stockStone').value);
+  if (stone) $('#stockName').value = `${stone.name} ${v}mm`;
+});
+$('#stockForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const stone = stoneOf($('#stockStone').value) || STONES[0];
+  const item = {
+    id: 'stock-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+    stoneId: stone.id,
+    name: $('#stockName').value.trim() || `${stone.name} ${$('#stockSize').value}mm`,
+    family: $('#stockFamily').value || stone.family,
+    category: $('#stockCategory').value || stone.category,
+    size: Number($('#stockSize').value) || state.beadSize,
+    qty: Math.max(1, Number($('#stockQty').value) || 1),
+    price: Math.max(0, Number($('#stockPrice').value) || 0),
+    date: $('#stockDate').value || isoToday(),
+    note: $('#stockNote').value.trim(),
+    wish: $('#stockWish').checked,
+    createdAt: Date.now()
+  };
+  state.inventory.unshift(item);
+  writeJSON(STORAGE.inventory, state.inventory);
+  $('#stockDialog').close();
+  renderInventory(); renderLibrary();
+  toast(`${item.name} 已记录${item.wish ? '为想入手' : ''}。`);
+});
+
+const trayList = $('#trayList');
+trayList.addEventListener('dragstart', e => {
+  const chip = e.target.closest('[data-tray-index]');
+  if (!chip) return;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', chip.dataset.trayIndex);
+});
+trayList.addEventListener('dragover', e => { if (e.target.closest('[data-tray-index]')) e.preventDefault(); });
+trayList.addEventListener('drop', e => {
+  e.preventDefault();
+  const from = Number(e.dataTransfer.getData('text/plain'));
+  const targetChip = e.target.closest('[data-tray-index]');
+  if (!targetChip || !Number.isInteger(from)) return;
+  const to = Number(targetChip.dataset.trayIndex);
+  if (from === to) return;
+  const [moved] = state.selected.splice(from, 1);
+  state.selected.splice(to, 0, moved);
+  renderTray(); renderPreview();
+});
+
+if (window.ResizeObserver) {
+  new ResizeObserver(debounce(() => { if (state.view === 'studio') renderPreview(); }, 160)).observe($('#previewStage'));
+}
+window.addEventListener('hashchange', route);
+window.addEventListener('resize', debounce(() => { if (state.view === 'studio') renderPreview(); }, 180));
+
+populateStockSelects();
+renderColorChips();
+renderCategoryChips();
+renderSizeChips();
+renderLibrary();
+renderTray();
+renderInventory();
+renderPlans();
+updateModeUI();
+route();
+
+setTimeout(() => {
+  if (state.view === 'studio') renderPreview();
+}, 60);
+
+</script>
+</body>
+</html>

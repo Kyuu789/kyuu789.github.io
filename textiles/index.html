@@ -468,21 +468,23 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
           <div class="tie-photo" id="tiePhoto">
             <img src="assets/bale-tie.jpg" alt="bale ties">
             <svg id="tieGuide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-              <line x1="18" y1="34" x2="32" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
-              <line x1="32" y1="34" x2="18" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
-              <line x1="32" y1="34" x2="32" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
-              <line x1="68" y1="34" x2="82" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
-              <line x1="82" y1="34" x2="68" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
+              <line x1="15" y1="34" x2="30" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
+              <line x1="30" y1="34" x2="15" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
+              <line x1="50" y1="34" x2="50" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
+              <line x1="70" y1="34" x2="85" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
+              <line x1="85" y1="34" x2="70" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
             </svg>
             <svg id="tieLines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
-            <button class="tie-node" data-node="t1" style="left:18%;top:34%" aria-label="top strap node 1"></button>
-            <button class="tie-node" data-node="t2" style="left:32%;top:34%" aria-label="top strap node 2"></button>
-            <button class="tie-node" data-node="t3" style="left:68%;top:34%" aria-label="top strap node 3"></button>
-            <button class="tie-node" data-node="t4" style="left:82%;top:34%" aria-label="top strap node 4"></button>
-            <button class="tie-node" data-node="b1" style="left:18%;top:72%" aria-label="bottom strap node 1"></button>
-            <button class="tie-node" data-node="b2" style="left:32%;top:72%" aria-label="bottom strap node 2"></button>
-            <button class="tie-node" data-node="b3" style="left:68%;top:72%" aria-label="bottom strap node 3"></button>
-            <button class="tie-node" data-node="b4" style="left:82%;top:72%" aria-label="bottom strap node 4"></button>
+            <button class="tie-node" data-node="t1" style="left:15%;top:34%" aria-label="top strap node 1"></button>
+            <button class="tie-node" data-node="t2" style="left:30%;top:34%" aria-label="top strap node 2"></button>
+            <button class="tie-node" data-node="t3" style="left:50%;top:34%" aria-label="top strap node 3"></button>
+            <button class="tie-node" data-node="t4" style="left:70%;top:34%" aria-label="top strap node 4"></button>
+            <button class="tie-node" data-node="t5" style="left:85%;top:34%" aria-label="top strap node 5"></button>
+            <button class="tie-node" data-node="b1" style="left:15%;top:72%" aria-label="bottom strap node 1"></button>
+            <button class="tie-node" data-node="b2" style="left:30%;top:72%" aria-label="bottom strap node 2"></button>
+            <button class="tie-node" data-node="b3" style="left:50%;top:72%" aria-label="bottom strap node 3"></button>
+            <button class="tie-node" data-node="b4" style="left:70%;top:72%" aria-label="bottom strap node 4"></button>
+            <button class="tie-node" data-node="b5" style="left:85%;top:72%" aria-label="bottom strap node 5"></button>
           </div>
           <div class="tie-foot" data-i18n="tieHint">按住上排节点，滑动到下排对应节点，拉出五根 X | X 包带。</div>
         </div>
@@ -600,8 +602,8 @@ const MATERIALS = {
   mixedC:{zh:'杂色 C',en:'Mixed C',shortZh:'地脚毛',shortEn:'Floor sweep',img:'pile-mixed.jpg',grade:'C',gradeVal:55,color:'mixed'}
 };
 const SHIFT_SECONDS=300, TARGET_BALES=6, MIN_BALE=150, MAX_BALE=190, UNIT_KG=15, WIRE_PER_BALE=5, CART_CAP=200;
-const TIE_NODES={t1:{x:18,y:34},t2:{x:32,y:34},t3:{x:68,y:34},t4:{x:82,y:34},b1:{x:18,y:72},b2:{x:32,y:72},b3:{x:68,y:72},b4:{x:82,y:72}};
-const TIE_PAIRS=[['t1','b2'],['t2','b1'],['t2','b2'],['t3','b4'],['t4','b3']];
+const TIE_NODES={t1:{x:15,y:34},t2:{x:30,y:34},t3:{x:50,y:34},t4:{x:70,y:34},t5:{x:85,y:34},b1:{x:15,y:72},b2:{x:30,y:72},b3:{x:50,y:72},b4:{x:70,y:72},b5:{x:85,y:72}};
+const TIE_PAIRS=[['t1','b2'],['t2','b1'],['t3','b3'],['t4','b5'],['t5','b4']];
 const BOOT_ASSETS=['floor.jpg','pile-white.jpg','pile-dark.jpg','pile-mixed.jpg','baler.jpg','bale-tie.jpg','bale-result.jpg','warehouse.jpg','sort-table.jpg','sort-conveyor.jpg','sort-facility.jpg','pallet-rows.jpg','pallet-round.jpg','control-panel.jpg','gauge.jpg','worker.jpg','boss.jpg','douyin-cover.jpg','break.jpg'];
 const TASK_TYPES=[
   {id:'bales',key:'taskBales',target:2,progress:()=>state.qualified},

@@ -1588,9 +1588,14 @@ function initThree(){
   addCylinder(.24,.24,1.05,0xb6b9ad,bx,3.34,bz,0,0,20);
   addCylinder(.34,.34,.2,0x555e59,bx,3.9,bz,0,0,20);
   addBox(2.05,.08,1.42,0x242a27,bx,.35,bz,.96,.1);
-  // Safety mesh doors and yellow-black hazard bars.
-  for(const x of [bx-1.38,bx+1.38])addBox(.055,1.9,.055,0xd1a13e,x,1.15,bz+1.02,.6,.35);
-  addBox(2.7,.06,.06,0xd1a13e,bx,2.05,bz+1.02,.55,.3);
+  // Hinged physical safety gate. It swings open only after the operator completes the cycle.
+  const gate=new THREE.Group();gate.position.set(bx,0,bz+1.02);scene.add(gate);three.machineGate=gate;
+  addBox(.075,1.9,.075,0xd1a13e,-1.28,1.05,0,.6,.35,gate);
+  addBox(.075,1.9,.075,0xd1a13e,1.28,1.05,0,.6,.35,gate);
+  addBox(2.62,.075,.075,0xd1a13e,0,2.0,0,.55,.3,gate);
+  addBox(2.62,.075,.075,0xd1a13e,0,.12,0,.55,.3,gate);
+  for(let i=0;i<7;i++)addBox(.035,1.72,.035,0x7d8980,-1.08+i*.36,1.05,0,.7,.45,gate);
+  three.gateClosedY=0;three.gateOpenY=-1.22;
   addBox(.72,.82,.12,0x29312e,bx+1.48,1.05,bz-.25,.65,.4);
   for(let i=0;i<3;i++)addBox(.48,.025,.015,0xe6b34d,bx+1.48,1.28+i*.18,bz-.175,.45,.3);
   // Visible hydraulic hoses.
@@ -1605,18 +1610,19 @@ function initThree(){
 
   // Bale on the press bed: volumetric irregular fiber surface and five real strap loops.
   const baleX=bx,baleY=.88,baleZ=bz;
-  const bale=addBox(1.62,.92,1.18,0x928a78,baleX,baleY,baleZ,.99,.02);three.baleMesh=bale;
+  const baleVisual=new THREE.Group();baleVisual.position.set(baleX,baleY,baleZ);scene.add(baleVisual);three.baleVisual=baleVisual;
+  const bale=addBox(1.62,.92,1.18,0x928a78,0,0,0,.99,.02,baleVisual);three.baleMesh=bale;
   const baleFuzz=mat(0xb7ad98,.99);
   for(let i=0;i<95;i++){
-    const x=baleX-.78+Math.random()*1.56,y=baleY-.44+Math.random()*.88,z=baleZ-.56+Math.random()*1.12;
-    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(.035+Math.random()*.045,0),baleFuzz);m.position.set(x,y,z);m.scale.set(1.4,.7,1);scene.add(m);
+    const x=-.78+Math.random()*1.56,y=-.44+Math.random()*.88,z=-.56+Math.random()*1.12;
+    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(.035+Math.random()*.045,0),baleFuzz);m.position.set(x,y,z);m.scale.set(1.4,.7,1);baleVisual.add(m);
   }
-  const strapMat=mat(0xdbc58a,.55,.15);
+  const strapMat=mat(0xdbc58a,.55,.15);three.baleStraps=[];
   for(let i=0;i<5;i++){
-    const x=baleX-.62+i*.31;
-    const pts=[[x,baleY+.47,baleZ-.61],[x,baleY+.47,baleZ+.61],[x,baleY-.47,baleZ+.61],[x,baleY-.47,baleZ-.61],[x,baleY+.47,baleZ-.61]].map(p=>new THREE.Vector3(...p));
+    const x=-.62+i*.31;
+    const pts=[[x,.47,-.61],[x,.47,.61],[x,-.47,.61],[x,-.47,-.61],[x,.47,-.61]].map(p=>new THREE.Vector3(...p));
     const curve=new THREE.CatmullRomCurve3(pts,true);
-    const strap=new THREE.Mesh(new THREE.TubeGeometry(curve,48,.027,8,true),strapMat);strap.castShadow=true;scene.add(strap);
+    const strap=new THREE.Mesh(new THREE.TubeGeometry(curve,48,.027,8,true),strapMat);strap.castShadow=true;strap.visible=false;baleVisual.add(strap);three.baleStraps.push(strap);
   }
 
   // Pallet bay: actual timber runners and stacked bales.
@@ -1738,9 +1744,22 @@ function tickThree(){
   }
   three.camera.position.set(r.x,1.6,r.z);three.camera.rotation.y=r.yaw;three.camera.rotation.x=r.pitch;
   if(three.pressPlaten){
-    const phase=state.machine&&state.machine.pressure?Math.min(1,state.machine.pressure/100):0;
+    const phase=state.machine&&state.machine.pressure?Math.min(1,state.machine.pressure/172):0;
     const target=2.12-phase*.95;
     three.pressPlaten.position.y+=(target-three.pressPlaten.position.y)*Math.min(1,dt*7);
+  }
+  if(three.machineGate){
+    const target=state.machine&&state.machine.door?three.gateOpenY:three.gateClosedY;
+    three.machineGate.rotation.y+=(target-three.machineGate.rotation.y)*Math.min(1,dt*5);
+  }
+  if(three.baleVisual){
+    const m=state.machine||{},visible=!!(state.bale&&m.loaded&&!m.opened);
+    three.baleVisual.visible=visible;
+    const compact=m.pressed||m.pressing?0.72:1;
+    three.baleMesh.scale.y+=(compact-three.baleMesh.scale.y)*Math.min(1,dt*4);
+    three.baleVisual.position.y+=(.88-(.88-(1-compact)*.18)-three.baleVisual.position.y)*Math.min(1,dt*4);
+    const tied=Math.max(0,Math.min(5,m.tied||0));
+    if(three.baleStraps)three.baleStraps.forEach((strap,i)=>{strap.visible=visible&&i<tied});
   }
   three.renderer.render(three.scene,three.camera);
 }

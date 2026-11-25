@@ -1647,11 +1647,41 @@ function initThree(){
   areaSign.scale.set(4.9,1.05,1);
   const baySign=makeLabel('40 m  ×  50 m  /  INDUSTRIAL HALL',0,8.65,4.55);
   baySign.scale.set(4.3,.88,1);
-  // Roof rafters and suspended industrial lights.
+  // Roof rafters, translucent daylight strips and suspended industrial lights.
   for(let z=-8;z<=8;z+=4){
     addBox(23,.12,.14,0x424a45,0,5.55,z,.7,.4);
     const lamp=addBox(1.55,.12,.42,0xe5d9b6,0,5.12,z,.35,.1);
     const glow=new THREE.PointLight(0xffdca5,1.05,9);glow.position.set(0,4.85,z);scene.add(glow);
+    const skylight=addBox(3.1,.035,1.35,0x78918c,0,5.86,z+1.8,.28,.08);
+    skylight.material= new THREE.MeshStandardMaterial({color:0xa8c8c1,roughness:.24,metalness:.12,transparent:true,opacity:.22,emissive:0x263e39,emissiveIntensity:.18});
+  }
+  // Loading dock: ribbed roller shutter, steel frame, dock bumpers and yellow edge guards.
+  const dockX=7.9,dockZ=-9.18;
+  addBox(4.5,3.7,.22,0x303936,dockX,2.15,dockZ,.7,.45);
+  for(let y=.48;y<3.75;y+=.22)addBox(4.12,.035,.12,0x8c9690,dockX,y,dockZ+.16,.62,.48);
+  for(const x of [dockX-2.25,dockX+2.25])addBox(.18,4.05,.28,0xd3a747,x,2.15,dockZ+.18,.52,.35);
+  addBox(4.45,.22,1.15,0x555d57,dockX,.22,-8.52,.8,.4);
+  for(const x of [dockX-2.1,dockX+2.1]){
+    addBox(.18,.75,.18,0xe0b64d,x,.42,-7.92,.58,.25);
+    addBox(.62,.12,.12,0xe0b64d,x,.78,-7.92,.58,.25);
+  }
+  // Heavy-duty storage racks along the side wall: steel uprights, cross-braces and timber shelves.
+  for(const z of [-5.8,-1.6,2.6,6.8]){
+    for(const x of [-10.2,-8.55]){
+      addBox(.12,3.35,.12,0x53615c,x,1.72,z,.58,.62);
+      addBox(.16,.16,.16,0xd1a34b,x,.12,z,.55,.35);
+    }
+    for(const y of [.75,1.85,2.95]){
+      addBox(1.8,.12,.16,0x8a6747,-9.38,y,z,.82,.12);
+      addBox(1.8,.08,.12,0x65716b,-9.38,y+.12,z,.65,.42);
+    }
+    addLine([[-10.2,.2,z-.08],[-8.55,1.85,z-.08],[-10.2,3.35,z-.08]],0x68756e,.025);
+  }
+  // Fire-safety points and wall-mounted electrical trunking add believable factory detail.
+  for(const z of [-6.5,-1.5,3.5,7.5]){
+    addBox(.08,.12,2.7,0x414b46,11.45,4.25,z,.6,.5);
+    addBox(.22,.68,.18,0xb94838,11.28,.55,z,.48,.18);
+    addBox(.26,.08,.2,0xe2d7bc,11.28,.91,z,.48,.08);
   }
 
   // Receiving area: loose fiber heaps built from dozens of individual tufts.

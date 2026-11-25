@@ -1473,7 +1473,7 @@ $$('[data-dodge]',els.slapLayer).forEach(btn=>btn.addEventListener('click',()=>d
 /* ===== 第一人称 3D 车间 ===== */
 const ROAM_SPOTS=[
   {id:'floor',x:-6.8,z:5.0,key:'roamFloor',can:()=>state.running,run:()=>setScene('floor')},
-  {id:'sort',x:-1.1,z:-2.55,key:'roamSort',can:()=>state.running&&state.cart.total>=MIN_BALE&&!state.roam.sorting,run:()=>{setScene('floor',true);goSort();setScene('roam',true);state.roam.sorting=true;syncSortProps();toast(lang==='zh'?'点击分拣台上的异物，清理完再去打包机':'Click the junk on the sorting table, then head to the baler','good')}},
+  {id:'sort',x:-1.1,z:-2.55,key:'roamSort',can:()=>state.running&&!state.bale&&state.cart.total>=MIN_BALE&&!state.roam.sorting,run:()=>{setScene('floor',true);goSort();setScene('roam',true);state.roam.sorting=true;syncSortProps();toast(lang==='zh'?'点击分拣台上的异物，清理完再去打包机':'Click the junk on the sorting table, then head to the baler','good')}},
   {id:'baler',x:5.25,z:3.15,key:'roamBaler',can:()=>state.running&&state.bale&&state.scene!=='baler',run:()=>{setScene('sort',true);sendBaler()}},
   {id:'pallet',x:-5.4,z:-4.25,key:'roamPallet',can:()=>state.running&&state.acceptedBales.length>0,run:()=>goPallet()},
   {id:'truck',x:5.95,z:-3.35,key:'roamTruck',can:()=>state.running&&unsoldBales().length>=TRUCK_ARRIVE,run:()=>goTruck()}

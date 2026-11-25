@@ -786,7 +786,7 @@ function persistSave(){const {recorded,...save}=state.career;try{localStorage.se
 
 const state = {
   workshop:'wool',quote:'',
-  roam:{active:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null},
+  roam:{active:false,sorting:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null},
   started:false,running:false,finished:false,scene:'floor',remaining:SHIFT_SECONDS,
   cart:{total:0,materials:{},colors:{}},sortItems:[],missed:0,caught:0,defects:0,
   bale:null,machine:{loaded:false,door:false,handInside:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false},
@@ -914,6 +914,7 @@ function setScene(name,instant=false){
   const old=views[state.scene], next=views[name];
   if(old)old.classList.remove('active');
   if(next)next.classList.add('active');
+  if(name!=='roam')state.roam.sorting=false;
   state.scene=name;
   const hideIdle=name==='end';
   els.bossPanel.classList.toggle('hidden',hideIdle);
@@ -1008,9 +1009,38 @@ function updateSort(){
   els.sortLayer.innerHTML=state.sortItems.filter(i=>!i.caught).map(i=>`<button class="sort-item" data-id="${i.id}" style="left:${i.x}%;top:${i.y}%" aria-label="${labels[i.type]}">${contaminantSVG(i.type)}</button>`).join('');
   $$('.sort-item',els.sortLayer).forEach(b=>b.addEventListener('click',()=>pickContaminant(+b.dataset.id)));
 }
+function syncSortProps(){
+  if(!three||!three.sortJunk)return;
+  state.sortItems.forEach(item=>{
+    let group=three.sortJunk[item.id];
+    if(group&&group.userData.sortType!==item.type){three.scene.remove(group);group=null;three.sortJunk[item.id]=null}
+    if(!group){
+      group=new THREE.Group();group.userData.sortId=item.id;group.userData.sortType=item.type;
+      const add=(geometry,material,x,y,z,rx=0,ry=0,rz=0)=>{const mesh=new THREE.Mesh(geometry,material);mesh.position.set(x,y,z);mesh.rotation.set(rx,ry,rz);mesh.castShadow=true;group.add(mesh)};
+      if(item.type==='plastic'){
+        const film=new THREE.MeshStandardMaterial({color:0x6bb6b1,roughness:.28,metalness:.05,transparent:true,opacity:.72,side:THREE.DoubleSide});
+        add(new THREE.PlaneGeometry(.42,.3),film,0,.04,0,-Math.PI/2,0,.18);add(new THREE.PlaneGeometry(.28,.2),film,.06,.06,.03,-Math.PI/2,.2,-.24);
+      }else if(item.type==='metal'){
+        const metal=new THREE.MeshStandardMaterial({color:0x9ba6a1,roughness:.3,metalness:.85});
+        add(new THREE.TorusGeometry(.13,.035,8,18),metal,0,.05,0,-Math.PI/2,0,.25);add(new THREE.CylinderGeometry(.025,.025,.22,8),metal,.13,.05,.08,0,0,Math.PI/3);
+      }else if(item.type==='paper'){
+        const paper=new THREE.MeshStandardMaterial({color:0xc9b995,roughness:.95,side:THREE.DoubleSide});
+        add(new THREE.PlaneGeometry(.34,.24),paper,0,.035,0,-Math.PI/2,0,.12);
+      }else{
+        const oil=new THREE.MeshStandardMaterial({color:0x3d3024,roughness:.98});
+        add(new THREE.SphereGeometry(.13,10,8),oil,-.07,.035,0,0,0,0);add(new THREE.SphereGeometry(.1,10,8),oil,.06,.035,.04,0,0,0);add(new THREE.SphereGeometry(.07,8,6),oil,.02,.035,-.08,0,0,0);
+      }
+      three.scene.add(group);three.sortJunk[item.id]=group;
+    }
+    const x=-2.55+((item.x-22)/54)*2.9,z=-4.85+((item.y-22)/38)*.9;
+    group.position.set(x,1.24,z);group.visible=!!(state.roam.sorting&&!item.caught);
+  });
+  three.sortJunk.forEach((group,i)=>{if(group&&!state.sortItems.some(item=>item.id===i))group.visible=false});
+}
 function pickContaminant(id){
   const it=state.sortItems.find(x=>x.id===id); if(!it||it.caught)return;
-  it.caught=true; state.caught++; state.bale.caught++; AudioSys.tone('pick'); updateSort(); AudioSys.tone('good');
+  it.caught=true; state.caught++; state.bale.caught++; AudioSys.tone('pick'); updateSort();syncSortProps();AudioSys.tone('good');
+  if(state.sortItems.every(x=>x.caught)){state.roam.sorting=false;toast(lang==='zh'?'分拣台清理干净了，去打包机装料':'Sorting table cleared · take the batch to the baler','good');syncSortProps()}
 }
 function sendBaler(){
   if(!state.running||state.scene!=='sort')return;
@@ -1364,7 +1394,7 @@ function resetState(){
   state.wage=0;state.caughtCount=0;state.tasksDone=0;state.tasksMissed=0;state.loadedKg=0;state.jamsCleared=0;state.strapsTied=0;
   state.bossCash=0;state.soldBales=0;state.soldKg=0;
   state.truck={arrived:false,loaded:0,slotIds:[],groundIds:[],forklift:FORKLIFT_USES,secured:false,timer:TRUCK_SECONDS,loadedBales:[],revenue:0};
-  state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0,x:4.2,z:2.2,wp:0};state.slap={open:false,dir:null,correct:null,timer:null,timeout:null,left:0};state.roam={active:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null};state.phoneOpen=false;state.wechatMsgs=[];state.quote='';state.career.recorded=false;
+  state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0,x:4.2,z:2.2,wp:0};state.slap={open:false,dir:null,correct:null,timer:null,timeout:null,left:0};state.roam={active:false,sorting:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null};state.phoneOpen=false;state.wechatMsgs=[];state.quote='';state.career.recorded=false;
   document.body.classList.remove('angry','shake');els.slapLayer.classList.add('hidden');
   els.phoneLayer.classList.add('hidden');
   els.roamControls.classList.add('hidden');els.roamPrompt.classList.add('hidden');els.roamBack.classList.add('hidden');
@@ -1440,7 +1470,7 @@ $$('[data-dodge]',els.slapLayer).forEach(btn=>btn.addEventListener('click',()=>d
 /* ===== 第一人称 3D 车间 ===== */
 const ROAM_SPOTS=[
   {id:'floor',x:-6.8,z:5.0,key:'roamFloor',can:()=>state.running,run:()=>setScene('floor')},
-  {id:'sort',x:-1.1,z:-2.55,key:'roamSort',can:()=>state.running&&state.cart.total>=MIN_BALE,run:()=>{setScene('floor',true);goSort()}},
+  {id:'sort',x:-1.1,z:-2.55,key:'roamSort',can:()=>state.running&&state.cart.total>=MIN_BALE&&!state.roam.sorting,run:()=>{setScene('floor',true);goSort();setScene('roam',true);state.roam.sorting=true;syncSortProps();toast(lang==='zh'?'点击分拣台上的异物，清理完再去打包机':'Click the junk on the sorting table, then head to the baler','good')}},
   {id:'baler',x:5.25,z:3.15,key:'roamBaler',can:()=>state.running&&state.bale&&state.scene!=='baler',run:()=>{setScene('sort',true);sendBaler()}},
   {id:'pallet',x:-5.4,z:-4.25,key:'roamPallet',can:()=>state.running&&state.acceptedBales.length>0,run:()=>goPallet()},
   {id:'truck',x:5.95,z:-3.35,key:'roamTruck',can:()=>state.running&&unsoldBales().length>=TRUCK_ARRIVE,run:()=>goTruck()}
@@ -1495,7 +1525,8 @@ function initThree(){
   else if('outputEncoding' in renderer && THREE.sRGBEncoding) renderer.outputEncoding=THREE.sRGBEncoding;
   if('toneMapping' in renderer && THREE.ACESFilmicToneMapping!==undefined) renderer.toneMapping=THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure=1.05;
-  three={scene,camera,renderer,tex:{},animated:[]};
+  three={scene,camera,renderer,tex:{},animated:[],sortJunk:[]};
+  three.raycaster=new THREE.Raycaster();three.pointer=new THREE.Vector2();
 
   const mat=(color,rough=.82,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
   const makeSurfaceMap=(base,light,count=1400)=>{
@@ -1724,6 +1755,13 @@ function initThree(){
     const plate=addBox(2.2,.025,1.25,c,x,.025,z,.92,.05);plate.material.transparent=true;plate.material.opacity=.25;
   }
 
+  canvas.addEventListener('click',e=>{
+    if(!state.roam.active||!state.roam.sorting||!three.sortJunk)return;
+    const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    three.raycaster.setFromCamera(three.pointer,camera);
+    const targets=three.sortJunk.filter(g=>g&&g.visible),hits=three.raycaster.intersectObjects(targets,true);
+    if(hits.length){let node=hits[0].object;while(node&&node.userData.sortId==null)node=node.parent;if(node)pickContaminant(node.userData.sortId)}
+  });
   resizeThree();bindRoamControls();requestAnimationFrame(tickThree);
 }
 function resizeThree(){
@@ -1773,7 +1811,8 @@ function tickThree(){
   if(r.active){
     updateRoamMovement(dt);
     updateBoss3D(dt);
-    const spot=nearestSpot();r.nearest=spot;
+    if(r.sorting)syncSortProps();
+    const spot=r.sorting?null:nearestSpot();r.nearest=spot;
     if(spot){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=t(spot.key);els.interactBtn.disabled=!spot.can()}
     else els.roamPrompt.classList.add('hidden');
   }

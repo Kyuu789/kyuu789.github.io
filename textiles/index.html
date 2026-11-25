@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#08110f">
 <title>废毛打包间 · WASTE WOOL SHIFT</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b1513'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='monospace' font-size='38' fill='%23e6ae52'%3EW%3C/text%3E%3C/svg%3E">
@@ -20,7 +20,7 @@
 }
 *{box-sizing:border-box}
 html{height:100%;margin:0;background:#07100e}
-body{min-height:100vh;height:100vh;margin:0;background:radial-gradient(900px 500px at 50% -20%,#183029 0%,#07100e 58%,#040807 100%);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none}
+body{min-height:100vh;height:100vh;margin:0;background:radial-gradient(900px 500px at 50% -20%,#183029 0%,#07100e 58%,#040807 100%);color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 button{font:inherit;color:inherit}
 button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
 .hidden{display:none!important}
@@ -173,7 +173,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
 #tieGuide{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
 #tieLines{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
 #tieLines line{stroke:#83b69d;stroke-width:1.8;stroke-linecap:round;filter:drop-shadow(0 0 4px rgba(131,182,157,.5))}
-.tie-node{position:absolute;z-index:3;width:34px;height:34px;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(255,210,158,.85);background:radial-gradient(circle,rgba(230,174,82,.28),rgba(0,0,0,.62));cursor:grab;touch-action:none}
+.tie-node{position:absolute;z-index:3;width:34px;height:34px;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(255,210,158,.85);background:radial-gradient(circle,rgba(230,174,82,.28),rgba(0,0,0,.62));cursor:grab;touch-action:none;pointer-events:auto;-webkit-user-select:none;user-select:none}
 .tie-node.active{border-color:var(--amber2);background:rgba(230,174,82,.38);cursor:grabbing;box-shadow:0 0 18px rgba(230,174,82,.5)}
 .tie-node.done{border-color:var(--green);background:rgba(131,182,157,.55)}
 .tie-node.bad{border-color:var(--red);background:rgba(217,97,80,.35)}
@@ -346,7 +346,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
   .sort-item{width:48px;height:48px}
   .panel-inset{grid-template-columns:1fr 58px}.panel-inset img{height:46px}
   .steps{gap:6px}.step{min-height:43px;font-size:10px;padding:6px 7px 6px 29px}.step>span:first-child{left:8px;font-size:10px}.console-foot{font-size:9px;margin-top:7px}
-  .tie-layer,.result-layer{padding:10px}.tie-card{width:100%;padding:9px}.tie-photo{aspect-ratio:4/3}.tie-node{width:30px;height:30px}
+  .tie-layer,.result-layer{padding:10px}.tie-card{width:100%;padding:9px}.tie-photo{aspect-ratio:4/3;touch-action:none}.tie-node{width:38px;height:38px}
   .result-card{width:100%;grid-template-columns:1fr;max-height:91svh;overflow:auto}.result-card>img{height:180px;min-height:180px}.result-body{padding:15px 16px 17px}.result-weight b{font-size:50px}.result-actions .btn{min-width:0}
   .end-sheet{left:12px;right:12px;top:12px;bottom:auto;max-height:calc(100% - 24px);width:auto;padding:18px 17px}.end-sheet h2{font-size:21px}.end-main strong{font-size:48px}.end-main em{font-size:28px}.end-stats{gap:8px;grid-template-columns:repeat(2,1fr)}.end-stats b{font-size:17px}
   .start-card{padding:22px 18px 20px}.start-card h2{font-size:clamp(31px,9vw,42px)}.specs{gap:6px;margin-bottom:16px}.start-flow{font-size:10px}
@@ -876,11 +876,13 @@ function resetTieBoard(){
 }
 function openTie(){if(!state.machine.pressed)return;resetTieBoard();els.tieLayer.classList.remove('hidden');AudioSys.tone('clank')}
 function findTieNode(el){return el&&el.closest?el.closest('.tie-node'):null}
+function eventPoint(e){return (e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0])||e}
 function nodeAtPoint(e){
-  const el=document.elementFromPoint(e.clientX,e.clientY);
+  const p=eventPoint(e);
+  const el=document.elementFromPoint(p.clientX,p.clientY);
   const node=findTieNode(el); if(node)return node.dataset.node;
   const rect=els.tiePhoto.getBoundingClientRect();
-  const px=(e.clientX-rect.left)/rect.width*100, py=(e.clientY-rect.top)/rect.height*100;
+  const px=(p.clientX-rect.left)/rect.width*100, py=(p.clientY-rect.top)/rect.height*100;
   let best=null,dist=14;
   Object.entries(TIE_NODES).forEach(([id,p])=>{const d=Math.hypot(p.x-px,p.y-py);if(d<dist){dist=d;best=id}});
   return best;
@@ -1096,8 +1098,14 @@ els.pressBtn.addEventListener('click',press);
 els.tieBtn.addEventListener('click',openTie);
 els.ejectBtn.addEventListener('click',eject);
 els.tiePhoto.addEventListener('pointerdown',onTieDown);
+els.tiePhoto.addEventListener('touchstart',onTieDown,{passive:false});
+els.tiePhoto.addEventListener('touchmove',e=>{if(state.machine.gesture)e.preventDefault()},{passive:false});
 window.addEventListener('pointerup',onTieUp);
+window.addEventListener('touchend',onTieUp);
+window.addEventListener('touchcancel',()=>{state.machine.gesture=null;$$('.tie-node').forEach(n=>n.classList.remove('active'))});
 window.addEventListener('pointercancel',()=>{state.machine.gesture=null;$$('.tie-node').forEach(n=>n.classList.remove('active'))});
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault());
 els.resultActions.addEventListener('click',e=>{const btn=e.target.closest('[data-result]');if(!btn)return;afterResult(btn.dataset.result==='stack')});
 els.startBtn.addEventListener('click',startShift);
 els.againBtn.addEventListener('click',startShift);

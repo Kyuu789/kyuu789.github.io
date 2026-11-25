@@ -1073,10 +1073,10 @@ function updateBaler(){
   updateTieCount();
   const m=state.machine;
   els.feedBtn.disabled=m.loaded||m.pressing;
-  els.closeBtn.disabled=!m.loaded||m.door||m.pressing||m.stuck;
-  els.pressBtn.disabled=!m.door||m.pressed||m.pressing;
-  els.tieBtn.disabled=!m.pressed||m.tied>=WIRE_PER_BALE;
-  els.ejectBtn.disabled=m.tied<WIRE_PER_BALE||m.pressing||state.wireStock<WIRE_PER_BALE;
+  els.closeBtn.disabled=m.opened||!m.loaded||m.door||m.pressing||m.stuck;
+  els.pressBtn.disabled=m.opened||!m.door||m.pressed||m.pressing;
+  els.tieBtn.disabled=m.opened||!m.pressed||m.tied>=WIRE_PER_BALE;
+  els.ejectBtn.disabled=m.opened||m.tied<WIRE_PER_BALE||m.pressing||state.wireStock<WIRE_PER_BALE;
   els.feedBtn.classList.toggle('active',!m.loaded); els.closeBtn.classList.toggle('active',m.loaded&&!m.door);
   els.pressBtn.classList.toggle('active',m.door&&!m.pressed); els.tieBtn.classList.toggle('active',m.pressed&&m.tied<WIRE_PER_BALE); els.ejectBtn.classList.toggle('active',m.tied>=WIRE_PER_BALE);
   els.pressBtn.innerHTML=`<span>03</span><span>${m.needRepress?t('repress'):t('press')}</span>`;
@@ -1648,7 +1648,7 @@ function initThree(){
   addBox(2.62,.075,.075,0xd1a13e,1.28,2.0,0,.55,.3,gate);
   addBox(2.62,.075,.075,0xd1a13e,1.28,.12,0,.55,.3,gate);
   for(let i=0;i<7;i++)addBox(.035,1.72,.035,0x7d8980,.2+i*.36,1.05,0,.7,.45,gate);
-  three.gateClosedY=0;three.gateOpenY=-1.22;
+  three.gateClosedY=0;three.gateOpenY=1.22;
   addBox(.72,.82,.12,0x29312e,bx+1.48,1.05,bz-.25,.65,.4);
   for(let i=0;i<3;i++)addBox(.48,.025,.015,0xe6b34d,bx+1.48,1.28+i*.18,bz-.175,.45,.3);
   // Visible hydraulic hoses.
@@ -1851,7 +1851,7 @@ function tickThree(){
   if(three.baleVisual){
     const m=state.machine||{},visible=!!(state.bale&&m.loaded);
     three.baleVisual.visible=visible;
-    const ejectZ=m.opened?3.0:1.15;three.baleVisual.position.z+=(ejectZ-three.baleVisual.position.z)*Math.min(1,dt*3);
+    const ejectZ=m.opened?2.75:1.15;three.baleVisual.position.z+=(ejectZ-three.baleVisual.position.z)*Math.min(1,dt*3);
     const compact=1-.28*Math.min(1,(m.pressure||0)/172);
     three.baleMesh.scale.y+=(compact-three.baleMesh.scale.y)*Math.min(1,dt*4);
     const baleCenter=.42+.46*compact;three.baleVisual.position.y+=(baleCenter-three.baleVisual.position.y)*Math.min(1,dt*4);

@@ -88,9 +88,8 @@
   function pointAtDistance(routeData, distance, totalDistance) {
     const { route, cumulative, length } = routeData;
     if (distance <= 0) return { ...route[0] };
-    if (distance >= totalDistance) return { ...route[route.length - 1] };
 
-    let local = distance % length;
+    let local = Math.min(distance, totalDistance) % length;
     if (local === 0) local = length;
 
     let lo = 0;
@@ -141,7 +140,7 @@
       maxSamples = 20000,
     } = options || {};
 
-    const lapCount = Math.max(1, Math.min(10, Math.round(Number(laps) || 1)));
+    const lapCount = Math.max(0.01, Math.min(100, Math.round((Number(laps) || 1) * 100) / 100));
     const paceSeconds = Number(pace);
     if (!Number.isFinite(paceSeconds) || paceSeconds <= 0) throw new Error('配速设置无效');
     if (!(start instanceof Date) || Number.isNaN(start.getTime())) throw new Error('请选择有效的活动日期和开始时间');
@@ -175,18 +174,22 @@
     }
 
     const lp = [];
-    for (let i = 0; i < lapCount; i++) {
-      const startSecond = Math.round((i * length) / speed);
-      const endSecond = Math.round(((i + 1) * length) / speed);
+    for (let i = 0; i < Math.ceil(lapCount); i++) {
+      const lapStart = i * length;
+      const lapEnd = Math.min(totalDistance, (i + 1) * length);
+      const lapDistance = lapEnd - lapStart;
+      if (lapDistance < 0.01) break;
+      const startSecond = Math.round(lapStart / speed);
+      const endSecond = Math.round(lapEnd / speed);
       const lapElapsed = endSecond - startSecond;
-      const startPoint = pointAtDistance(routeData, i * length, totalDistance);
-      const endPoint = pointAtDistance(routeData, (i + 1) * length, totalDistance);
+      const startPoint = pointAtDistance(routeData, lapStart, totalDistance);
+      const endPoint = pointAtDistance(routeData, lapEnd, totalDistance);
       lp.push({
         index: i,
         startSecond,
         endSecond,
         elapsed: lapElapsed,
-        distance: length,
+        distance: lapDistance,
         calories: estimateCalories(sport, lapElapsed, weight),
         startPoint,
         endPoint,
@@ -218,7 +221,7 @@
   /** 只做统计，不生成采样点（用于面板实时显示） */
   function measure(options) {
     const { points, closed = false, laps = 1, pace, sport = 'running', weight = 65 } = options || {};
-    const lapCount = Math.max(1, Math.min(10, Math.round(Number(laps) || 1)));
+    const lapCount = Math.max(0.01, Math.min(100, Math.round((Number(laps) || 1) * 100) / 100));
     let routeData;
     try {
       routeData = buildRoute(points, closed, lapCount);

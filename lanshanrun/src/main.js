@@ -11,7 +11,8 @@
   $('activityDate').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   $('activityTime').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-  const state = { points: [], closed: false, sport: 'running' };
+  const state = { points: [], closed: false, sport: 'running', sync: 'laps' };
+  const MAX_LAPS = 100;
 
   /* WGS-84（GPS 标准）与 GCJ-02（高德底图）互转。地图上按 GCJ-02 显示，导出前转回 WGS-84。 */
   const PI = Math.PI;
@@ -58,7 +59,7 @@
     return [wLat, wLng];
   }
 
-  const map = L.map('map', { zoomControl: false }).setView(wgsToGcj(31.2304, 121.4737), 13);
+  const map = L.map('map', { zoomControl: false }).setView(wgsToGcj(31.2747, 120.7355), 15);
 
   const tiles = [
     L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
@@ -97,7 +98,7 @@
   function readSettings() {
     return {
       pace: Number($('pace').value),
-      laps: Number($('laps').value),
+      laps: Math.max(0.01, Math.min(MAX_LAPS, Math.round((Number($('laps').value) || 1) * 100) / 100)),
       weight: Number($('weight').value),
       heartRate: Number($('heartRate').value),
       cadence: Number($('cadence').value),
@@ -135,15 +136,43 @@
         .addTo(pins);
     });
 
-    const settings = readSettings();
-    const stats = F.measure({
-      points: state.points,
-      closed: state.closed,
-      laps: settings.laps,
-      pace: settings.pace,
-      sport: state.sport,
-      weight: settings.weight,
-    });
+    let settings = readSettings();
+    if ($('laps').value !== String(settings.laps)) $('laps').value = settings.laps;
+
+    const measure = (laps) =>
+      F.measure({
+        points: state.points,
+        closed: state.closed,
+        laps,
+        pace: settings.pace,
+        sport: state.sport,
+        weight: settings.weight,
+      });
+
+    let stats = measure(settings.laps);
+    const oneLap = stats.length || 0;
+    let targetKm = Number($('distance').value);
+
+    // 距离与圈数双向联动：改距离按当前单圈长度换算圈数，改圈数直接换算总距离
+    if (oneLap > 0 && state.sync === 'distance' && Number.isFinite(targetKm) && targetKm > 0) {
+      const wantedLaps = Math.max(0.01, Math.min(MAX_LAPS, Math.round(((targetKm * 1000) / oneLap) * 100) / 100));
+      if (wantedLaps !== settings.laps) {
+        settings.laps = wantedLaps;
+        $('laps').value = wantedLaps;
+        stats = measure(settings.laps);
+      }
+    } else if (oneLap > 0 && state.sync === 'laps') {
+      $('distance').value = (stats.total / 1000).toFixed(2);
+      targetKm = Number($('distance').value);
+    } else if (oneLap === 0 && !$('distance').value) {
+      $('distance').value = '0.00';
+    }
+
+    const actualKm = stats.total / 1000;
+    const distanceOff = oneLap > 0 && Number.isFinite(targetKm) && Math.abs(targetKm - actualKm) > 0.015;
+    $('distanceHint').textContent = distanceOff
+      ? `实际 ${actualKm.toFixed(2)} km / ${settings.laps} 圈`
+      : '';
 
     // 多圈时路线必须闭合，地图上把“回起点”的那一段用虚线画出来，保证所见即所得
     if (stats.autoClosed && state.points.length > 2) {
@@ -156,12 +185,10 @@
     }
 
     $('pointCount').textContent = `${state.points.length} 个点`;
-    $('distance').innerHTML = `${(stats.total / 1000).toFixed(2)} <i>km</i>`;
     $('duration').textContent = duration(stats.elapsed);
     $('paceValue').textContent = paceText(settings.pace);
     $('paceLabel').innerHTML = `${Math.floor(settings.pace / 60)}:${pad(Math.round(settings.pace % 60))} <i>/km</i>`;
-    $('lapsValue').textContent =
-      settings.laps > 1 ? `${settings.laps} 圈 · ${((stats.length || 0) / 1000).toFixed(2)} km/圈` : '1 圈';
+    $('lapsValue').textContent = oneLap > 0 ? `${(oneLap / 1000).toFixed(2)} km/圈` : '—';
 
     if (!state.points.length) {
       note('点击地图添加路线点');
@@ -171,7 +198,11 @@
       note(stats.error);
     } else {
       const auto = stats.autoClosed && settings.laps > 1 ? ' · 多圈已自动闭合回起点' : '';
-      note(`${state.points.length} 个路线点 · ${(stats.total / 1000).toFixed(2)} km${auto}`);
+      if (distanceOff) {
+        note(`目标 ${targetKm.toFixed(2)} km · 换算为 ${settings.laps} 圈（实际 ${actualKm.toFixed(2)} km）${auto}`);
+      } else {
+        note(`${state.points.length} 个路线点 · ${actualKm.toFixed(2)} km · ${settings.laps} 圈${auto}`);
+      }
     }
 
     $('undoBtn').disabled = !state.points.length;
@@ -203,10 +234,24 @@
   $('clearBtn').onclick = () => {
     state.points = [];
     state.closed = false;
+    state.sync = 'laps';
+    $('laps').value = '1';
+    $('distance').value = '0.00';
     draw();
   };
   $('pace').oninput = draw;
-  $('laps').oninput = draw;
+  const syncDistanceLaps = (mode) => {
+    state.sync = mode;
+    if (state.points.length >= 3) state.closed = true;
+    draw();
+  };
+  $('distance').oninput = () => syncDistanceLaps('distance');
+  $('distance').onchange = () => {
+    const v = Number($('distance').value);
+    if (Number.isFinite(v) && v > 0) $('distance').value = Math.min(500, Math.max(0.1, v)).toFixed(2);
+    syncDistanceLaps('distance');
+  };
+  $('laps').oninput = () => syncDistanceLaps('laps');
   ['weight', 'heartRate', 'cadence', 'altitude'].forEach((id) => {
     const el = $(id);
     if (el) el.oninput = draw;

@@ -7,7 +7,7 @@
 <meta name="description" content="Lanshan Run：在地图上设计跑步、骑行和步行路线，并导出 GPX、TCX、FIT 活动文件。" />
 <title>Lanshan Run — Route Studio</title>
 <link rel="stylesheet" href="./assets/leaflet/leaflet.css" />
-<link rel="stylesheet" href="./src/style.css?v=16" />
+<link rel="stylesheet" href="./src/style.css?v=17" />
 </head>
 <body>
 <div class="app-shell">
@@ -18,11 +18,11 @@
     <div id="notice" class="notice">点击地图添加路线点</div>
     <section class="section route-section"><div class="section-heading"><span>01 / 路线编辑</span><span id="pointCount">0 个点</span></div>
       <div class="route-actions"><button id="undoBtn" class="soft-btn">↶ 撤销</button><button id="reverseBtn" class="soft-btn">⇄ 反向</button><button id="closeBtn" class="soft-btn">◯ 闭合</button><button id="clearBtn" class="soft-btn danger">清空</button></div>
-      <div class="stats"><div><small>距离</small><b id="distance">0.00 <i>km</i></b></div><div><small>预计用时</small><b id="duration">00:00</b></div><div><small>配速</small><b id="paceLabel">6:00 <i>/km</i></b></div></div>
+      <div class="stats"><div><small>目标距离（km）</small><input id="distance" class="stat-input" type="number" min="0.1" max="500" step="0.01" inputmode="decimal" value="0.00"><span id="distanceHint" class="stat-hint"></span></div><div><small>预计用时</small><b id="duration">00:00</b></div><div><small>配速</small><b id="paceLabel">6:00 <i>/km</i></b></div></div>
     </section>
     <section class="section"><div class="section-heading"><span>02 / 运动设置</span><span class="live-dot">LIVE</span></div>
       <div class="sport-switch"><button class="sport active" data-sport="running"><span>↗</span> 跑步</button><button class="sport" data-sport="cycling"><span>⌁</span> 骑行</button><button class="sport" data-sport="walking"><span>⌖</span> 步行</button></div>
-      <div class="form-grid"><label>配速 <span id="paceValue">6:00 /km</span><input id="pace" type="range" min="180" max="900" value="360" step="15"></label><label>圈数 <span id="lapsValue">1 圈</span><input id="laps" type="range" min="1" max="10" value="1"></label>
+      <div class="form-grid"><label>配速 <span id="paceValue">6:00 /km</span><input id="pace" type="range" min="180" max="900" value="360" step="15"></label><label>圈数 <span id="lapsValue">—</span><input id="laps" type="number" min="0.01" max="100" step="0.01" value="1"></label>
         <label>体重（kg）<input id="weight" type="number" min="30" max="200" value="52" step="1"></label>
         <label>平均心率（bpm）<input id="heartRate" type="number" min="60" max="220" value="145" step="1"></label>
         <label>平均步频（步/分）<input id="cadence" type="number" min="40" max="240" value="170" step="1"></label>
@@ -32,12 +32,12 @@
     <section class="section export-section"><div class="section-heading"><span>04 / 导出活动</span><span class="format-note">单次运动记录 · 三格式</span></div><div class="export-grid"><button class="export-card" data-format="gpx"><b>GPX</b><small>通用 GPS 轨迹</small><span>↓</span></button><button class="export-card" data-format="tcx"><b>TCX</b><small>Training Center XML</small><span>↓</span></button><button class="export-card fit-card" data-format="fit"><b>FIT <i>●</i></b><small>Garmin SDK 编码</small><span>↓</span></button></div><div class="export-foot"><span class="secure-icon">◇</span>路线数据仅在此设备处理</div></section>
     <footer>BUILT FOR THE LONG WAY HOME <span>© 2026 LANSHAN RUN</span></footer>
   </aside>
-  <main class="map-area"><div id="map"></div><div class="map-top"><div class="map-chip"><span class="green-pulse"></span><span id="mapLabel">中国 · 上海</span><b>⌄</b></div><div class="map-tools"><button id="locateBtn" title="定位">◎</button><button id="fitBtn" title="显示整条路线">⤢</button><button id="layerBtn" title="地图图层">▦</button></div></div><div class="map-hint"><span>＋</span> 点击地图添加路线点 <i></i> 拖动地图浏览</div><div class="scale-mark">ROUTE MAP <span>·</span> <em id="mapSource">AMAP</em> / WGS84 EXPORT</div></main>
+  <main class="map-area"><div id="map"></div><div class="map-top"><div class="map-chip"><span class="green-pulse"></span><span id="mapLabel">苏州 · 西交利物浦大学</span><b>⌄</b></div><div class="map-tools"><button id="locateBtn" title="定位">◎</button><button id="fitBtn" title="显示整条路线">⤢</button><button id="layerBtn" title="地图图层">▦</button></div></div><div class="map-hint"><span>＋</span> 点击地图添加路线点 <i></i> 拖动地图浏览</div><div class="scale-mark">ROUTE MAP <span>·</span> <em id="mapSource">AMAP</em> / WGS84 EXPORT</div></main>
 </div>
-<dialog id="helpDialog"><button class="dialog-close" id="closeHelp">×</button><div class="eyebrow">QUICK GUIDE</div><h2>画好路线，带上路。</h2><p>点击地图添加节点。使用撤销、反向或闭合来调整路线；搜索框可定位城市或地址。底图使用高德地图，导出前会自动把国内坐标转回 WGS-84，GPX、TCX、FIT 都能正常识别。</p><p>轨迹按每秒一个采样点生成，位置、时间、距离严格递增；多圈会自动闭合回起点，不会出现坐标瞬移。GPX 与 TCX 为 XML 轨迹文件；FIT 使用 Garmin 官方 JavaScript SDK 编码，包含活动、轨迹、圈段、会话与消耗估算。所有文件均在浏览器中生成。</p><button class="primary-btn" id="gotIt">开始绘制</button></dialog>
+<dialog id="helpDialog"><button class="dialog-close" id="closeHelp">×</button><div class="eyebrow">QUICK GUIDE</div><h2>画好路线，带上路。</h2><p>点击地图添加节点。使用撤销、反向或闭合来调整路线；搜索框可定位城市或地址。底图使用高德地图，导出前会自动把国内坐标转回 WGS-84，GPX、TCX、FIT 都能正常识别。距离和圈数可双向换算：输入目标距离会按单圈长度自动换算圈数，输入圈数会自动算出总距离。</p><p>轨迹按每秒一个采样点生成，位置、时间、距离严格递增；多圈会自动闭合回起点，不会出现坐标瞬移。GPX 与 TCX 为 XML 轨迹文件；FIT 使用 Garmin 官方 JavaScript SDK 编码，包含活动、轨迹、圈段、会话与消耗估算。所有文件均在浏览器中生成。</p><button class="primary-btn" id="gotIt">开始绘制</button></dialog>
 <script src="./assets/leaflet/leaflet.js"></script>
-<script src="./src/formats.js?v=2"></script>
-<script src="./src/main.js?v=20"></script>
+<script src="./src/formats.js?v=4"></script>
+<script src="./src/main.js?v=26"></script>
 </body>
 </html>
 

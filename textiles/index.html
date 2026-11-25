@@ -1510,7 +1510,7 @@ function initThree(){
     const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(p[0],p[1],p[2])));
     const m=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(24,points.length*5),r,8,false),mat(color,.58,.15));m.castShadow=true;parent.add(m);return m;
   };
-  three.addBox=addBox;
+  three.addBox=addBox;three.sortRollers=[];
 
   scene.add(new THREE.HemisphereLight(0xc8d5ce,0x3b3025,1.05));
   const key=new THREE.DirectionalLight(0xffe4bd,2.0);key.position.set(-7,13,8);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);
@@ -1569,11 +1569,11 @@ function initThree(){
   // Sorting table, rollers, legs, reject bins and a conveyor.
   addBox(3.8,.18,1.55,0x343a38,-1.1,1.02,-4.4,.55,.45);
   addBox(3.55,.1,1.32,0x8a887c,-1.1,1.16,-4.4,.8,.1);
-  for(let x=-2.65;x<=.45;x+=.38)addCylinder(.075,.075,1.28,0x343a3a,x,1.28,-4.4,Math.PI/2,0,12);
+  for(let x=-2.65;x<=.45;x+=.38){const roller=addCylinder(.075,.075,1.28,0x343a3a,x,1.28,-4.4,Math.PI/2,0,12);three.sortRollers.push(roller);}
   for(const x of [-2.65,.45])for(const z of [-4.95,-3.85])addBox(.12,.92,.12,0x414744,x,.52,z,.7,.35);
   for(const x of [-2.15,-1.1,-.05]){addBox(.66,.45,.7,0x38413d,x,.35,-6.15);addBox(.68,.05,.72,0x9b5b3e,x,.6,-6.15)}
   addBox(3.2,.16,2.6,0x343a37,-1.1,.12,-7.7,.85,.3);
-  for(let x=-2.5;x<=.3;x+=.45)addCylinder(.07,.07,2.35,0x4a514e,x,.3,-7.7,Math.PI/2,0,12);
+  for(let x=-2.5;x<=.3;x+=.45){const roller=addCylinder(.07,.07,2.35,0x4a514e,x,.3,-7.7,Math.PI/2,0,12);three.sortRollers.push(roller);}
 
   // Hydraulic baler: four structural columns, cross-beams, platen, hydraulic ram and access gate.
   const bx=5.25,bz=1.15;
@@ -1588,6 +1588,7 @@ function initThree(){
   const platen=addBox(2.18,.22,1.55,0x7e8981,bx,2.12,bz,.42,.7);three.pressPlaten=platen;three.animated.push(platen);
   addCylinder(.24,.24,1.05,0xb6b9ad,bx,3.34,bz,0,0,20);
   addCylinder(.34,.34,.2,0x555e59,bx,3.9,bz,0,0,20);
+  const pressRod=addCylinder(.095,.095,1,0xc3c8c1,bx,2.5,bz,0,0,16);three.pressRod=pressRod;
   addBox(2.05,.08,1.42,0x242a27,bx,.35,bz,.96,.1);
   // Hinged physical safety gate. It swings open only after the operator completes the cycle.
   const gate=new THREE.Group();gate.position.set(bx-1.28,0,bz+1.02);scene.add(gate);three.machineGate=gate;
@@ -1751,7 +1752,9 @@ function tickThree(){
     const phase=state.machine&&state.machine.pressure?Math.min(1,state.machine.pressure/172):0;
     const target=2.12-phase*.95;
     three.pressPlaten.position.y+=(target-three.pressPlaten.position.y)*Math.min(1,dt*7);
+    if(three.pressRod){const bottom=three.pressPlaten.position.y+.11,top=2.815,length=Math.max(.08,top-bottom);three.pressRod.scale.y=length;three.pressRod.position.y=(top+bottom)/2;}
   }
+  if(three.sortRollers)three.sortRollers.forEach(roller=>{roller.rotation.z+=dt*2.4;});
   if(three.machineGate){
     const target=state.machine&&state.machine.door?three.gateClosedY:three.gateOpenY;
     three.machineGate.rotation.y+=(target-three.machineGate.rotation.y)*Math.min(1,dt*5);

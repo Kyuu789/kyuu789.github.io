@@ -29,7 +29,6 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
 .btn{letter-spacing:.1em;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
 .btn.primary{box-shadow:0 10px 24px rgba(230,174,82,.18),inset 0 1px 0 rgba(255,255,255,.18)}
 .chip,.step{border-radius:3px}
-.tie-guide{position:absolute;inset:0;width:100%;height:100%;z-index:1;opacity:.34;pointer-events:none}
 
 /* HUD */
 #app{position:relative;height:100vh;height:100svh;display:grid;grid-template-rows:70px minmax(0,1fr)}
@@ -169,12 +168,15 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
 .tie-head span{font-size:10px;color:var(--muted);letter-spacing:.14em}
 .tie-head b{font-size:15px;letter-spacing:.12em}
 .tie-head small{margin-left:auto;font-family:var(--mono);font-size:15px;color:var(--amber2)}
-.tie-photo{position:relative;aspect-ratio:16/10;overflow:hidden;border:1px solid rgba(255,255,255,.13)}
+.tie-photo{position:relative;aspect-ratio:16/10;overflow:hidden;border:1px solid rgba(255,255,255,.13);touch-action:none}
 .tie-photo>img{width:100%;height:100%;object-fit:cover;filter:saturate(.72) contrast(1.08) brightness(.72)}
-.wire{position:absolute;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,210,158,.8);background:radial-gradient(circle,rgba(230,174,82,.2),rgba(0,0,0,.6));cursor:pointer}
-.wire.done{border-color:var(--green);background:rgba(131,182,157,.55)}
-.wire.done::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:160px;background:linear-gradient(180deg,var(--green),rgba(131,182,157,.1))}
-.wire.w1{left:21%;top:38%}.wire.w2{left:28%;top:38%}.wire.w3{left:47%;top:38%}.wire.w4{left:66%;top:38%}.wire.w5{left:73%;top:38%}
+#tieGuide{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+#tieLines{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+#tieLines line{stroke:#83b69d;stroke-width:1.8;stroke-linecap:round;filter:drop-shadow(0 0 4px rgba(131,182,157,.5))}
+.tie-node{position:absolute;z-index:3;width:34px;height:34px;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(255,210,158,.85);background:radial-gradient(circle,rgba(230,174,82,.28),rgba(0,0,0,.62));cursor:grab;touch-action:none}
+.tie-node.active{border-color:var(--amber2);background:rgba(230,174,82,.38);cursor:grabbing;box-shadow:0 0 18px rgba(230,174,82,.5)}
+.tie-node.done{border-color:var(--green);background:rgba(131,182,157,.55)}
+.tie-node.bad{border-color:var(--red);background:rgba(217,97,80,.35)}
 .tie-foot{font-size:10px;line-height:1.5;color:var(--muted);padding:10px 2px 2px}
 .result-card{width:min(760px,94vw);display:grid;grid-template-columns:235px minmax(0,1fr);background:#0b1513;border:1px solid rgba(205,222,210,.3);box-shadow:0 26px 80px rgba(0,0,0,.58);overflow:hidden}
 .result-card>img{width:100%;height:100%;min-height:300px;object-fit:cover;filter:saturate(.78) contrast(1.05) brightness(.74)}
@@ -344,7 +346,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
   .sort-item{width:48px;height:48px}
   .panel-inset{grid-template-columns:1fr 58px}.panel-inset img{height:46px}
   .steps{gap:6px}.step{min-height:43px;font-size:10px;padding:6px 7px 6px 29px}.step>span:first-child{left:8px;font-size:10px}.console-foot{font-size:9px;margin-top:7px}
-  .tie-layer,.result-layer{padding:10px}.tie-card{width:100%;padding:9px}.tie-photo{aspect-ratio:4/3}.wire{width:31px;height:31px}.wire.done::after{height:115px}
+  .tie-layer,.result-layer{padding:10px}.tie-card{width:100%;padding:9px}.tie-photo{aspect-ratio:4/3}.tie-node{width:30px;height:30px}
   .result-card{width:100%;grid-template-columns:1fr;max-height:91svh;overflow:auto}.result-card>img{height:180px;min-height:180px}.result-body{padding:15px 16px 17px}.result-weight b{font-size:50px}.result-actions .btn{min-width:0}
   .end-sheet{left:12px;right:12px;top:12px;bottom:auto;max-height:calc(100% - 24px);width:auto;padding:18px 17px}.end-sheet h2{font-size:21px}.end-main strong{font-size:48px}.end-main em{font-size:28px}.end-stats{gap:8px;grid-template-columns:repeat(2,1fr)}.end-stats b{font-size:17px}
   .start-card{padding:22px 18px 20px}.start-card h2{font-size:clamp(31px,9vw,42px)}.specs{gap:6px;margin-bottom:16px}.start-flow{font-size:10px}
@@ -463,22 +465,26 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
       <div class="tie-layer hidden" id="tieLayer">
         <div class="tie-card">
           <div class="tie-head"><span data-i18n="wire">打包丝 / WIRE</span><b data-i18n="fourTies">穿 5 道</b><small id="tieProgress">0 / 5</small></div>
-          <div class="tie-photo">
+          <div class="tie-photo" id="tiePhoto">
             <img src="assets/bale-tie.jpg" alt="bale ties">
-            <svg class="tie-guide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-              <line x1="18" y1="24" x2="34" y2="76" stroke="#f3cc82" stroke-width="1.6"/>
-              <line x1="34" y1="24" x2="18" y2="76" stroke="#f3cc82" stroke-width="1.6"/>
-              <line x1="50" y1="18" x2="50" y2="82" stroke="#f3cc82" stroke-width="1.8"/>
-              <line x1="66" y1="24" x2="82" y2="76" stroke="#f3cc82" stroke-width="1.6"/>
-              <line x1="82" y1="24" x2="66" y2="76" stroke="#f3cc82" stroke-width="1.6"/>
+            <svg id="tieGuide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <line x1="18" y1="34" x2="32" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
+              <line x1="32" y1="34" x2="18" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
+              <line x1="32" y1="34" x2="32" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
+              <line x1="68" y1="34" x2="82" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
+              <line x1="82" y1="34" x2="68" y2="72" stroke="#f3cc82" stroke-width="1.2" stroke-dasharray="3 3" opacity=".32"/>
             </svg>
-            <button class="wire w1" data-wire="0" aria-label="left cross strap 1"></button>
-            <button class="wire w2" data-wire="1" aria-label="left cross strap 2"></button>
-            <button class="wire w3" data-wire="2" aria-label="center strap"></button>
-            <button class="wire w4" data-wire="3" aria-label="right cross strap 1"></button>
-            <button class="wire w5" data-wire="4" aria-label="right cross strap 2"></button>
+            <svg id="tieLines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+            <button class="tie-node" data-node="t1" style="left:18%;top:34%" aria-label="top strap node 1"></button>
+            <button class="tie-node" data-node="t2" style="left:32%;top:34%" aria-label="top strap node 2"></button>
+            <button class="tie-node" data-node="t3" style="left:68%;top:34%" aria-label="top strap node 3"></button>
+            <button class="tie-node" data-node="t4" style="left:82%;top:34%" aria-label="top strap node 4"></button>
+            <button class="tie-node" data-node="b1" style="left:18%;top:72%" aria-label="bottom strap node 1"></button>
+            <button class="tie-node" data-node="b2" style="left:32%;top:72%" aria-label="bottom strap node 2"></button>
+            <button class="tie-node" data-node="b3" style="left:68%;top:72%" aria-label="bottom strap node 3"></button>
+            <button class="tie-node" data-node="b4" style="left:82%;top:72%" aria-label="bottom strap node 4"></button>
           </div>
-          <div class="tie-foot" data-i18n="tieHint">按 X | X 穿五根包带：两侧交叉，中间直带；少一根容易散包。</div>
+          <div class="tie-foot" data-i18n="tieHint">按住上排节点，滑动到下排对应节点，拉出五根 X | X 包带。</div>
         </div>
       </div>
 
@@ -594,6 +600,8 @@ const MATERIALS = {
   mixedC:{zh:'杂色 C',en:'Mixed C',shortZh:'地脚毛',shortEn:'Floor sweep',img:'pile-mixed.jpg',grade:'C',gradeVal:55,color:'mixed'}
 };
 const SHIFT_SECONDS=300, TARGET_BALES=6, MIN_BALE=150, MAX_BALE=190, UNIT_KG=15, WIRE_PER_BALE=5, CART_CAP=200;
+const TIE_NODES={t1:{x:18,y:34},t2:{x:32,y:34},t3:{x:68,y:34},t4:{x:82,y:34},b1:{x:18,y:72},b2:{x:32,y:72},b3:{x:68,y:72},b4:{x:82,y:72}};
+const TIE_PAIRS=[['t1','b2'],['t2','b1'],['t2','b2'],['t3','b4'],['t4','b3']];
 const BOOT_ASSETS=['floor.jpg','pile-white.jpg','pile-dark.jpg','pile-mixed.jpg','baler.jpg','bale-tie.jpg','bale-result.jpg','warehouse.jpg','sort-table.jpg','sort-conveyor.jpg','sort-facility.jpg','pallet-rows.jpg','pallet-round.jpg','control-panel.jpg','gauge.jpg','worker.jpg','boss.jpg','douyin-cover.jpg','break.jpg'];
 const TASK_TYPES=[
   {id:'bales',key:'taskBales',target:2,progress:()=>state.qualified},
@@ -603,8 +611,8 @@ const TASK_TYPES=[
   {id:'load',key:'taskLoad',target:300,progress:()=>state.loadedKg}
 ];
 const I18N = {
-  zh:{appTitle:'废毛打包间',clock:'班次',remaining:'剩余',qualified:'合格',output:'产量',stock:'丝道',stationFloor:'收毛区',stationSort:'分拣台',stationBaler:'液压打包',floorNote:'点料堆装车 · 10–13 次 = 150–190kg',cart:'周转车 / CART',empty:'空车',foreign0:'异物 0',toSort:'去分拣台',sortTitle:'分拣 / SORT',weight:'重量',grade:'品级',purity:'挑出',left:'遗留',sendBaler:'送入打包机',chamber:'压仓 / CHAMBER',gate:'安全门',control:'控制台 / CONTROL',pressure:'液压压力',feed:'倒料',close:'关门',press:'下压',repress:'补压',tie:'穿丝',eject:'出包',stuck:'压仓卡毛',clear:'清理',wire:'打包丝 / WIRE',fourTies:'穿 5 道',tieHint:'按 X | X 穿五根包带：先左交叉，再中直带，后右交叉；排列越正越不容易散包。',quality:'品质',scoreWeight:'重量',scorePurity:'纯净',scoreGrade:'品级',scoreBind:'打包',palletKicker:'PALLET BAY',of6:'/ 6 包合格',avg:'平均包重',rejected:'返工包',caught:'挑出异物',defects:'故障/失误',safety:'安全',endTitleDone:'目标达成 · 可以交班',endTitleEnd:'本班结束 · 还差一截',startSub:'把地上的废毛，压成能上垛的包。',target:'目标',bales:'包',baleSize:'单包',shiftTime:'班时',flow1:'收集',flow2:'分拣',flow3:'液压打包',flow4:'穿丝',flow5:'码垛',start:'接班',again:'再来一班',wireStock:'丝道',gradeChip:'品级',emptyBatch:'空车',mixColor:'混色',empty0:'—',bootLoading:'正在加载车间素材…',wage:'工资',boss:'老板',water:'喝水',snack:'吃东西',phone:'手机',caughtBoss:'被抓摸鱼',tasksDone:'完成任务',taskBales:'合格打包',taskSort:'挑净异物',taskJam:'清理卡毛',taskStraps:'完成穿丝',taskLoad:'装车产量',bossAway:'背身摸鱼',bossWatch:'正在巡视',taskDone:'任务完成 · 加工资',taskMiss:'任务超时 · 扣工资加派',caughtMsg:'被老板发现摸鱼 · 扣工资加任务',phoneHome:'手机桌面',wechat:'微信',douyin:'抖音',wife:'老婆',send:'发送',like:'点赞',comment:'评论',drinkMsg:'喝口水缓一缓',snackMsg:'吃口饼干垫肚子'},
-  en:{appTitle:'Waste Wool Shift',clock:'Shift',remaining:'Left',qualified:'Pass',output:'Output',stock:'Wires',stationFloor:'Recovery',stationSort:'Sorting',stationBaler:'Hydraulic Baler',floorNote:'Click piles to load · 10–13 loads = 150–190kg',cart:'CART',empty:'Empty cart',foreign0:'Contaminants 0',toSort:'To sorting line',sortTitle:'SORTING LINE',weight:'Weight',grade:'Grade',purity:'Picked',left:'Left',sendBaler:'Send to baler',chamber:'CHAMBER',gate:'Gate',control:'CONTROL',pressure:'Hydraulic pressure',feed:'Load',close:'Close gate',press:'Press down',repress:'Repress',tie:'Tie',eject:'Eject',stuck:'Fiber jam',clear:'Clear',wire:'BALE WIRE',fourTies:'Tie 5 wires',tieHint:'Tie five straps in an X | X pattern: left cross, center strap, right cross; a clean layout keeps the bale tight.',quality:'Quality',scoreWeight:'Weight',scorePurity:'Purity',scoreGrade:'Grade',scoreBind:'Binding',palletKicker:'PALLET BAY',of6:'/ 6 bales passed',avg:'Avg bale',rejected:'Rejected',caught:'Contaminants',defects:'Faults',safety:'Safety',endTitleDone:'Shift target met',endTitleEnd:'Shift ended · short of target',startSub:'Press loose mill waste into stackable bales.',target:'Target',bales:'bales',baleSize:'Bale',shiftTime:'Shift',flow1:'Collect',flow2:'Sort',flow3:'Bale',flow4:'Tie',flow5:'Stack',start:'Start shift',again:'Next shift',wireStock:'Wires',gradeChip:'Grade',emptyBatch:'Empty cart',mixColor:'Mixed color',empty0:'—',bootLoading:'Loading shift assets…',wage:'Wage',boss:'Boss',water:'Water',snack:'Snack',phone:'Phone',caughtBoss:'Caught idle',tasksDone:'Tasks done',taskBales:'Qualified bales',taskSort:'Catch waste',taskJam:'Clear jams',taskStraps:'Tie straps',taskLoad:'Load cart',bossAway:'Back turned',bossWatch:'Watching',taskDone:'Task done · bonus',taskMiss:'Task missed · pay cut',caughtMsg:'Caught slacking · pay cut and extra task',phoneHome:'Phone',wechat:'WeChat',douyin:'TikTok',wife:'Wife',send:'Send',like:'Like',comment:'Comment',drinkMsg:'Take a sip',snackMsg:'Bite a biscuit'}
+  zh:{appTitle:'废毛打包间',clock:'班次',remaining:'剩余',qualified:'合格',output:'产量',stock:'丝道',stationFloor:'收毛区',stationSort:'分拣台',stationBaler:'液压打包',floorNote:'点料堆装车 · 10–13 次 = 150–190kg',cart:'周转车 / CART',empty:'空车',foreign0:'异物 0',toSort:'去分拣台',sortTitle:'分拣 / SORT',weight:'重量',grade:'品级',purity:'挑出',left:'遗留',sendBaler:'送入打包机',chamber:'压仓 / CHAMBER',gate:'安全门',control:'控制台 / CONTROL',pressure:'液压压力',feed:'倒料',close:'关门',press:'下压',repress:'补压',tie:'穿丝',eject:'出包',stuck:'压仓卡毛',clear:'清理',wire:'打包丝 / WIRE',fourTies:'穿 5 道',tieHint:'按住上排节点，滑到下排对应节点，拉出五根 X | X 包带；连错会松脱。',quality:'品质',scoreWeight:'重量',scorePurity:'纯净',scoreGrade:'品级',scoreBind:'打包',palletKicker:'PALLET BAY',of6:'/ 6 包合格',avg:'平均包重',rejected:'返工包',caught:'挑出异物',defects:'故障/失误',safety:'安全',endTitleDone:'目标达成 · 可以交班',endTitleEnd:'本班结束 · 还差一截',startSub:'把地上的废毛，压成能上垛的包。',target:'目标',bales:'包',baleSize:'单包',shiftTime:'班时',flow1:'收集',flow2:'分拣',flow3:'液压打包',flow4:'穿丝',flow5:'码垛',start:'接班',again:'再来一班',wireStock:'丝道',gradeChip:'品级',emptyBatch:'空车',mixColor:'混色',empty0:'—',bootLoading:'正在加载车间素材…',wage:'工资',boss:'老板',water:'喝水',snack:'吃东西',phone:'手机',caughtBoss:'被抓摸鱼',tasksDone:'完成任务',taskBales:'合格打包',taskSort:'挑净异物',taskJam:'清理卡毛',taskStraps:'完成穿丝',taskLoad:'装车产量',bossAway:'背身摸鱼',bossWatch:'正在巡视',taskDone:'任务完成 · 加工资',taskMiss:'任务超时 · 扣工资加派',caughtMsg:'被老板发现摸鱼 · 扣工资加任务',phoneHome:'手机桌面',wechat:'微信',douyin:'抖音',wife:'老婆',send:'发送',like:'点赞',comment:'评论',drinkMsg:'喝口水缓一缓',snackMsg:'吃口饼干垫肚子'},
+  en:{appTitle:'Waste Wool Shift',clock:'Shift',remaining:'Left',qualified:'Pass',output:'Output',stock:'Wires',stationFloor:'Recovery',stationSort:'Sorting',stationBaler:'Hydraulic Baler',floorNote:'Click piles to load · 10–13 loads = 150–190kg',cart:'CART',empty:'Empty cart',foreign0:'Contaminants 0',toSort:'To sorting line',sortTitle:'SORTING LINE',weight:'Weight',grade:'Grade',purity:'Picked',left:'Left',sendBaler:'Send to baler',chamber:'CHAMBER',gate:'Gate',control:'CONTROL',pressure:'Hydraulic pressure',feed:'Load',close:'Close gate',press:'Press down',repress:'Repress',tie:'Tie',eject:'Eject',stuck:'Fiber jam',clear:'Clear',wire:'BALE WIRE',fourTies:'Tie 5 wires',tieHint:'Press a top node and drag to its bottom node to draw the five X | X straps; wrong links come loose.',quality:'Quality',scoreWeight:'Weight',scorePurity:'Purity',scoreGrade:'Grade',scoreBind:'Binding',palletKicker:'PALLET BAY',of6:'/ 6 bales passed',avg:'Avg bale',rejected:'Rejected',caught:'Contaminants',defects:'Faults',safety:'Safety',endTitleDone:'Shift target met',endTitleEnd:'Shift ended · short of target',startSub:'Press loose mill waste into stackable bales.',target:'Target',bales:'bales',baleSize:'Bale',shiftTime:'Shift',flow1:'Collect',flow2:'Sort',flow3:'Bale',flow4:'Tie',flow5:'Stack',start:'Start shift',again:'Next shift',wireStock:'Wires',gradeChip:'Grade',emptyBatch:'Empty cart',mixColor:'Mixed color',empty0:'—',bootLoading:'Loading shift assets…',wage:'Wage',boss:'Boss',water:'Water',snack:'Snack',phone:'Phone',caughtBoss:'Caught idle',tasksDone:'Tasks done',taskBales:'Qualified bales',taskSort:'Catch waste',taskJam:'Clear jams',taskStraps:'Tie straps',taskLoad:'Load cart',bossAway:'Back turned',bossWatch:'Watching',taskDone:'Task done · bonus',taskMiss:'Task missed · pay cut',caughtMsg:'Caught slacking · pay cut and extra task',phoneHome:'Phone',wechat:'WeChat',douyin:'TikTok',wife:'Wife',send:'Send',like:'Like',comment:'Comment',drinkMsg:'Take a sip',snackMsg:'Bite a biscuit'}
 };
 let lang = localStorage.getItem('tw-lang') || 'zh';
 const t = k => (I18N[lang]&&I18N[lang][k]) || I18N.zh[k] || k;
@@ -612,7 +620,7 @@ const t = k => (I18N[lang]&&I18N[lang][k]) || I18N.zh[k] || k;
 const state = {
   started:false,running:false,finished:false,scene:'floor',remaining:SHIFT_SECONDS,
   cart:{total:0,materials:{},colors:{}},sortItems:[],missed:0,caught:0,defects:0,
-  bale:null,machine:{loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],arrangeSkew:false},
+  bale:null,machine:{loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false},
   wireStock:30,qualified:0,output:0,rejected:0,acceptedWeights:[],acceptedBales:[],
   wage:0,caughtCount:0,tasksDone:0,tasksMissed:0,loadedKg:0,jamsCleared:0,strapsTied:0,
   boss:{watching:false,phaseLeft:4,task:null,extraTasks:0},
@@ -629,7 +637,7 @@ const els={
   baleMass:$('#baleMass'),baleBatch:$('#baleBatch'),doorState:$('#doorState'),safetyLamp:$('#safetyLamp'),machineState:$('#machineState'),
   pressureVal:$('#pressureVal'),pressureFill:$('#pressureFill'),consoleHint:$('#consoleHint'),wireStock:$('#wireStock'),consoleGrade:$('#consoleGrade'),wireChip:$('#wireChip'),
   feedBtn:$('#feedBtn'),closeBtn:$('#closeBtn'),pressBtn:$('#pressBtn'),tieBtn:$('#tieBtn'),ejectBtn:$('#ejectBtn'),tieCount:$('#tieCount'),stuckAlert:$('#stuckAlert'),clearStuck:$('#clearStuck'),
-  tieLayer:$('#tieLayer'),tieProgress:$('#tieProgress'),resultLayer:$('#resultLayer'),resultStamp:$('#resultStamp'),resultWeight:$('#resultWeight'),resultQuality:$('#resultQuality'),resultReason:$('#resultReason'),resultActions:$('#resultActions'),
+  tieLayer:$('#tieLayer'),tiePhoto:$('#tiePhoto'),tieLines:$('#tieLines'),tieProgress:$('#tieProgress'),resultLayer:$('#resultLayer'),resultStamp:$('#resultStamp'),resultWeight:$('#resultWeight'),resultQuality:$('#resultQuality'),resultReason:$('#resultReason'),resultActions:$('#resultActions'),
   scoreWeight:$('#scoreWeight'),scorePurity:$('#scorePurity'),scoreGrade:$('#scoreGrade'),scoreBind:$('#scoreBind'),scoreWeightV:$('#scoreWeightV'),scorePurityV:$('#scorePurityV'),scoreGradeV:$('#scoreGradeV'),scoreBindV:$('#scoreBindV'),
   palletTitle:$('#palletTitle'),palletMeta:$('#palletMeta'),palletRow:$('#palletRow'),
   endKicker:$('#endKicker'),endQualified:$('#endQualified'),endOutput:$('#endOutput'),endAvg:$('#endAvg'),endRejects:$('#endRejects'),endCaught:$('#endCaught'),endDefects:$('#endDefects'),endSafety:$('#endSafety'),endGrade:$('#endGrade'),endTitle:$('#endTitle'),endTags:$('#endTags'),againBtn:$('#againBtn'),
@@ -805,7 +813,7 @@ function sendBaler(){
   const left=state.sortItems.filter(i=>!i.caught).length;
   state.bale.missed=left; state.bale.defects+=left; state.defects+=left;
   state.cart={total:0,materials:{},colors:{}};
-  state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],arrangeSkew:false};
+  state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false};
   setScene('baler'); updateBaler();
   toast(left?lang==='zh'?`${left} 处遗留，品质扣分`:`${left} left, quality cut`:`${lang==='zh'?'干净批次':'Clean batch'}`,left?'bad':'good');
 }
@@ -858,19 +866,59 @@ function press(){
     updateBaler();
   },2100);
 }
-function openTie(){if(!state.machine.pressed)return;state.machine.tied=0;state.machine.tieOrder=[];state.machine.arrangeSkew=false;$$('.wire').forEach(w=>w.classList.remove('done'));updateTieCount();els.tieLayer.classList.remove('hidden');AudioSys.tone('clank')}
-function tieWire(btn){
-  if(btn.classList.contains('done'))return;
-  const idx=+btn.dataset.wire;
-  btn.classList.add('done');state.machine.tied++;state.strapsTied++;state.machine.tieOrder.push(idx);updateTieCount();AudioSys.tone('wire');
+function resetTieBoard(){
+  state.machine.tied=0;state.machine.tieOrder=[];state.machine.tiePairs=[];state.machine.arrangeSkew=false;
+  els.tieLines.innerHTML='';
+  $$('.tie-node').forEach(n=>n.classList.remove('active','done','bad'));
+  updateTieCount();
+}
+function openTie(){if(!state.machine.pressed)return;resetTieBoard();els.tieLayer.classList.remove('hidden');AudioSys.tone('clank')}
+function findTieNode(el){return el&&el.closest?el.closest('.tie-node'):null}
+function nodeAtPoint(e){
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  const node=findTieNode(el); if(node)return node.dataset.node;
+  const rect=els.tiePhoto.getBoundingClientRect();
+  const px=(e.clientX-rect.left)/rect.width*100, py=(e.clientY-rect.top)/rect.height*100;
+  let best=null,dist=14;
+  Object.entries(TIE_NODES).forEach(([id,p])=>{const d=Math.hypot(p.x-px,p.y-py);if(d<dist){dist=d;best=id}});
+  return best;
+}
+function pairFor(a,b){return TIE_PAIRS.findIndex(([x,y],i)=>!state.machine.tiePairs.includes(i)&&((x===a&&y===b)||(x===b&&y===a)))}
+function drawTieLine(a,b){
+  const p1=TIE_NODES[a],p2=TIE_NODES[b],ns='http://www.w3.org/2000/svg';
+  const line=document.createElementNS(ns,'line');
+  line.setAttribute('x1',p1.x);line.setAttribute('y1',p1.y);line.setAttribute('x2',p2.x);line.setAttribute('y2',p2.y);
+  els.tieLines.appendChild(line);
+}
+function completeTiePair(i){
+  const [a,b]=TIE_PAIRS[i];
+  state.machine.tiePairs.push(i);state.machine.tied++;state.strapsTied++;state.machine.tieOrder.push(i);
+  drawTieLine(a,b);
+  $$('.tie-node').forEach(n=>{if(n.dataset.node===a||n.dataset.node===b)n.classList.add('done')});
+  updateTieCount();AudioSys.tone('wire');
   if(state.machine.tied===WIRE_PER_BALE-1&&Math.random()<.28){state.machine.wireSnap=true;state.defects++;AudioSys.tone('snap');toast(lang==='zh'?'包带抽断，重穿一根':'Strap snapped · retie','bad')}
   if(state.machine.tied>=WIRE_PER_BALE){
-    const side=i=>i<2?'L':i===2?'C':'R';
-    const expected=['L','L','C','R','R'];
-    state.machine.arrangeSkew=state.machine.tieOrder.map(side).some((s,i)=>s!==expected[i]);
     state.machine.tied=WIRE_PER_BALE;
     setTimeout(()=>{els.tieLayer.classList.add('hidden');updateBaler();toast(lang==='zh'?'五根包带已打结':'Five straps secured','good')},700)
   }
+}
+function onTieDown(e){
+  if(!state.running||state.machine.tied>=WIRE_PER_BALE)return;
+  const id=nodeAtPoint(e); if(!id)return;
+  e.preventDefault();
+  state.machine.gesture=id;
+  $$('.tie-node').forEach(n=>n.classList.remove('active','bad'));
+  $(`.tie-node[data-node="${id}"]`).classList.add('active');
+}
+function onTieUp(e){
+  if(!state.machine.gesture)return;
+  const a=state.machine.gesture, b=nodeAtPoint(e);
+  state.machine.gesture=null;
+  $$('.tie-node').forEach(n=>n.classList.remove('active'));
+  if(!b||a===b)return;
+  const i=pairFor(a,b);
+  if(i>=0)completeTiePair(i);
+  else{$$('.tie-node').forEach(n=>{if(n.dataset.node===a||n.dataset.node===b)n.classList.add('bad')});AudioSys.tone('bad');toast(lang==='zh'?'这根包带穿错了':'Wrong strap path','bad');setTimeout(()=>$$('.tie-node').forEach(n=>n.classList.remove('bad')),600)}
 }
 function eject(){
   if(state.machine.tied<WIRE_PER_BALE||state.machine.opened||state.wireStock<WIRE_PER_BALE)return;
@@ -915,7 +963,7 @@ function afterResult(goStack){
 }
 function nextShiftCycle(){
   if(state.finished)return;
-  state.bale=null;state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],arrangeSkew:false};
+  state.bale=null;state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false};
   setScene('floor');updateFloor();
   if(state.qualified>=TARGET_BALES){state.running=false;setTimeout(finishShift,900)}
 }
@@ -1011,14 +1059,14 @@ function resetState(){
   clearInterval(timerId);timerId=null;clearTimeout(palletTimer);palletTimer=null;
   state.started=false;state.running=false;state.finished=false;state.scene='floor';state.remaining=SHIFT_SECONDS;
   state.cart={total:0,materials:{},colors:{}};state.sortItems=[];state.missed=0;state.caught=0;state.defects=0;
-  state.bale=null;state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],arrangeSkew:false};
+  state.bale=null;state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false};
   state.wireStock=30;state.qualified=0;state.output=0;state.rejected=0;state.acceptedWeights=[];state.acceptedBales=[];
   state.wage=0;state.caughtCount=0;state.tasksDone=0;state.tasksMissed=0;state.loadedKg=0;state.jamsCleared=0;state.strapsTied=0;
   state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0};state.phoneOpen=false;state.wechatMsgs=[];
   els.phoneLayer.classList.add('hidden');
   els.sortLayer.innerHTML='';els.tieLayer.classList.add('hidden');els.resultLayer.classList.add('hidden');
   els.floorView.classList.add('active');els.sortView.classList.remove('active');els.balerView.classList.remove('active');els.palletView.classList.remove('active');els.endView.classList.remove('active');
-  $$('.wire').forEach(w=>w.classList.remove('done'));updateTieCount();updateHud();
+  resetTieBoard();updateHud();
 }
 function finishShift(){
   if(state.finished)return;state.finished=true;state.running=false;clearInterval(timerId);timerId=null;clearTimeout(palletTimer);palletTimer=null;clearTimeout(toast._t);els.toast.className='toast';
@@ -1045,7 +1093,9 @@ els.clearStuck.addEventListener('click',clearStuck);
 els.pressBtn.addEventListener('click',press);
 els.tieBtn.addEventListener('click',openTie);
 els.ejectBtn.addEventListener('click',eject);
-$$('.wire').forEach(w=>w.addEventListener('click',()=>tieWire(w)));
+els.tiePhoto.addEventListener('pointerdown',onTieDown);
+window.addEventListener('pointerup',onTieUp);
+window.addEventListener('pointercancel',()=>{state.machine.gesture=null;$$('.tie-node').forEach(n=>n.classList.remove('active'))});
 els.resultActions.addEventListener('click',e=>{const btn=e.target.closest('[data-result]');if(!btn)return;afterResult(btn.dataset.result==='stack')});
 els.startBtn.addEventListener('click',startShift);
 els.againBtn.addEventListener('click',startShift);

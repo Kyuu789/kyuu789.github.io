@@ -1117,7 +1117,7 @@ function resetTieBoard(){
   $$('.tie-node').forEach(n=>n.classList.remove('active','done','bad'));
   updateTieCount();
 }
-function openTie(){if(!state.machine.pressed)return;resetTieBoard();els.tieLayer.classList.remove('hidden');AudioSys.tone('clank')}
+function openTie(){if(!state.machine.pressed)return;resetTieBoard();if(three&&state.scene==='baler'&&three.tieNodeMeshes){state.machine.threeTieMode=true;Object.values(three.tieNodeMeshes).forEach(node=>{node.visible=true;node.scale.setScalar(1)});els.tieLayer.classList.add('hidden');toast(lang==='zh'?'在包体正面的绿点之间拖动，依次穿好五根包带':'Drag between the glowing points on the bale to route all five straps','good')}else els.tieLayer.classList.remove('hidden');AudioSys.tone('clank')}
 function findTieNode(el){return el&&el.closest?el.closest('.tie-node'):null}
 function eventPoint(e){return (e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0])||e}
 function nodeAtPoint(e){
@@ -1146,6 +1146,7 @@ function completeTiePair(i){
   if(state.machine.tied===WIRE_PER_BALE-1&&Math.random()<.28){state.machine.wireSnap=true;state.defects++;AudioSys.tone('snap');toast(lang==='zh'?'包带抽断，重穿一根':'Strap snapped · retie','bad')}
   if(state.machine.tied>=WIRE_PER_BALE){
     state.machine.tied=WIRE_PER_BALE;
+    state.machine.threeTieMode=false;if(three&&three.tieNodeMeshes)Object.values(three.tieNodeMeshes).forEach(node=>node.visible=false);
     setTimeout(()=>{els.tieLayer.classList.add('hidden');updateBaler();toast(lang==='zh'?'五根包带已打结':'Five straps secured','good')},700)
   }
 }
@@ -1683,7 +1684,10 @@ function initThree(){
     const x=-.78+Math.random()*1.56,y=-.44+Math.random()*.88,z=-.56+Math.random()*1.12;
     const m=new THREE.Mesh(new THREE.IcosahedronGeometry(.035+Math.random()*.045,0),baleFuzz);m.position.set(x,y,z);m.scale.set(1.4,.7,1);baleVisual.add(m);
   }
-  const strapMat=mat(0xdbc58a,.55,.15);three.baleStraps=[];
+  const strapMat=mat(0xdbc58a,.55,.15);three.baleStraps=[];three.tieNodeMeshes={};
+  const tieNodeMat=new THREE.MeshStandardMaterial({color:0x63e0bd,emissive:0x16a987,emissiveIntensity:.7,roughness:.25});
+  const tieNodeOrder=['t1','t2','t3','t4','t5','b1','b2','b3','b4','b5'];
+  tieNodeOrder.forEach((id,index)=>{const col=index%5,x=-.62+col*.31,y=index<5?.32:-.32;const node=new THREE.Mesh(new THREE.SphereGeometry(.075,14,10),tieNodeMat);node.position.set(x,y,.605);node.visible=false;node.userData.tieNode=id;node.userData.baseScale=1;baleVisual.add(node);three.tieNodeMeshes[id]=node});
   for(let i=0;i<5;i++){
     const x=-.62+i*.31;
     const pts=[[x,.47,-.61],[x,.47,.61],[x,-.47,.61],[x,-.47,-.61],[x,.47,-.61]].map(p=>new THREE.Vector3(...p));
@@ -1783,6 +1787,21 @@ function initThree(){
     const plate=addBox(2.2,.025,1.25,c,x,.025,z,.92,.05);plate.material.transparent=true;plate.material.opacity=.25;
   }
 
+  canvas.addEventListener('pointerdown',e=>{
+    if(state.scene!=='baler'||!state.machine.threeTieMode||!three.tieNodeMeshes)return;
+    const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;three.raycaster.setFromCamera(three.pointer,camera);
+    const nodes=Object.values(three.tieNodeMeshes).filter(node=>node.visible),hits=three.raycaster.intersectObjects(nodes,false);
+    if(hits.length){state.machine.threeTieGesture=hits[0].object.userData.tieNode;hits[0].object.scale.setScalar(1.55);e.preventDefault();e.stopPropagation()}
+  });
+  window.addEventListener('pointerup',e=>{
+    if(state.scene!=='baler'||!state.machine.threeTieGesture)return;
+    const from=state.machine.threeTieGesture;state.machine.threeTieGesture=null;
+    const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;three.raycaster.setFromCamera(three.pointer,camera);
+    const nodes=Object.values(three.tieNodeMeshes).filter(node=>node.visible),hits=three.raycaster.intersectObjects(nodes,false);
+    Object.values(three.tieNodeMeshes).forEach(node=>node.scale.setScalar(1));
+    if(!hits.length)return;const to=hits[0].object.userData.tieNode;if(from===to)return;
+    const pair=pairFor(from,to);if(pair>=0)completeTiePair(pair);else{AudioSys.tone('bad');toast(lang==='zh'?'穿丝路径错误，再试一次':'Wrong strap route · try again','bad')}
+  });
   canvas.addEventListener('click',e=>{
     if(!state.roam.active&&state.scene!=='baler')return;
     const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
@@ -1872,6 +1891,7 @@ function tickThree(){
   }
   if(three.baleVisual){
     const m=state.machine||{},visible=!!(state.bale&&m.loaded);
+    if(three.tieNodeMeshes){const show=!!(m.threeTieMode&&visible);Object.values(three.tieNodeMeshes).forEach(node=>{node.visible=show})}
     three.baleVisual.visible=visible;
     const ejectZ=m.opened?2.75:1.15;three.baleVisual.position.z+=(ejectZ-three.baleVisual.position.z)*Math.min(1,dt*3);
     const compact=1-.28*Math.min(1,(m.pressure||0)/172);

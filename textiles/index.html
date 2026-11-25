@@ -367,15 +367,18 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
   .shift-track{flex:1;min-width:46px}
   .stage{overflow:hidden}.backdrop{filter:saturate(.82) contrast(1.02) brightness(.74)}
   .station{top:12px;left:12px}.station b{font-size:12px}.station span{font-size:12px}.floor-note{top:34px;left:12px;font-size:9px}
-  .pile-deck{left:12px;right:12px;top:190px;bottom:178px;overflow-y:auto;grid-template-columns:repeat(3,1fr);gap:6px;align-content:start;padding-bottom:6px;scrollbar-width:thin;touch-action:pan-y}
-  .pile-card{width:auto;height:128px;flex-shrink:0}.pile-card img{height:74px}.pile-card::after{height:74px}
-  .pile-caption{font-size:10px;left:7px;top:7px}.pile-card b{font-size:20px;left:7px;bottom:7px}.pile-plus{width:24px;height:24px;right:6px;bottom:6px;font-size:14px}
+  .pile-deck{left:12px;right:12px;top:248px;bottom:176px;overflow-y:auto;grid-template-columns:repeat(3,1fr);gap:6px;align-content:start;padding-bottom:6px;scrollbar-width:thin;touch-action:pan-y}
+  .pile-card{width:auto;height:106px;flex-shrink:0}.pile-card img{height:56px}.pile-card::after{height:56px}
+  .pile-caption{font-size:9px;left:6px;top:5px}.pile-caption i{font-size:8px}.pile-card b{font-size:17px;left:6px;bottom:5px}.pile-plus{width:22px;height:22px;right:5px;bottom:5px;font-size:13px}.grade{right:5px;top:5px;font-size:9px;padding:1px 5px}
   .cart-panel,.sort-panel{left:12px;right:12px;bottom:62px;width:auto;padding:9px 11px 10px}
   .cart-head span{font-size:9px}.cart-head b{font-size:30px}.cart-meta{font-size:9px}
   .worker-figure{right:12px;width:180px;height:120px;bottom:78px;opacity:.28}
-  .boss-panel{left:12px;right:12px;top:62px;bottom:auto;width:auto;gap:9px;padding:8px 9px}
-  .boss-panel img{width:54px;height:72px}
-  .boss-task{min-height:26px;font-size:10px}
+  .boss-panel{left:12px;right:12px;top:60px;bottom:auto;width:auto;gap:8px;padding:7px 8px}
+  .boss-panel img{width:48px;height:64px}
+  .boss-task{min-height:22px;font-size:9px}
+  .boss-quote{margin-top:4px;font-size:9px}
+  .boss-cash{margin-top:4px;font-size:9px}
+  .boss-meta{font-size:9px;margin-top:3px}
   .idle-bar{bottom:12px;gap:6px}
   .idle-btn{min-height:34px;padding:0 9px;font-size:10px}
   .truck-card{width:100%;padding:12px;top:118px;bottom:12px;transform:translateX(-50%);overflow-y:auto}.truck-truck{grid-template-columns:64px 1fr}.truck-bed{grid-template-columns:repeat(3,1fr);gap:5px;padding:8px}.truck-slot{min-height:82px}.ground-bale{min-width:80px;padding:7px}.truck-meta{gap:10px}.truck-actions .btn{min-width:0;flex:1}
@@ -394,7 +397,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
   .toast{top:70px;font-size:10px;max-width:calc(100vw - 30px);white-space:normal;text-align:center}
 }
 @media (max-height:620px){
-  #app{grid-template-rows:56px minmax(0,1fr)}.hud{padding-top:6px;padding-bottom:6px}.brand p{display:none}.station{top:8px}.floor-note{display:none}.pile-deck{bottom:104px}.pile-card{height:118px}.pile-card img{height:74px}.console{max-height:67%}
+  #app{grid-template-rows:56px minmax(0,1fr)}.hud{padding-top:6px;padding-bottom:6px}.brand p{display:none}.station{top:8px}.floor-note{display:none}.pile-deck{top:210px;bottom:104px}.pile-card{height:98px}.pile-card img{height:50px}.console{max-height:67%}
 }
 </style>
 </head>

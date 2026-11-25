@@ -793,7 +793,7 @@ const state = {
   wireStock:30,qualified:0,output:0,rejected:0,acceptedWeights:[],acceptedBales:[],
   wage:0,caughtCount:0,tasksDone:0,tasksMissed:0,loadedKg:0,jamsCleared:0,strapsTied:0,
   bossCash:0,soldBales:0,soldKg:0,career:loadSave(),truck:{arrived:false,loaded:0,slotIds:[],groundIds:[],forklift:FORKLIFT_USES,secured:false,timer:TRUCK_SECONDS,loadedBales:[],revenue:0},
-  boss:{watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0},
+  boss:{watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0,x:4.2,z:2.2,wp:0},
   slap:{open:false,dir:null,correct:null,timer:null,timeout:null,left:0},
   phoneOpen:false,phoneApp:'home',
   musicOn:localStorage.getItem('tw-music')!=='0',sfxOn:localStorage.getItem('tw-sfx')!=='0'
@@ -1364,7 +1364,7 @@ function resetState(){
   state.wage=0;state.caughtCount=0;state.tasksDone=0;state.tasksMissed=0;state.loadedKg=0;state.jamsCleared=0;state.strapsTied=0;
   state.bossCash=0;state.soldBales=0;state.soldKg=0;
   state.truck={arrived:false,loaded:0,slotIds:[],groundIds:[],forklift:FORKLIFT_USES,secured:false,timer:TRUCK_SECONDS,loadedBales:[],revenue:0};
-  state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0};state.slap={open:false,dir:null,correct:null,timer:null,timeout:null,left:0};state.roam={active:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null};state.phoneOpen=false;state.wechatMsgs=[];state.quote='';state.career.recorded=false;
+  state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0,x:4.2,z:2.2,wp:0};state.slap={open:false,dir:null,correct:null,timer:null,timeout:null,left:0};state.roam={active:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null};state.phoneOpen=false;state.wechatMsgs=[];state.quote='';state.career.recorded=false;
   document.body.classList.remove('angry','shake');els.slapLayer.classList.add('hidden');
   els.phoneLayer.classList.add('hidden');
   els.roamControls.classList.add('hidden');els.roamPrompt.classList.add('hidden');els.roamBack.classList.add('hidden');
@@ -1446,6 +1446,7 @@ const ROAM_SPOTS=[
   {id:'truck',x:6,z:-6,key:'roamTruck',can:()=>state.running&&unsoldBales().length>=TRUCK_ARRIVE,run:()=>goTruck()}
 ];
 let three=null;
+const BOSS_WAYPOINTS=[{x:4.2,z:2.2},{x:1.2,z:3.2},{x:-3,z:1.4},{x:2,z:-2.4},{x:4.2,z:2.2}];
 const roamKeys={};
 let lookPointer=null,lastLookX=0,lastLookY=0,joyPointer=null,lastJoyX=0,lastJoyY=0,lastFrame=performance.now();
 
@@ -1511,8 +1512,13 @@ function initThree(){
   // 货车
   box(2.8,.35,3.1,0x252b2d,5.5,.35,-5.4);box(2.6,.9,2.8,0x59636a,5.5,.85,-5.5);texPlane(2.4,.8,'warehouse.jpg',5.5,.9,-4.05);box(1.8,1.55,1.7,0x8d2f28,7.3,.95,-6.5);texPlane(1.2,.7,'control-panel.jpg',7.3,1.35,-5.62);
   cyl(.34,.34,.25,0x111313,6.2,.34,-4.45,Math.PI/2);cyl(.34,.34,.25,0x111313,6.2,.34,-6.55,Math.PI/2);cyl(.34,.34,.25,0x111313,8.2,.34,-4.45,Math.PI/2);cyl(.34,.34,.25,0x111313,8.2,.34,-6.55,Math.PI/2);
-  // 老板和工人立牌
-  texPlane(.85,1.9,'boss.jpg',4.2,1.55,2.2,-.35);texPlane(.8,1.8,'worker.jpg',-7.6,1.5,1.8,.55);
+  // 老板 3D NPC 和工人立牌
+  const bossGroup=new THREE.Group();
+  const bossBody=new THREE.Mesh(new THREE.CylinderGeometry(.28,.34,1.25,14),new THREE.MeshStandardMaterial({color:0x2b3130,roughness:.8}));bossBody.position.y=.85;bossGroup.add(bossBody);
+  const bossHead=new THREE.Mesh(new THREE.SphereGeometry(.26,16,12),new THREE.MeshStandardMaterial({color:0x8a6a55,roughness:.8}));bossHead.position.y=1.72;bossGroup.add(bossHead);
+  const bossFace=new THREE.Mesh(new THREE.PlaneGeometry(.42,.52),new THREE.MeshStandardMaterial({map:getTex('boss.jpg'),roughness:.8}));bossFace.position.set(0,1.72,.22);bossGroup.add(bossFace);
+  bossGroup.position.set(state.boss.x,0,state.boss.z);three.scene.add(bossGroup);three.boss=bossGroup;
+  texPlane(.8,1.8,'worker.jpg',-7.6,1.5,1.8,.55);
   // 工位标识
   makeLabel(t('roamFloor'),-6,3,2.65);makeLabel(t('roamSort'),-1,-4,2.55);makeLabel(t('roamBaler'),5,1,2.85);makeLabel(t('roamPallet'),-5,-6,2.55);makeLabel(t('roamTruck'),6,-6,2.65);
   resizeThree();bindRoamControls();requestAnimationFrame(tickThree);
@@ -1525,6 +1531,20 @@ function nearestSpot(){
   const r=state.roam;let best=null,bd=2.35;
   ROAM_SPOTS.forEach(s=>{const d=Math.hypot(s.x-r.x,s.z-r.z);if(d<bd){bd=d;best=s}});
   return best;
+}
+function updateBoss3D(dt){
+  if(!three||!three.boss)return;
+  const b=state.boss,g=three.boss,wp=BOSS_WAYPOINTS[b.wp];
+  if(b.watching){
+    const dx=state.roam.x-b.x,dz=state.roam.z-b.z;
+    g.rotation.y=Math.atan2(dx,dz);
+    if(state.phoneOpen&&Math.hypot(dx,dz)<6.5)catchBoss();
+  }else{
+    const dx=wp.x-b.x,dz=wp.z-b.z,d=Math.hypot(dx,dz);
+    if(d<.25){b.wp=(b.wp+1)%BOSS_WAYPOINTS.length}
+    else{const sp=.75*dt;b.x+=dx/d*sp;b.z+=dz/d*sp;g.rotation.y=Math.atan2(dx,dz)}
+  }
+  g.position.set(b.x,0,b.z);
 }
 function updateRoamMovement(dt){
   const r=state.roam;let f=0,st=0;
@@ -1543,6 +1563,7 @@ function tickThree(){
   if(!state.started)r.yaw+=dt*.12;
   if(r.active){
     updateRoamMovement(dt);
+    updateBoss3D(dt);
     const spot=nearestSpot();r.nearest=spot;
     if(spot){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=t(spot.key);els.interactBtn.disabled=!spot.can()}
     else els.roamPrompt.classList.add('hidden');

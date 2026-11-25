@@ -1439,14 +1439,15 @@ $$('[data-dodge]',els.slapLayer).forEach(btn=>btn.addEventListener('click',()=>d
 
 /* ===== 第一人称 3D 车间 ===== */
 const ROAM_SPOTS=[
-  {id:'floor',x:-6,z:3,key:'roamFloor',can:()=>state.running,run:()=>setScene('floor')},
-  {id:'sort',x:-1,z:-4,key:'roamSort',can:()=>state.running&&state.cart.total>=MIN_BALE,run:()=>{setScene('floor',true);goSort()}},
-  {id:'baler',x:5,z:1,key:'roamBaler',can:()=>state.running&&state.bale&&state.scene!=='baler',run:()=>{setScene('sort',true);sendBaler()}},
-  {id:'pallet',x:-5,z:-6,key:'roamPallet',can:()=>state.running&&state.acceptedBales.length>0,run:()=>goPallet()},
-  {id:'truck',x:6,z:-6,key:'roamTruck',can:()=>state.running&&unsoldBales().length>=TRUCK_ARRIVE,run:()=>goTruck()}
+  {id:'floor',x:-6.8,z:5.0,key:'roamFloor',can:()=>state.running,run:()=>setScene('floor')},
+  {id:'sort',x:-1.1,z:-2.55,key:'roamSort',can:()=>state.running&&state.cart.total>=MIN_BALE,run:()=>{setScene('floor',true);goSort()}},
+  {id:'baler',x:5.25,z:3.15,key:'roamBaler',can:()=>state.running&&state.bale&&state.scene!=='baler',run:()=>{setScene('sort',true);sendBaler()}},
+  {id:'pallet',x:-5.4,z:-4.25,key:'roamPallet',can:()=>state.running&&state.acceptedBales.length>0,run:()=>goPallet()},
+  {id:'truck',x:5.95,z:-3.35,key:'roamTruck',can:()=>state.running&&unsoldBales().length>=TRUCK_ARRIVE,run:()=>goTruck()}
 ];
 let three=null;
 const BOSS_WAYPOINTS=[{x:4.2,z:2.2},{x:1.2,z:3.2},{x:-3,z:1.4},{x:2,z:-2.4},{x:4.2,z:2.2}];
+const ROAM_BLOCKERS=[{x:-6.9,z:2.8,r:1.25},{x:-1.1,z:-4.4,r:1.55},{x:5.25,z:1.15,r:1.6},{x:-5.4,z:-6.1,r:1.3},{x:7.9,z:-3.35,r:1.55}];
 const roamKeys={};
 let lookPointer=null,lastLookX=0,lastLookY=0,joyPointer=null,lastJoyX=0,lastJoyY=0,lastFrame=performance.now();
 
@@ -1689,9 +1690,9 @@ function initThree(){
   makeWorker(-3.6, -3.1,0x49695d);makeWorker(-.2,-5.1,0x6b6252);makeWorker(2.6,3.5,0x56636b);
 
   // Workstation signs and physical zone markers.
-  makeLabel(t('roamFloor'),-7.4,3,3.0);makeLabel(t('roamSort'),-1.1,-4.3,2.8);makeLabel(t('roamBaler'),5.2,1.1,3.25);makeLabel(t('roamPallet'),-5.4,-6.1,2.7);makeLabel(t('roamTruck'),7.9,-3.4,3.65);
+  makeLabel(t('roamFloor'),-6.8,5.0,3.0);makeLabel(t('roamSort'),-1.1,-2.55,2.8);makeLabel(t('roamBaler'),5.25,3.15,3.25);makeLabel(t('roamPallet'),-5.4,-4.25,2.7);makeLabel(t('roamTruck'),5.95,-3.35,3.65);
   // Painted zone plates on the floor.
-  for(const [x,z,c] of [[-7.4,3,0x8a754c],[-1.1,-4.3,0x55766b],[5.2,1.1,0x8b6b3d],[-5.4,-6.1,0x6b755e],[7.9,-3.4,0x6c7370]]){
+  for(const [x,z,c] of [[-6.8,5.0,0x8a754c],[-1.1,-2.55,0x55766b],[5.25,3.15,0x8b6b3d],[-5.4,-4.25,0x6b755e],[5.95,-3.35,0x6c7370]]){
     const plate=addBox(2.2,.025,1.25,c,x,.025,z,.92,.05);plate.material.transparent=true;plate.material.opacity=.25;
   }
 
@@ -1727,8 +1728,11 @@ function updateRoamMovement(dt){
   f-=r.joyY;st+=r.joyX;
   const len=Math.hypot(f,st);if(len>1){f/=len;st/=len}
   const speed=2.7,sin=Math.sin(r.yaw),cos=Math.cos(r.yaw);
-  r.x+=(-sin*f+cos*st)*speed*dt;r.z+=(-cos*f-sin*st)*speed*dt;
-  r.x=Math.max(-10.5,Math.min(10.5,r.x));r.z=Math.max(-7.5,Math.min(7.5,r.z));
+  const dx=(-sin*f+cos*st)*speed*dt,dz=(-cos*f-sin*st)*speed*dt;
+  const blocked=(x,z)=>ROAM_BLOCKERS.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+.28);
+  const nx=Math.max(-10.5,Math.min(10.5,r.x+dx)),nz=Math.max(-7.5,Math.min(7.5,r.z+dz));
+  if(!blocked(nx,r.z))r.x=nx;
+  if(!blocked(r.x,nz))r.z=nz;
 }
 function tickThree(){
   requestAnimationFrame(tickThree);if(!three)return;
@@ -1755,7 +1759,7 @@ function tickThree(){
   if(three.baleVisual){
     const m=state.machine||{},visible=!!(state.bale&&m.loaded&&!m.opened);
     three.baleVisual.visible=visible;
-    const compact=m.pressed||m.pressing?0.72:1;
+    const compact=1-.28*Math.min(1,(m.pressure||0)/172);
     three.baleMesh.scale.y+=(compact-three.baleMesh.scale.y)*Math.min(1,dt*4);
     const baleCenter=.42+.46*compact;three.baleVisual.position.y+=(baleCenter-three.baleVisual.position.y)*Math.min(1,dt*4);
     const tied=Math.max(0,Math.min(5,m.tied||0));

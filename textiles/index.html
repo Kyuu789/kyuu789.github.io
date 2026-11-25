@@ -1154,7 +1154,22 @@ function resetTieBoard(){
   $$('.tie-node').forEach(n=>n.classList.remove('active','done','bad'));
   updateTieCount();
 }
-function openTie(){if(!state.machine.pressed)return;resetTieBoard();if(three&&state.scene==='baler'&&three.tieNodeMeshes){state.machine.threeTieMode=true;Object.values(three.tieNodeMeshes).forEach(node=>{node.visible=true;node.scale.setScalar(1)});els.tieLayer.classList.add('hidden');toast(lang==='zh'?'在包体正面的绿点之间拖动，依次穿好五根包带':'Drag between the glowing points on the bale to route all five straps','good')}else els.tieLayer.classList.remove('hidden');AudioSys.tone('clank')}
+function openTie(){
+  if(!state.machine.pressed)return;
+  resetTieBoard();
+  if(three&&state.scene==='baler'&&three.tieNodeMeshes&&three.baleVisual){
+    state.machine.threeTieMode=true;
+    // Reframe the bale so the operator sees its front face, not the side of the press.
+    state.roam.x=5.25;state.roam.z=3.15;state.roam.yaw=0;state.roam.pitch=0;
+    three.baleVisual.visible=true;
+    Object.values(three.tieNodeMeshes).forEach(node=>{node.visible=true;node.scale.setScalar(1.18)});
+    // Show all five physical strap loops while threading; they remain visible as each route is completed.
+    if(three.baleStraps)three.baleStraps.forEach(strap=>{strap.visible=true});
+    els.tieLayer.classList.add('hidden');
+    toast(lang==='zh'?'五根包带已显示：从上排绿点拖到下排对应绿点':'Five straps are visible: drag each upper green node to its matching lower node','good');
+  }else els.tieLayer.classList.remove('hidden');
+  AudioSys.tone('clank');
+}
 function findTieNode(el){return el&&el.closest?el.closest('.tie-node'):null}
 function eventPoint(e){return (e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0])||e}
 function nodeAtPoint(e){
@@ -1760,7 +1775,7 @@ function initThree(){
     const x=-.78+Math.random()*1.56,y=-.44+Math.random()*.88,z=-.56+Math.random()*1.12;
     const m=new THREE.Mesh(new THREE.IcosahedronGeometry(.035+Math.random()*.045,0),baleFuzz);m.position.set(x,y,z);m.scale.set(1.4,.7,1);baleVisual.add(m);
   }
-  const strapMat=mat(0xdbc58a,.55,.15);three.baleStraps=[];three.tieNodeMeshes={};
+  const strapMat=new THREE.MeshStandardMaterial({color:0xf2cf83,roughness:.42,metalness:.12,emissive:0x6b481b,emissiveIntensity:.22});three.baleStraps=[];three.tieNodeMeshes={};
   const tieNodeMat=new THREE.MeshStandardMaterial({color:0x63e0bd,emissive:0x16a987,emissiveIntensity:.7,roughness:.25});
   const tieNodeOrder=['t1','t2','t3','t4','t5','b1','b2','b3','b4','b5'];
   tieNodeOrder.forEach((id,index)=>{const col=index%5,x=-.62+col*.31,y=index<5?.32:-.32;const node=new THREE.Mesh(new THREE.SphereGeometry(.075,14,10),tieNodeMat);node.position.set(x,y,.605);node.visible=false;node.userData.tieNode=id;node.userData.baseScale=1;baleVisual.add(node);three.tieNodeMeshes[id]=node});
@@ -1768,7 +1783,7 @@ function initThree(){
     const x=-.62+i*.31;
     const pts=[[x,.47,-.61],[x,.47,.61],[x,-.47,.61],[x,-.47,-.61],[x,.47,-.61]].map(p=>new THREE.Vector3(...p));
     const curve=new THREE.CatmullRomCurve3(pts,true);
-    const strap=new THREE.Mesh(new THREE.TubeGeometry(curve,48,.027,8,true),strapMat);strap.castShadow=true;strap.visible=false;baleVisual.add(strap);three.baleStraps.push(strap);
+    const strap=new THREE.Mesh(new THREE.TubeGeometry(curve,48,.043,10,true),strapMat);strap.castShadow=true;strap.visible=false;baleVisual.add(strap);three.baleStraps.push(strap);
   }
 
   // Pallet bay: actual timber runners and stacked bales.
@@ -1994,7 +2009,7 @@ function tickThree(){
     three.baleMesh.scale.y+=(compact-three.baleMesh.scale.y)*Math.min(1,dt*4);
     const baleCenter=.42+.46*compact;three.baleVisual.position.y+=(baleCenter-three.baleVisual.position.y)*Math.min(1,dt*4);
     const tied=Math.max(0,Math.min(5,m.tied||0));
-    if(three.baleStraps)three.baleStraps.forEach((strap,i)=>{strap.visible=visible&&i<tied});
+    if(three.baleStraps)three.baleStraps.forEach((strap,i)=>{strap.visible=visible&&(m.threeTieMode||i<tied)});
   }
   three.renderer.render(three.scene,three.camera);
 }

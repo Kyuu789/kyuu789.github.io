@@ -24,6 +24,12 @@ body{min-height:100vh;height:100vh;margin:0;background:radial-gradient(900px 500
 button{font:inherit;color:inherit}
 button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
 .hidden{display:none!important}
+body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(230,174,82,.05),transparent 24%),repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 1px,transparent 1px 84px)}
+.cart-panel,.sort-panel,.console,.end-sheet,.start-card,.pallet-card{border-color:rgba(205,222,210,.28);box-shadow:0 22px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05)}
+.btn{letter-spacing:.1em;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.btn.primary{box-shadow:0 10px 24px rgba(230,174,82,.18),inset 0 1px 0 rgba(255,255,255,.18)}
+.chip,.step{border-radius:3px}
+.tie-guide{position:absolute;inset:0;width:100%;height:100%;z-index:1;opacity:.34;pointer-events:none}
 
 /* HUD */
 #app{position:relative;height:100vh;height:100svh;display:grid;grid-template-rows:70px minmax(0,1fr)}
@@ -168,7 +174,7 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
 .wire{position:absolute;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,210,158,.8);background:radial-gradient(circle,rgba(230,174,82,.2),rgba(0,0,0,.6));cursor:pointer}
 .wire.done{border-color:var(--green);background:rgba(131,182,157,.55)}
 .wire.done::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:160px;background:linear-gradient(180deg,var(--green),rgba(131,182,157,.1))}
-.wire.w1{left:27%;top:40%}.wire.w2{left:41%;top:40%}.wire.w3{left:55%;top:40%}.wire.w4{left:69%;top:40%}
+.wire.w1{left:21%;top:38%}.wire.w2{left:28%;top:38%}.wire.w3{left:47%;top:38%}.wire.w4{left:66%;top:38%}.wire.w5{left:73%;top:38%}
 .tie-foot{font-size:10px;line-height:1.5;color:var(--muted);padding:10px 2px 2px}
 .result-card{width:min(760px,94vw);display:grid;grid-template-columns:235px minmax(0,1fr);background:#0b1513;border:1px solid rgba(205,222,210,.3);box-shadow:0 26px 80px rgba(0,0,0,.58);overflow:hidden}
 .result-card>img{width:100%;height:100%;min-height:300px;object-fit:cover;filter:saturate(.78) contrast(1.05) brightness(.74)}
@@ -193,6 +199,63 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
 .pallet-card p{margin:0;color:var(--muted);font-family:var(--mono);font-size:12px}
 .pallet-row{display:flex;gap:7px;justify-content:center;margin:14px 0;flex-wrap:wrap}
 .pallet-row span{width:42px;height:30px;border:1px solid rgba(131,182,157,.4);background:rgba(131,182,157,.12);font-family:var(--mono);font-size:10px;display:grid;place-items:center}
+
+/* Boot loader */
+#bootScreen{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:radial-gradient(900px 500px at 50% -20%,#183029 0%,#07100e 58%,#040807 100%);transition:opacity .35s ease,visibility .35s ease}
+#bootScreen.loaded{opacity:0;visibility:hidden;pointer-events:none}
+.boot-box{width:min(360px,86vw);text-align:center}
+.boot-mark{width:58px;height:58px;margin:0 auto 16px;border:1px solid rgba(230,174,82,.55);display:grid;place-items:center;font-family:var(--mono);font-size:31px;font-weight:700;color:var(--amber2);background:linear-gradient(135deg,rgba(230,174,82,.18),rgba(230,174,82,.02));box-shadow:inset 0 0 22px rgba(230,174,82,.12)}
+.boot-box h2{margin:0 0 8px;font-size:23px;letter-spacing:.16em}
+.boot-box p{margin:0 0 18px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--muted)}
+.boot-bar{height:5px;background:rgba(255,255,255,.08);overflow:hidden}
+.boot-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--amber));transition:width .25s ease}
+.boot-box b{display:block;margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--amber2)}
+
+/* Worker / boss / idle */
+.worker-figure{position:absolute;right:250px;bottom:24px;z-index:2;width:280px;height:176px;object-fit:cover;object-position:20% 50%;opacity:.42;border:1px solid rgba(255,255,255,.1);mask-image:linear-gradient(90deg,transparent,#000 35%,#000 80%,transparent)}
+.boss-panel{position:absolute;left:24px;top:74px;bottom:auto;z-index:8;display:flex;gap:11px;width:286px;padding:11px;border:1px solid rgba(205,222,210,.25);background:linear-gradient(145deg,rgba(10,19,17,.93),rgba(8,14,13,.86));box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+.boss-panel.watching{border-color:rgba(217,97,80,.72)}
+.boss-panel img{width:74px;height:96px;object-fit:cover;object-position:50% 20%;border:1px solid rgba(255,255,255,.12);filter:saturate(.78) brightness(.82)}
+.boss-panel.watching img{filter:saturate(.9) brightness(.72) sepia(.12)}
+.boss-body{flex:1;min-width:0}
+.boss-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.boss-head b{font-size:14px;letter-spacing:.12em}
+.boss-head span{font-family:var(--mono);font-size:10px;color:var(--muted);padding:2px 6px;border:1px solid rgba(255,255,255,.12)}
+.boss-panel.watching .boss-head span{color:#f1b3aa;border-color:rgba(217,97,80,.55);background:rgba(217,97,80,.1)}
+.boss-task{font-size:11px;line-height:1.4;color:rgba(236,232,220,.86);min-height:31px}
+.boss-gauge{height:5px;background:rgba(255,255,255,.08);margin:7px 0 6px;overflow:hidden}
+.boss-gauge i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--amber));transition:width .2s ease}
+.boss-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted)}
+.idle-bar{position:absolute;left:50%;bottom:24px;z-index:8;display:flex;gap:8px;transform:translateX(-50%);padding:7px;border:1px solid rgba(205,222,210,.2);border-radius:10px;background:linear-gradient(180deg,rgba(8,16,14,.86),rgba(8,16,14,.78)),url('assets/break.jpg') center/cover;backdrop-filter:blur(8px)}
+.idle-btn{min-height:38px;padding:0 12px;border:1px solid rgba(205,222,210,.24);background:rgba(10,19,17,.86);color:var(--text);cursor:pointer;font-size:11px;letter-spacing:.06em;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.idle-btn:hover{border-color:rgba(230,174,82,.7)}
+.idle-btn.danger{border-color:rgba(217,97,80,.6);color:#f0b0a7}
+
+/* Phone */
+.phone-layer{position:absolute;inset:0;z-index:40;display:grid;place-items:center;background:rgba(2,7,6,.78);backdrop-filter:blur(10px)}
+.phone{position:relative;width:340px;max-width:90vw;height:680px;max-height:92vh;border:1px solid rgba(213,226,215,.28);border-radius:26px;background:#050a09;box-shadow:0 30px 90px rgba(0,0,0,.7);overflow:hidden}
+.phone-status{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.75)}
+.phone-screen{height:calc(100% - 34px);padding:12px;overflow:auto}
+.phone-close{position:absolute;left:13px;top:42px;z-index:3;width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.5);color:#fff;cursor:pointer}
+.phone-home{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:22px 8px}
+.app-card{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.05);border-radius:18px;padding:22px 12px;text-align:center;cursor:pointer}
+.app-card .app-icon{font-size:34px;margin-bottom:8px}
+.app-card b{display:block;font-size:12px;letter-spacing:.08em}
+.app-card span{font-size:9px;color:var(--muted)}
+.phone-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-left:38px}
+.phone-title b{font-size:15px}
+.phone-title button{border:0;background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
+.chat-list{display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+.chat-msg{max-width:78%;padding:9px 11px;border-radius:13px;font-size:12px;line-height:1.5;background:rgba(255,255,255,.08)}
+.chat-msg.me{align-self:flex-end;background:rgba(76,144,104,.32)}
+.chat-row{display:flex;gap:8px}
+.phone-input{display:flex;gap:7px;padding-top:10px}
+.phone-input input{flex:1;min-width:0;height:38px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--text);padding:0 10px;font:inherit}
+.douyin-card{position:relative;height:calc(100% - 20px);border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.12)}
+.douyin-card img{width:100%;height:100%;object-fit:cover;filter:saturate(.85) brightness(.72)}
+.douyin-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.68));padding:16px;display:flex;flex-direction:column;justify-content:flex-end}
+.douyin-side{position:absolute;right:12px;bottom:86px;display:flex;flex-direction:column;gap:14px;text-align:center;font-family:var(--mono);font-size:10px}
+.douyin-side button{width:34px;height:34px;border:1px solid rgba(255,255,255,.25);border-radius:50%;background:rgba(0,0,0,.32);color:#fff;cursor:pointer}
 
 /* End */
 .end-sheet{position:absolute;left:24px;top:22px;bottom:auto;max-height:calc(100% - 46px);z-index:5;width:min(680px,calc(100vw - 48px));padding:26px 27px;border:1px solid rgba(205,222,210,.3);background:rgba(7,14,13,.88);backdrop-filter:blur(14px);box-shadow:var(--shadow);overflow:auto}
@@ -265,12 +328,19 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
   .pile-deck{left:12px;right:12px;bottom:118px;grid-template-columns:repeat(3,1fr);gap:6px}
   .pile-card{width:auto;height:132px}.pile-card img{height:78px}.pile-card::after{height:78px}
   .pile-caption{font-size:10px;left:7px;top:7px}.pile-card b{font-size:20px;left:7px;bottom:7px}.pile-plus{width:24px;height:24px;right:6px;bottom:6px;font-size:14px}
-  .cart-panel,.sort-panel{left:12px;right:12px;bottom:12px;width:auto;padding:10px 11px 11px}
+  .cart-panel,.sort-panel{left:12px;right:12px;bottom:72px;width:auto;padding:10px 11px 11px}
   .cart-head span{font-size:9px}.cart-head b{font-size:30px}.cart-meta{font-size:9px}
+  .worker-figure{right:12px;width:180px;height:120px;bottom:78px;opacity:.28}
+  .boss-panel{left:12px;right:12px;top:62px;bottom:auto;width:auto;gap:9px;padding:8px 9px}
+  .boss-panel img{width:54px;height:72px}
+  .boss-task{min-height:26px;font-size:10px}
+  .idle-bar{bottom:12px;gap:6px}
+  .idle-btn{min-height:34px;padding:0 9px;font-size:10px}
+  .phone{height:88vh;border-radius:20px}
   .machine-readout{left:12px;top:36px;bottom:auto;width:auto;min-width:156px;padding:6px 9px 7px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
   .machine-readout span{display:none}.machine-readout b{font-size:24px}.machine-readout #baleBatch{font-size:9px;margin:0}
   .safety{right:12px;top:10px;padding:7px 9px;font-size:9px}
-  .console{left:12px;right:12px;bottom:12px;width:auto;max-height:63%;padding:11px;overflow:auto}
+  .console{left:12px;right:12px;bottom:64px;width:auto;max-height:63%;padding:11px;overflow:auto}
   .sort-item{width:48px;height:48px}
   .panel-inset{grid-template-columns:1fr 58px}.panel-inset img{height:46px}
   .steps{gap:6px}.step{min-height:43px;font-size:10px;padding:6px 7px 6px 29px}.step>span:first-child{left:8px;font-size:10px}.console-foot{font-size:9px;margin-top:7px}
@@ -286,6 +356,16 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
 </style>
 </head>
 <body>
+<div id="bootScreen">
+  <div class="boot-box">
+    <div class="boot-mark">W</div>
+    <h2>纺织厂废毛打包</h2>
+    <p data-i18n="bootLoading">正在加载车间素材…</p>
+    <div class="boot-bar"><i id="bootFill"></i></div>
+    <b id="bootPct">0%</b>
+  </div>
+</div>
+
 <div id="app">
   <header class="hud">
     <div class="brand">
@@ -305,7 +385,8 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
     <div class="stats">
       <div class="stat"><span data-i18n="qualified">合格</span><strong><em id="qualified">0</em><small>/6</small></strong></div>
       <div class="stat"><span data-i18n="output">产量</span><strong><em id="output">0</em><small>kg</small></strong></div>
-      <div class="stat"><span data-i18n="stock">丝道</span><strong id="wireHud">12</strong></div>
+      <div class="stat"><span data-i18n="wage">工资</span><strong><em id="wage">0</em><small>¥</small></strong></div>
+      <div class="stat"><span data-i18n="stock">丝道</span><strong id="wireHud">30</strong></div>
     </div>
     <div class="hud-tools">
       <button class="tool-btn" id="langBtn" aria-label="language">EN</button>
@@ -319,8 +400,9 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
       <img class="backdrop" src="assets/floor.jpg" alt="textile mill floor">
       <div class="vignette"></div>
       <div class="station"><b>01</b><span data-i18n="stationFloor">收毛区</span><small>FLOOR / RECOVERY</small></div>
-      <div class="floor-note" data-i18n="floorNote">点料堆装车 · 7–9 次 = 70–90kg</div>
+      <div class="floor-note" data-i18n="floorNote">点料堆装车 · 10–13 次 = 150–190kg</div>
       <div class="pile-deck" id="pileDeck"></div>
+      <img class="worker-figure" src="assets/worker.jpg" alt="worker first-person view">
       <aside class="cart-panel" id="cartPanel">
         <div class="cart-head"><span data-i18n="cart">周转车 / CART</span><b id="cartWeight">0<small>kg</small></b></div>
         <div class="cart-gauge"><i id="cartFill"></i></div>
@@ -359,7 +441,7 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
       <aside class="console">
         <div class="console-head"><span data-i18n="control">控制台 / CONTROL</span><b id="machineState">—</b></div>
         <div class="chips">
-          <span class="chip" id="wireChip"><span data-i18n="wireStock">丝道</span> <b id="wireStock">12</b></span>
+          <span class="chip" id="wireChip"><span data-i18n="wireStock">丝道</span> <b id="wireStock">30</b></span>
           <span class="chip" id="gradeChip"><span data-i18n="gradeChip">品级</span> <b id="consoleGrade">—</b></span>
         </div>
         <div class="panel-inset"><img src="assets/control-panel.jpg" alt="control panel"><img src="assets/gauge.jpg" alt="pressure gauge"></div>
@@ -371,7 +453,7 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
           <button class="step" id="feedBtn"><span>01</span><span data-i18n="feed">倒料</span></button>
           <button class="step" id="closeBtn" disabled><span>02</span><span data-i18n="close">关门</span></button>
           <button class="step" id="pressBtn" disabled><span>03</span><span data-i18n="press">下压</span></button>
-          <button class="step" id="tieBtn" disabled><span>04</span><span data-i18n="tie">穿丝</span> <b id="tieCount">0/4</b></button>
+          <button class="step" id="tieBtn" disabled><span>04</span><span data-i18n="tie">穿丝</span> <b id="tieCount">0/5</b></button>
           <button class="step" id="ejectBtn" disabled><span>05</span><span data-i18n="eject">出包</span></button>
         </div>
         <div class="stuck-alert hidden" id="stuckAlert"><span data-i18n="stuck">压仓卡毛</span><button id="clearStuck" data-i18n="clear">清理</button></div>
@@ -380,15 +462,23 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
 
       <div class="tie-layer hidden" id="tieLayer">
         <div class="tie-card">
-          <div class="tie-head"><span data-i18n="wire">打包丝 / WIRE</span><b data-i18n="fourTies">穿 4 道</b><small id="tieProgress">0 / 4</small></div>
+          <div class="tie-head"><span data-i18n="wire">打包丝 / WIRE</span><b data-i18n="fourTies">穿 5 道</b><small id="tieProgress">0 / 5</small></div>
           <div class="tie-photo">
             <img src="assets/bale-tie.jpg" alt="bale ties">
-            <button class="wire w1" data-wire="0" aria-label="wire 1"></button>
-            <button class="wire w2" data-wire="1" aria-label="wire 2"></button>
-            <button class="wire w3" data-wire="2" aria-label="wire 3"></button>
-            <button class="wire w4" data-wire="3" aria-label="wire 4"></button>
+            <svg class="tie-guide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <line x1="18" y1="24" x2="34" y2="76" stroke="#f3cc82" stroke-width="1.6"/>
+              <line x1="34" y1="24" x2="18" y2="76" stroke="#f3cc82" stroke-width="1.6"/>
+              <line x1="50" y1="18" x2="50" y2="82" stroke="#f3cc82" stroke-width="1.8"/>
+              <line x1="66" y1="24" x2="82" y2="76" stroke="#f3cc82" stroke-width="1.6"/>
+              <line x1="82" y1="24" x2="66" y2="76" stroke="#f3cc82" stroke-width="1.6"/>
+            </svg>
+            <button class="wire w1" data-wire="0" aria-label="left cross strap 1"></button>
+            <button class="wire w2" data-wire="1" aria-label="left cross strap 2"></button>
+            <button class="wire w3" data-wire="2" aria-label="center strap"></button>
+            <button class="wire w4" data-wire="3" aria-label="right cross strap 1"></button>
+            <button class="wire w5" data-wire="4" aria-label="right cross strap 2"></button>
           </div>
-          <div class="tie-foot" data-i18n="tieHint">依次点击四道丝扣。少一道，包在出箱时会散。</div>
+          <div class="tie-foot" data-i18n="tieHint">按 X | X 穿五根包带：两侧交叉，中间直带；少一根容易散包。</div>
         </div>
       </div>
 
@@ -437,11 +527,38 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
           <div><span data-i18n="caught">挑出异物</span><b id="endCaught">0</b></div>
           <div><span data-i18n="defects">故障/失误</span><b id="endDefects">0</b></div>
           <div><span data-i18n="safety">安全</span><b id="endSafety">100</b></div>
+          <div><span data-i18n="wage">工资</span><b id="endWage">0<small>¥</small></b></div>
+          <div><span data-i18n="caughtBoss">被抓摸鱼</span><b id="endCaughtBoss">0</b></div>
+          <div><span data-i18n="tasksDone">完成任务</span><b id="endTasks">0</b></div>
         </div>
         <div class="end-tags" id="endTags"></div>
         <button class="btn primary full" id="againBtn" data-i18n="again">再来一班</button>
       </div>
     </section>
+
+    <aside class="boss-panel" id="bossPanel">
+      <img id="bossImg" src="assets/boss.jpg" alt="boss">
+      <div class="boss-body">
+        <div class="boss-head"><b data-i18n="boss">老板</b><span id="bossState">背身</span></div>
+        <div class="boss-task" id="bossTask">—</div>
+        <div class="boss-gauge"><i id="bossTaskFill"></i></div>
+        <div class="boss-meta"><span id="bossTaskTime">0s</span><span id="bossTaskProg">0/0</span></div>
+      </div>
+    </aside>
+
+    <div class="idle-bar">
+      <button class="idle-btn" id="waterBtn" data-i18n="water">喝水</button>
+      <button class="idle-btn" id="snackBtn" data-i18n="snack">吃东西</button>
+      <button class="idle-btn" id="phoneBtn" data-i18n="phone">手机</button>
+    </div>
+
+    <div class="phone-layer hidden" id="phoneLayer">
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>●●● 5G</span></div>
+        <div class="phone-screen" id="phoneScreen"></div>
+        <button class="phone-close" id="phoneClose" aria-label="close phone">✕</button>
+      </div>
+    </div>
 
     <div class="fade" id="fade"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -456,7 +573,7 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
     <p class="start-sub" data-i18n="startSub">把地上的废毛，压成能上垛的包。</p>
     <div class="specs">
       <div><span data-i18n="target">目标</span><b>6<small data-i18n="bales">包</small></b></div>
-      <div><span data-i18n="baleSize">单包</span><b>70–90<small>kg</small></b></div>
+      <div><span data-i18n="baleSize">单包</span><b>150–190<small>kg</small></b></div>
       <div><span data-i18n="shiftTime">班时</span><b>5<small>min</small></b></div>
     </div>
     <div class="start-flow">
@@ -476,10 +593,18 @@ const MATERIALS = {
   oldC:{zh:'旧布 C',en:'Old cloth C',shortZh:'旧布头',shortEn:'Cut cloth',img:'sort-facility.jpg',grade:'C',gradeVal:58,color:'old'},
   mixedC:{zh:'杂色 C',en:'Mixed C',shortZh:'地脚毛',shortEn:'Floor sweep',img:'pile-mixed.jpg',grade:'C',gradeVal:55,color:'mixed'}
 };
-const SHIFT_SECONDS=300, TARGET_BALES=6, MIN_BALE=70, MAX_BALE=90, UNIT_KG=10, WIRE_PER_BALE=4;
+const SHIFT_SECONDS=300, TARGET_BALES=6, MIN_BALE=150, MAX_BALE=190, UNIT_KG=15, WIRE_PER_BALE=5, CART_CAP=200;
+const BOOT_ASSETS=['floor.jpg','pile-white.jpg','pile-dark.jpg','pile-mixed.jpg','baler.jpg','bale-tie.jpg','bale-result.jpg','warehouse.jpg','sort-table.jpg','sort-conveyor.jpg','sort-facility.jpg','pallet-rows.jpg','pallet-round.jpg','control-panel.jpg','gauge.jpg','worker.jpg','boss.jpg','douyin-cover.jpg','break.jpg'];
+const TASK_TYPES=[
+  {id:'bales',key:'taskBales',target:2,progress:()=>state.qualified},
+  {id:'sort',key:'taskSort',target:8,progress:()=>state.caught},
+  {id:'jam',key:'taskJam',target:2,progress:()=>state.jamsCleared},
+  {id:'straps',key:'taskStraps',target:10,progress:()=>state.strapsTied},
+  {id:'load',key:'taskLoad',target:300,progress:()=>state.loadedKg}
+];
 const I18N = {
-  zh:{appTitle:'废毛打包间',clock:'班次',remaining:'剩余',qualified:'合格',output:'产量',stock:'丝道',stationFloor:'收毛区',stationSort:'分拣台',stationBaler:'液压打包',floorNote:'点料堆装车 · 7–9 次 = 70–90kg',cart:'周转车 / CART',empty:'空车',foreign0:'异物 0',toSort:'去分拣台',sortTitle:'分拣 / SORT',weight:'重量',grade:'品级',purity:'挑出',left:'遗留',sendBaler:'送入打包机',chamber:'压仓 / CHAMBER',gate:'安全门',control:'控制台 / CONTROL',pressure:'液压压力',feed:'倒料',close:'关门',press:'下压',repress:'补压',tie:'穿丝',eject:'出包',stuck:'压仓卡毛',clear:'清理',wire:'打包丝 / WIRE',fourTies:'穿 4 道',tieHint:'依次点击四道丝扣。少一道，包在出箱时会散。',quality:'品质',scoreWeight:'重量',scorePurity:'纯净',scoreGrade:'品级',scoreBind:'打包',palletKicker:'PALLET BAY',of6:'/ 6 包合格',avg:'平均包重',rejected:'返工包',caught:'挑出异物',defects:'故障/失误',safety:'安全',endTitleDone:'目标达成 · 可以交班',endTitleEnd:'本班结束 · 还差一截',startSub:'把地上的废毛，压成能上垛的包。',target:'目标',bales:'包',baleSize:'单包',shiftTime:'班时',flow1:'收集',flow2:'分拣',flow3:'液压打包',flow4:'穿丝',flow5:'码垛',start:'接班',again:'再来一班',wireStock:'丝道',gradeChip:'品级',emptyBatch:'空车',mixColor:'混色',empty0:'—'},
-  en:{appTitle:'Waste Wool Shift',clock:'Shift',remaining:'Left',qualified:'Pass',output:'Output',stock:'Wires',stationFloor:'Recovery',stationSort:'Sorting',stationBaler:'Hydraulic Baler',floorNote:'Click piles to load · 7–9 loads = 70–90kg',cart:'CART',empty:'Empty cart',foreign0:'Contaminants 0',toSort:'To sorting line',sortTitle:'SORTING LINE',weight:'Weight',grade:'Grade',purity:'Picked',left:'Left',sendBaler:'Send to baler',chamber:'CHAMBER',gate:'Gate',control:'CONTROL',pressure:'Hydraulic pressure',feed:'Load',close:'Close gate',press:'Press down',repress:'Repress',tie:'Tie',eject:'Eject',stuck:'Fiber jam',clear:'Clear',wire:'BALE WIRE',fourTies:'Tie 4 wires',tieHint:'Click the four ties in order. A loose tie will split the bale.',quality:'Quality',scoreWeight:'Weight',scorePurity:'Purity',scoreGrade:'Grade',scoreBind:'Binding',palletKicker:'PALLET BAY',of6:'/ 6 bales passed',avg:'Avg bale',rejected:'Rejected',caught:'Contaminants',defects:'Faults',safety:'Safety',endTitleDone:'Shift target met',endTitleEnd:'Shift ended · short of target',startSub:'Press loose mill waste into stackable bales.',target:'Target',bales:'bales',baleSize:'Bale',shiftTime:'Shift',flow1:'Collect',flow2:'Sort',flow3:'Bale',flow4:'Tie',flow5:'Stack',start:'Start shift',again:'Next shift',wireStock:'Wires',gradeChip:'Grade',emptyBatch:'Empty cart',mixColor:'Mixed color',empty0:'—'}
+  zh:{appTitle:'废毛打包间',clock:'班次',remaining:'剩余',qualified:'合格',output:'产量',stock:'丝道',stationFloor:'收毛区',stationSort:'分拣台',stationBaler:'液压打包',floorNote:'点料堆装车 · 10–13 次 = 150–190kg',cart:'周转车 / CART',empty:'空车',foreign0:'异物 0',toSort:'去分拣台',sortTitle:'分拣 / SORT',weight:'重量',grade:'品级',purity:'挑出',left:'遗留',sendBaler:'送入打包机',chamber:'压仓 / CHAMBER',gate:'安全门',control:'控制台 / CONTROL',pressure:'液压压力',feed:'倒料',close:'关门',press:'下压',repress:'补压',tie:'穿丝',eject:'出包',stuck:'压仓卡毛',clear:'清理',wire:'打包丝 / WIRE',fourTies:'穿 5 道',tieHint:'按 X | X 穿五根包带：先左交叉，再中直带，后右交叉；排列越正越不容易散包。',quality:'品质',scoreWeight:'重量',scorePurity:'纯净',scoreGrade:'品级',scoreBind:'打包',palletKicker:'PALLET BAY',of6:'/ 6 包合格',avg:'平均包重',rejected:'返工包',caught:'挑出异物',defects:'故障/失误',safety:'安全',endTitleDone:'目标达成 · 可以交班',endTitleEnd:'本班结束 · 还差一截',startSub:'把地上的废毛，压成能上垛的包。',target:'目标',bales:'包',baleSize:'单包',shiftTime:'班时',flow1:'收集',flow2:'分拣',flow3:'液压打包',flow4:'穿丝',flow5:'码垛',start:'接班',again:'再来一班',wireStock:'丝道',gradeChip:'品级',emptyBatch:'空车',mixColor:'混色',empty0:'—',bootLoading:'正在加载车间素材…',wage:'工资',boss:'老板',water:'喝水',snack:'吃东西',phone:'手机',caughtBoss:'被抓摸鱼',tasksDone:'完成任务',taskBales:'合格打包',taskSort:'挑净异物',taskJam:'清理卡毛',taskStraps:'完成穿丝',taskLoad:'装车产量',bossAway:'背身摸鱼',bossWatch:'正在巡视',taskDone:'任务完成 · 加工资',taskMiss:'任务超时 · 扣工资加派',caughtMsg:'被老板发现摸鱼 · 扣工资加任务',phoneHome:'手机桌面',wechat:'微信',douyin:'抖音',wife:'老婆',send:'发送',like:'点赞',comment:'评论',drinkMsg:'喝口水缓一缓',snackMsg:'吃口饼干垫肚子'},
+  en:{appTitle:'Waste Wool Shift',clock:'Shift',remaining:'Left',qualified:'Pass',output:'Output',stock:'Wires',stationFloor:'Recovery',stationSort:'Sorting',stationBaler:'Hydraulic Baler',floorNote:'Click piles to load · 10–13 loads = 150–190kg',cart:'CART',empty:'Empty cart',foreign0:'Contaminants 0',toSort:'To sorting line',sortTitle:'SORTING LINE',weight:'Weight',grade:'Grade',purity:'Picked',left:'Left',sendBaler:'Send to baler',chamber:'CHAMBER',gate:'Gate',control:'CONTROL',pressure:'Hydraulic pressure',feed:'Load',close:'Close gate',press:'Press down',repress:'Repress',tie:'Tie',eject:'Eject',stuck:'Fiber jam',clear:'Clear',wire:'BALE WIRE',fourTies:'Tie 5 wires',tieHint:'Tie five straps in an X | X pattern: left cross, center strap, right cross; a clean layout keeps the bale tight.',quality:'Quality',scoreWeight:'Weight',scorePurity:'Purity',scoreGrade:'Grade',scoreBind:'Binding',palletKicker:'PALLET BAY',of6:'/ 6 bales passed',avg:'Avg bale',rejected:'Rejected',caught:'Contaminants',defects:'Faults',safety:'Safety',endTitleDone:'Shift target met',endTitleEnd:'Shift ended · short of target',startSub:'Press loose mill waste into stackable bales.',target:'Target',bales:'bales',baleSize:'Bale',shiftTime:'Shift',flow1:'Collect',flow2:'Sort',flow3:'Bale',flow4:'Tie',flow5:'Stack',start:'Start shift',again:'Next shift',wireStock:'Wires',gradeChip:'Grade',emptyBatch:'Empty cart',mixColor:'Mixed color',empty0:'—',bootLoading:'Loading shift assets…',wage:'Wage',boss:'Boss',water:'Water',snack:'Snack',phone:'Phone',caughtBoss:'Caught idle',tasksDone:'Tasks done',taskBales:'Qualified bales',taskSort:'Catch waste',taskJam:'Clear jams',taskStraps:'Tie straps',taskLoad:'Load cart',bossAway:'Back turned',bossWatch:'Watching',taskDone:'Task done · bonus',taskMiss:'Task missed · pay cut',caughtMsg:'Caught slacking · pay cut and extra task',phoneHome:'Phone',wechat:'WeChat',douyin:'TikTok',wife:'Wife',send:'Send',like:'Like',comment:'Comment',drinkMsg:'Take a sip',snackMsg:'Bite a biscuit'}
 };
 let lang = localStorage.getItem('tw-lang') || 'zh';
 const t = k => (I18N[lang]&&I18N[lang][k]) || I18N.zh[k] || k;
@@ -487,8 +612,11 @@ const t = k => (I18N[lang]&&I18N[lang][k]) || I18N.zh[k] || k;
 const state = {
   started:false,running:false,finished:false,scene:'floor',remaining:SHIFT_SECONDS,
   cart:{total:0,materials:{},colors:{}},sortItems:[],missed:0,caught:0,defects:0,
-  bale:null,machine:{loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false},
-  wireStock:12,qualified:0,output:0,rejected:0,acceptedWeights:[],acceptedBales:[],
+  bale:null,machine:{loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],arrangeSkew:false},
+  wireStock:30,qualified:0,output:0,rejected:0,acceptedWeights:[],acceptedBales:[],
+  wage:0,caughtCount:0,tasksDone:0,tasksMissed:0,loadedKg:0,jamsCleared:0,strapsTied:0,
+  boss:{watching:false,phaseLeft:4,task:null,extraTasks:0},
+  phoneOpen:false,phoneApp:'home',
   musicOn:localStorage.getItem('tw-music')!=='0',sfxOn:localStorage.getItem('tw-sfx')!=='0'
 };
 
@@ -505,6 +633,9 @@ const els={
   scoreWeight:$('#scoreWeight'),scorePurity:$('#scorePurity'),scoreGrade:$('#scoreGrade'),scoreBind:$('#scoreBind'),scoreWeightV:$('#scoreWeightV'),scorePurityV:$('#scorePurityV'),scoreGradeV:$('#scoreGradeV'),scoreBindV:$('#scoreBindV'),
   palletTitle:$('#palletTitle'),palletMeta:$('#palletMeta'),palletRow:$('#palletRow'),
   endKicker:$('#endKicker'),endQualified:$('#endQualified'),endOutput:$('#endOutput'),endAvg:$('#endAvg'),endRejects:$('#endRejects'),endCaught:$('#endCaught'),endDefects:$('#endDefects'),endSafety:$('#endSafety'),endGrade:$('#endGrade'),endTitle:$('#endTitle'),endTags:$('#endTags'),againBtn:$('#againBtn'),
+  wage:$('#wage'),bossPanel:$('#bossPanel'),bossState:$('#bossState'),bossTask:$('#bossTask'),bossTaskFill:$('#bossTaskFill'),bossTaskTime:$('#bossTaskTime'),bossTaskProg:$('#bossTaskProg'),idleBar:$('.idle-bar'),
+  waterBtn:$('#waterBtn'),snackBtn:$('#snackBtn'),phoneBtn:$('#phoneBtn'),phoneLayer:$('#phoneLayer'),phoneScreen:$('#phoneScreen'),phoneClose:$('#phoneClose'),
+  endWage:$('#endWage'),endCaughtBoss:$('#endCaughtBoss'),endTasks:$('#endTasks'),bootFill:$('#bootFill'),bootPct:$('#bootPct'),
   fade:$('#fade'),toast:$('#toast'),startModal:$('#startModal'),startBtn:$('#startBtn'),langBtn:$('#langBtn'),musicBtn:$('#musicBtn'),sfxBtn:$('#sfxBtn')
 };
 let timerId=null, musicTimer=null, palletTimer=null;
@@ -514,7 +645,13 @@ const AudioSys={
   ctx:null,master:null,musicGain:null,sfxGain:null,noise:null,musicNodes:[],
   ensure(){
     if(!this.ctx){
-      try{this.ctx=new (window.AudioContext||window.webkitAudioContext)(); this.master=this.ctx.createGain(); this.master.gain.value=.9; this.master.connect(this.ctx.destination); this.musicGain=this.ctx.createGain(); this.musicGain.gain.value=.16; this.musicGain.connect(this.master); this.sfxGain=this.ctx.createGain(); this.sfxGain.gain.value=.55; this.sfxGain.connect(this.master);}catch(e){this.ctx=null}
+      try{
+        this.ctx=new (window.AudioContext||window.webkitAudioContext)();
+        const comp=this.ctx.createDynamicsCompressor(); comp.threshold.value=-18; comp.ratio.value=4; comp.connect(this.ctx.destination);
+        this.master=this.ctx.createGain(); this.master.gain.value=1; this.master.connect(comp);
+        this.musicGain=this.ctx.createGain(); this.musicGain.gain.value=.36; this.musicGain.connect(this.master);
+        this.sfxGain=this.ctx.createGain(); this.sfxGain.gain.value=.96; this.sfxGain.connect(this.master);
+      }catch(e){this.ctx=null}
     }
     if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume();
     return !!this.ctx;
@@ -529,39 +666,39 @@ const AudioSys={
     if(!state.sfxOn||!this.ensure())return;
     const now=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
     o.connect(g); g.connect(this.sfxGain);
-    let f=380,d=.06,type='square',v=.025;
-    if(kind==='bag'){f=120;d=.12;type='triangle';v=.05}
-    if(kind==='clank'){f=220;d=.13;type='triangle';v=.04}
-    if(kind==='scrape'){f=520;d=.16;type='sawtooth';v=.02}
-    if(kind==='pick'){f=720;d=.07;type='square';v=.025}
-    if(kind==='pump'){f=120;d=.55;type='sawtooth';v=.03}
-    if(kind==='tick'){f=900;d=.04;type='square';v=.018}
-    if(kind==='wire'){f=640;d=.1;type='square';v=.025}
-    if(kind==='snap'){f=180;d=.12;type='square';v=.035}
-    if(kind==='good'){f=520;d=.18;type='sine';v=.045}
-    if(kind==='bad'){f=150;d=.26;type='sawtooth';v=.04}
-    if(kind==='thud'){f=70;d=.18;type='triangle';v=.06}
+    let f=380,d=.06,type='square',v=.07;
+    if(kind==='bag'){f=120;d=.12;type='triangle';v=.12}
+    if(kind==='clank'){f=220;d=.13;type='triangle';v=.11}
+    if(kind==='scrape'){f=520;d=.16;type='sawtooth';v=.06}
+    if(kind==='pick'){f=720;d=.07;type='square';v=.07}
+    if(kind==='pump'){f=120;d=.55;type='sawtooth';v=.085}
+    if(kind==='tick'){f=900;d=.04;type='square';v=.055}
+    if(kind==='wire'){f=640;d=.1;type='square';v=.075}
+    if(kind==='snap'){f=180;d=.12;type='square';v=.095}
+    if(kind==='good'){f=520;d=.18;type='sine';v=.105}
+    if(kind==='bad'){f=150;d=.26;type='sawtooth';v=.09}
+    if(kind==='thud'){f=70;d=.18;type='triangle';v=.13}
     o.type=type; o.frequency.setValueAtTime(f,now);
     if(kind==='pump') o.frequency.exponentialRampToValueAtTime(58,now+d);
     if(kind==='snap') o.frequency.exponentialRampToValueAtTime(70,now+d);
     g.gain.setValueAtTime(v,now); g.gain.exponentialRampToValueAtTime(.0001,now+d);
     o.start(now); o.stop(now+d);
-    if(kind==='good'){const o2=this.ctx.createOscillator(),g2=this.ctx.createGain();o2.connect(g2);g2.connect(this.sfxGain);o2.type='sine';o2.frequency.setValueAtTime(780,now+.08);g2.gain.setValueAtTime(.035,now+.08);g2.gain.exponentialRampToValueAtTime(.0001,now+.3);o2.start(now+.08);o2.stop(now+.3)}
+    if(kind==='good'){const o2=this.ctx.createOscillator(),g2=this.ctx.createGain();o2.connect(g2);g2.connect(this.sfxGain);o2.type='sine';o2.frequency.setValueAtTime(780,now+.08);g2.gain.setValueAtTime(.09,now+.08);g2.gain.exponentialRampToValueAtTime(.0001,now+.3);o2.start(now+.08);o2.stop(now+.3)}
     if(kind==='bad'&&navigator.vibrate) navigator.vibrate([18,50,18]); else if(navigator.vibrate) navigator.vibrate(10);
   },
   startMusic(){
     if(!state.musicOn||!this.ensure())return; this.stopMusic();
     const c=this.ctx;
     const mk=(type,f,vol,dest=this.musicGain)=>{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;g.gain.value=vol;o.connect(g);g.connect(dest);o.start();this.musicNodes.push(o,g);return o};
-    mk('sine',55,.16); mk('sine',82.5,.08); mk('triangle',110,.035);
+    mk('sine',55,.27); mk('sine',82.5,.15); mk('triangle',110,.07);
     const n=c.createBufferSource(); n.buffer=this.noiseBuffer(); n.loop=true;
-    const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=190;
-    const ng=c.createGain(); ng.gain.value=.018; n.connect(lp); lp.connect(ng); ng.connect(this.musicGain); n.start(); this.musicNodes.push(n,lp,ng);
+    const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=210;
+    const ng=c.createGain(); ng.gain.value=.048; n.connect(lp); lp.connect(ng); ng.connect(this.musicGain); n.start(); this.musicNodes.push(n,lp,ng);
     let beat=0;
     musicTimer=setInterval(()=>{
       if(!this.ctx||!state.musicOn)return;
       const now=this.ctx.currentTime, o=c.createOscillator(), g=c.createGain();
-      o.type='triangle'; o.frequency.value=beat%4===0?62:76; g.gain.value=.035; g.gain.exponentialRampToValueAtTime(.0001,now+.22);
+      o.type='triangle'; o.frequency.value=beat%4===0?62:76; g.gain.value=.078; g.gain.exponentialRampToValueAtTime(.0001,now+.22);
       o.connect(g); g.connect(this.musicGain); o.start(now); o.stop(now+.24); beat++;
     },1500);
   },
@@ -583,7 +720,7 @@ function toast(msg,kind=''){els.toast.textContent=msg;els.toast.className='toast
 /* ===== 基础工具 ===== */
 function fmtClock(){const e=SHIFT_SECONDS-state.remaining,m=8*60+Math.floor(e/60);return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}
 function fmtLeft(s){const m=Math.floor(Math.max(0,s)/60),r=Math.max(0,s)%60;return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`}
-function updateHud(){els.clock.textContent=fmtClock();els.timer.textContent=fmtLeft(state.remaining);els.shiftFill.style.width=Math.min(100,(SHIFT_SECONDS-state.remaining)/SHIFT_SECONDS*100)+'%';els.qualified.textContent=state.qualified;els.output.textContent=state.output;els.wireHud.textContent=state.wireStock}
+function updateHud(){els.clock.textContent=fmtClock();els.timer.textContent=fmtLeft(state.remaining);els.shiftFill.style.width=Math.min(100,(SHIFT_SECONDS-state.remaining)/SHIFT_SECONDS*100)+'%';els.qualified.textContent=state.qualified;els.output.textContent=state.output;els.wireHud.textContent=state.wireStock;els.wage.textContent=Math.max(0,Math.round(state.wage))}
 function setScene(name,instant=false){
   if(state.scene===name)return;
   const views={floor:els.floorView,sort:els.sortView,baler:els.balerView,pallet:els.palletView,end:els.endView};
@@ -591,6 +728,9 @@ function setScene(name,instant=false){
   if(old)old.classList.remove('active');
   if(next)next.classList.add('active');
   state.scene=name;
+  const hideIdle=name==='end';
+  els.bossPanel.classList.toggle('hidden',hideIdle);
+  els.idleBar.classList.toggle('hidden',hideIdle);
   if(!instant){els.fade.classList.add('on');setTimeout(()=>{els.fade.classList.remove('on')},220)}
 }
 
@@ -609,18 +749,18 @@ function buildDeck(){
 function cartGradeKey(){const keys=Object.keys(state.cart.materials);if(!keys.length)return null;return keys.sort((a,b)=>MATERIALS[a].gradeVal-MATERIALS[b].gradeVal)[0]}
 function updateFloor(){
   const total=state.cart.total, keys=Object.keys(state.cart.materials).filter(k=>state.cart.materials[k]>0);
-  els.cartWeight.innerHTML=`${total}<small>kg</small>`; els.cartFill.style.width=Math.min(100,total/100*100)+'%';
+  els.cartWeight.innerHTML=`${total}<small>kg</small>`; els.cartFill.style.width=Math.min(100,total/CART_CAP*100)+'%';
   let batch=t('emptyBatch');
   if(keys.length){batch=keys.length>1?t('mixColor'):matLabel(keys[0])}
   els.cartBatch.textContent=batch; els.cartBatch.className=(keys.length>1||total>MAX_BALE)?'warn':'';
   els.cartForeign.textContent=t('foreign0'); els.cartPanel.classList.toggle('is-warn',keys.length>1||total>MAX_BALE);
-  els.toSort.disabled=total<50||!state.running;
-  els.toSort.innerHTML=total>=50?`<span>${t('toSort')}</span><span class="arrow">→</span>`:`<span>${t('toSort')} · ${Math.max(0,50-total)}kg</span><span class="arrow">→</span>`;
+  els.toSort.disabled=total<MIN_BALE||!state.running;
+  els.toSort.innerHTML=total>=MIN_BALE?`<span>${t('toSort')}</span><span class="arrow">→</span>`:`<span>${t('toSort')} · ${Math.max(0,MIN_BALE-total)}kg</span><span class="arrow">→</span>`;
 }
 function addPile(k){
   if(!state.running||state.scene!=='floor')return;
-  if(state.cart.total>=100){toast(lang==='zh'?'车满了，先去分拣':'Cart full, sort first','bad');return}
-  state.cart.total+=UNIT_KG; state.cart.materials[k]=(state.cart.materials[k]||0)+1; state.cart.colors[MATERIALS[k].color]=(state.cart.colors[MATERIALS[k].color]||0)+1;
+  if(state.cart.total>=CART_CAP){toast(lang==='zh'?'车满了，先去分拣':'Cart full, sort first','bad');return}
+  state.cart.total+=UNIT_KG; state.loadedKg+=UNIT_KG; state.cart.materials[k]=(state.cart.materials[k]||0)+1; state.cart.colors[MATERIALS[k].color]=(state.cart.colors[MATERIALS[k].color]||0)+1;
   AudioSys.tone('bag'); updateFloor(); toast(`+${UNIT_KG}kg ${matLabel(k)}`);
 }
 
@@ -632,12 +772,12 @@ function contaminantSVG(type){
   return `<svg viewBox="0 0 64 64"><path d="M15 53c8-2 9-10 15-13 5-3 10 0 13-5 4-7 1-13-3-16 2 4 8 5 13 9 12 5 10 11 6 20-4 7-12 7-19 2z" fill="#3e7fa0" stroke="#183d51" stroke-width="2"/></svg>`;
 }
 function goSort(){
-  if(!state.running||state.scene!=='floor'||state.cart.total<50)return;
+  if(!state.running||state.scene!=='floor'||state.cart.total<MIN_BALE)return;
   const keys=Object.keys(state.cart.materials);
   const minGrade=Math.min(...keys.map(k=>MATERIALS[k].gradeVal));
   const colorKeys=Object.keys(state.cart.colors);
   state.bale={weight:state.cart.total,materials:{...state.cart.materials},colors:{...state.cart.colors},mixed:colorKeys.length>1,minGrade,missed:0,caught:0,defects:0,score:{}};
-  const count=2+Math.floor(Math.random()*3);
+  const count=3+Math.floor(Math.random()*3);
   state.sortItems=Array.from({length:count},(_,i)=>{
     const types=['plastic','metal','paper','oil']; const type=types[Math.floor(Math.random()*types.length)];
     return {id:i,type,x:22+Math.random()*54,y:22+Math.random()*38,caught:false};
@@ -665,13 +805,13 @@ function sendBaler(){
   const left=state.sortItems.filter(i=>!i.caught).length;
   state.bale.missed=left; state.bale.defects+=left; state.defects+=left;
   state.cart={total:0,materials:{},colors:{}};
-  state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false};
+  state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],arrangeSkew:false};
   setScene('baler'); updateBaler();
   toast(left?lang==='zh'?`${left} 处遗留，品质扣分`:`${left} left, quality cut`:`${lang==='zh'?'干净批次':'Clean batch'}`,left?'bad':'good');
 }
 
 /* ===== 打包 ===== */
-function updateTieCount(){els.tieCount.textContent=`${state.machine.tied}/4`;els.tieProgress.textContent=`${state.machine.tied} / 4`}
+function updateTieCount(){els.tieCount.textContent=`${state.machine.tied}/${WIRE_PER_BALE}`;els.tieProgress.textContent=`${state.machine.tied} / ${WIRE_PER_BALE}`}
 function updateBaler(){
   const b=state.bale; if(!b)return;
   els.baleMass.innerHTML=`${b.weight}<small>kg</small>`;
@@ -680,15 +820,16 @@ function updateBaler(){
   els.safetyLamp.classList.toggle('ok',state.machine.door);
   els.pressureVal.textContent=Math.round(state.machine.pressure); els.pressureFill.style.width=`${Math.min(100,state.machine.pressure/170*100)}%`;
   els.wireStock.textContent=state.wireStock; els.consoleGrade.textContent=MATERIALS[Object.keys(b.materials).sort((a,c)=>MATERIALS[a].gradeVal-MATERIALS[c].gradeVal)[0]]?.grade||'—';
+  els.wireChip.classList.toggle('warn',state.wireStock<10);
   updateTieCount();
   const m=state.machine;
   els.feedBtn.disabled=m.loaded||m.pressing;
   els.closeBtn.disabled=!m.loaded||m.door||m.pressing||m.stuck;
   els.pressBtn.disabled=!m.door||m.pressed||m.pressing;
-  els.tieBtn.disabled=!m.pressed||m.tied>=4;
-  els.ejectBtn.disabled=m.tied<4||m.pressing||state.wireStock<WIRE_PER_BALE;
+  els.tieBtn.disabled=!m.pressed||m.tied>=WIRE_PER_BALE;
+  els.ejectBtn.disabled=m.tied<WIRE_PER_BALE||m.pressing||state.wireStock<WIRE_PER_BALE;
   els.feedBtn.classList.toggle('active',!m.loaded); els.closeBtn.classList.toggle('active',m.loaded&&!m.door);
-  els.pressBtn.classList.toggle('active',m.door&&!m.pressed); els.tieBtn.classList.toggle('active',m.pressed&&m.tied<4); els.ejectBtn.classList.toggle('active',m.tied>=4);
+  els.pressBtn.classList.toggle('active',m.door&&!m.pressed); els.tieBtn.classList.toggle('active',m.pressed&&m.tied<WIRE_PER_BALE); els.ejectBtn.classList.toggle('active',m.tied>=WIRE_PER_BALE);
   els.pressBtn.innerHTML=`<span>03</span><span>${m.needRepress?t('repress'):t('press')}</span>`;
   if(m.stuck){els.machineState.textContent=lang==='zh'?'卡毛':'Jam';els.consoleHint.textContent=lang==='zh'?'先清理压仓卡毛，再关门。':'Clear the jam before closing the gate.'}
   else if(m.pressing){els.machineState.textContent=lang==='zh'?'压合中':'Pressing';els.consoleHint.textContent=lang==='zh'?'压头下行中，手离开压仓。':'Keep hands clear while the ram descends.'}
@@ -698,17 +839,17 @@ function updateBaler(){
     if(m.needRepress){els.machineState.textContent=lang==='zh'?'压力不足':'Low pressure';els.consoleHint.textContent=lang==='zh'?'点补压，把压力补到 160 bar 以上。':'Press repress until pressure reaches 160 bar.'}
     else{els.machineState.textContent=lang==='zh'?'门已锁':'Gate locked';els.consoleHint.textContent=lang==='zh'?'点下压，把毛料压实。':'Press to compact the fiber.'}
   }
-  else if(m.tied<4){els.machineState.textContent=lang==='zh'?'已压实':'Compacted';els.consoleHint.textContent=`${lang==='zh'?'再穿':'Tie'} ${4-m.tied} ${lang==='zh'?'道丝':'more wire'}。`}
-  else{els.machineState.textContent=lang==='zh'?'可开箱':'Ready';els.consoleHint.textContent=lang==='zh'?'四道丝已打结，开箱出包。':'Four ties secured. Eject the bale.'}
+  else if(m.tied<WIRE_PER_BALE){els.machineState.textContent=lang==='zh'?'已压实':'Compacted';els.consoleHint.textContent=`${lang==='zh'?'再穿':'Tie'} ${WIRE_PER_BALE-m.tied} ${lang==='zh'?'根包带':'more strap'}。`}
+  else{els.machineState.textContent=lang==='zh'?'可开箱':'Ready';els.consoleHint.textContent=lang==='zh'?'五根包带已打结，开箱出包。':'Five straps secured. Eject the bale.'}
   els.stuckAlert.classList.toggle('hidden',!m.stuck);
 }
-function feed(){if(state.machine.loaded||state.machine.pressing)return;state.machine.loaded=true;if(Math.random()<.38){state.machine.stuck=true;state.defects++}AudioSys.tone('clank');updateBaler();toast(lang==='zh'?'料已倒入压仓':'Waste loaded into chamber')}
+function feed(){if(state.machine.loaded||state.machine.pressing)return;state.machine.loaded=true;if(Math.random()<.45){state.machine.stuck=true;state.defects++}AudioSys.tone('clank');updateBaler();toast(lang==='zh'?'料已倒入压仓':'Waste loaded into chamber')}
 function closeDoor(){if(!state.machine.loaded||state.machine.door||state.machine.stuck)return;state.machine.door=true;AudioSys.tone('clank');updateBaler();toast(lang==='zh'?'安全门已锁':'Gate locked','good')}
-function clearStuck(){state.machine.stuck=false;AudioSys.tone('scrape');updateBaler();toast(lang==='zh'?'卡毛已清理':'Jam cleared','good')}
+function clearStuck(){state.machine.stuck=false;state.jamsCleared++;AudioSys.tone('scrape');updateBaler();toast(lang==='zh'?'卡毛已清理':'Jam cleared','good')}
 function press(){
   if(!state.machine.door||state.machine.pressed||state.machine.pressing)return;
   state.machine.pressing=true;state.machine.pressure=0;state.machine.presses++;updateBaler();AudioSys.tone('pump');
-  const target=state.machine.presses===1?125+Math.random()*31:170;
+  const target=state.machine.presses===1?118+Math.random()*34:172;
   let p=0; const int=setInterval(()=>{p=Math.min(target,p+10);state.machine.pressure=p;if(state.scene==='baler')updateBaler();if(p>=target)clearInterval(int)},100);
   setTimeout(()=>{
     if(state.finished)return;clearInterval(int);state.machine.pressing=false;state.machine.pressure=target;
@@ -717,15 +858,22 @@ function press(){
     updateBaler();
   },2100);
 }
-function openTie(){if(!state.machine.pressed)return;state.machine.tied=0;$$('.wire').forEach(w=>w.classList.remove('done'));updateTieCount();els.tieLayer.classList.remove('hidden');AudioSys.tone('clank')}
+function openTie(){if(!state.machine.pressed)return;state.machine.tied=0;state.machine.tieOrder=[];state.machine.arrangeSkew=false;$$('.wire').forEach(w=>w.classList.remove('done'));updateTieCount();els.tieLayer.classList.remove('hidden');AudioSys.tone('clank')}
 function tieWire(btn){
   if(btn.classList.contains('done'))return;
-  btn.classList.add('done');state.machine.tied++;updateTieCount();AudioSys.tone('wire');
-  if(state.machine.tied===3&&Math.random()<.22){state.machine.wireSnap=true;state.defects++;AudioSys.tone('snap');toast(lang==='zh'?'丝道抽断，重穿一道':'Wire snapped · retie','bad')}
-  if(state.machine.tied>=4){state.machine.tied=4;setTimeout(()=>{els.tieLayer.classList.add('hidden');updateBaler();toast(lang==='zh'?'四道丝已打结':'Four ties secured','good')},700)}
+  const idx=+btn.dataset.wire;
+  btn.classList.add('done');state.machine.tied++;state.strapsTied++;state.machine.tieOrder.push(idx);updateTieCount();AudioSys.tone('wire');
+  if(state.machine.tied===WIRE_PER_BALE-1&&Math.random()<.28){state.machine.wireSnap=true;state.defects++;AudioSys.tone('snap');toast(lang==='zh'?'包带抽断，重穿一根':'Strap snapped · retie','bad')}
+  if(state.machine.tied>=WIRE_PER_BALE){
+    const side=i=>i<2?'L':i===2?'C':'R';
+    const expected=['L','L','C','R','R'];
+    state.machine.arrangeSkew=state.machine.tieOrder.map(side).some((s,i)=>s!==expected[i]);
+    state.machine.tied=WIRE_PER_BALE;
+    setTimeout(()=>{els.tieLayer.classList.add('hidden');updateBaler();toast(lang==='zh'?'五根包带已打结':'Five straps secured','good')},700)
+  }
 }
 function eject(){
-  if(state.machine.tied<4||state.machine.opened||state.wireStock<WIRE_PER_BALE)return;
+  if(state.machine.tied<WIRE_PER_BALE||state.machine.opened||state.wireStock<WIRE_PER_BALE)return;
   state.machine.opened=true;state.wireStock-=WIRE_PER_BALE;AudioSys.tone('clank');updateBaler();
   setTimeout(()=>{if(!state.finished)showResult()},850);
 }
@@ -734,14 +882,14 @@ function eject(){
 function showResult(){
   const b=state.bale; if(!b||state.finished)return;
   const weightOk=b.weight>=MIN_BALE&&b.weight<=MAX_BALE;
-  const wScore=weightOk?(b.weight>=75&&b.weight<=85?95:82):40;
-  const purity=Math.max(0,100-b.missed*16);
-  const grade=b.minGrade-(b.mixed?12:0);
-  const bind=state.machine.wireSnap?90:100;
+  const wScore=weightOk?(b.weight>=160&&b.weight<=180?95:82):40;
+  const purity=Math.max(0,100-b.missed*18);
+  const grade=b.minGrade-(b.mixed?14:0);
+  const bind=Math.max(60,100-(state.machine.wireSnap?10:0)-(state.machine.arrangeSkew?12:0));
   const quality=Math.round(wScore*.28+purity*.3+grade*.25+bind*.17);
   b.score={wScore,purity,grade,bind,quality};
   const pass=weightOk&&purity>=80&&grade>=68&&bind>=80&&quality>=80;
-  if(pass){state.qualified++;state.output+=b.weight;state.acceptedWeights.push(b.weight);state.acceptedBales.push({weight:b.weight,grade:MATERIALS[Object.keys(b.materials).sort((a,c)=>MATERIALS[a].gradeVal-MATERIALS[c].gradeVal)[0]]?.grade})}else{state.rejected++;state.defects++}
+  if(pass){state.qualified++;state.output+=b.weight;state.wage+=60;state.acceptedWeights.push(b.weight);state.acceptedBales.push({weight:b.weight,grade:MATERIALS[Object.keys(b.materials).sort((a,c)=>MATERIALS[a].gradeVal-MATERIALS[c].gradeVal)[0]]?.grade})}else{state.rejected++;state.defects++;state.wage=Math.max(0,state.wage-10)}
   els.resultStamp.textContent=pass?(lang==='zh'?'合格':'Pass'):(lang==='zh'?'返工':'Reject');
   els.resultStamp.className='stamp'+(pass?'':' bad');
   els.resultWeight.textContent=b.weight;els.resultQuality.textContent=quality;
@@ -749,7 +897,8 @@ function showResult(){
   if(!weightOk)reason=b.weight<MIN_BALE?(lang==='zh'?'偏轻 · 再加料':'Too light · add fiber'):(lang==='zh'?'超重 · 拆分返工':'Too heavy · split');
   else if(b.mixed)reason=lang==='zh'?'混色 · 降级返工':'Mixed colors · downgrade';
   else if(b.missed)reason=lang==='zh'?'合格 · 轻微含杂':'Pass · slight waste';
-  else if(state.machine.wireSnap)reason=lang==='zh'?'丝道抽断 · 已补穿':'Wire snapped · retied';
+  else if(state.machine.arrangeSkew)reason=lang==='zh'?'包带排列偏斜 · 易散包':'Strap layout skewed · loose bale';
+  else if(state.machine.wireSnap)reason=lang==='zh'?'包带抽断 · 已补穿':'Strap snapped · retied';
   else if(grade<68)reason=lang==='zh'?'品级不足':'Grade too low';
   els.resultReason.textContent=reason;
   const rows=[['scoreWeight',wScore],['scorePurity',purity],['scoreGrade',grade],['scoreBind',bind]];
@@ -766,7 +915,7 @@ function afterResult(goStack){
 }
 function nextShiftCycle(){
   if(state.finished)return;
-  state.bale=null;state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false};
+  state.bale=null;state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],arrangeSkew:false};
   setScene('floor');updateFloor();
   if(state.qualified>=TARGET_BALES){state.running=false;setTimeout(finishShift,900)}
 }
@@ -779,19 +928,94 @@ function goPallet(){
   clearTimeout(palletTimer); palletTimer=setTimeout(()=>{nextShiftCycle()},1200);
 }
 
+/* ===== 老板派工与摸鱼 ===== */
+function assignTask(){
+  const type=TASK_TYPES[Math.floor(Math.random()*TASK_TYPES.length)];
+  state.boss.task={type,target:type.target,deadline:Math.max(0,state.remaining-75)};
+  updateBossPanel();
+}
+function checkTask(){
+  const task=state.boss.task; if(!task||state.finished)return;
+  const prog=Math.min(task.target,task.type.progress());
+  if(prog>=task.target){state.wage+=30;state.tasksDone++;toast(t('taskDone'),'good');AudioSys.tone('good');assignTask();return}
+  if(state.remaining<=task.deadline){state.wage=Math.max(0,state.wage-30);state.tasksMissed++;state.boss.extraTasks++;toast(t('taskMiss'),'bad');AudioSys.tone('bad');assignTask()}
+}
+function bossCycle(){
+  const b=state.boss; b.phaseLeft--;
+  if(b.phaseLeft<=0){
+    b.watching=!b.watching;
+    b.phaseLeft=b.watching?3+Math.floor(Math.random()*3):4+Math.floor(Math.random()*4);
+    if(b.watching&&state.phoneOpen)catchBoss();
+  }
+  updateBossPanel();
+}
+function updateBossPanel(){
+  const b=state.boss, task=b.task;
+  els.bossPanel.classList.toggle('watching',b.watching);
+  els.bossState.textContent=b.watching?t('bossWatch'):t('bossAway');
+  if(!task){els.bossTask.textContent='—';els.bossTaskFill.style.width='0%';els.bossTaskProg.textContent='0/0';els.bossTaskTime.textContent='0s';return}
+  const prog=Math.min(task.target,task.type.progress());
+  const left=Math.max(0,state.remaining-task.deadline);
+  const unit=task.type.id==='load'?'kg':task.type.id==='sort'?'个':'道';
+  els.bossTask.textContent=`${t(task.type.key)} · ${task.target}${unit}`;
+  els.bossTaskFill.style.width=Math.min(100,prog/task.target*100)+'%';
+  els.bossTaskProg.textContent=`${prog}/${task.target}`;
+  els.bossTaskTime.textContent=`${left}s`;
+}
+function catchBoss(){
+  if(state.phoneOpen)closePhone();
+  state.caughtCount++;state.wage=Math.max(0,state.wage-20);state.boss.extraTasks++;state.defects++;
+  toast(t('caughtMsg'),'bad');AudioSys.tone('bad');updateHud();updateBossPanel();
+}
+function idleAction(kind){
+  if(!state.running||state.finished)return;
+  if(state.boss.watching){catchBoss();return}
+  if(kind==='phone'){openPhone();return}
+  toast(t(kind==='water'?'drinkMsg':'snackMsg'),'good');AudioSys.tone('good');
+}
+function openPhone(){state.phoneOpen=true;state.phoneApp='home';els.phoneLayer.classList.remove('hidden');renderPhone();AudioSys.tone('tick')}
+function closePhone(){state.phoneOpen=false;els.phoneLayer.classList.add('hidden');AudioSys.tone('tick')}
+function renderPhone(){
+  const screen=els.phoneScreen;
+  if(state.phoneApp==='home'){
+    screen.innerHTML=`<div class="phone-home">
+      <button class="app-card" data-app="wechat"><div class="app-icon">💬</div><b>${t('wechat')}</b><span>${t('wife')}</span></button>
+      <button class="app-card" data-app="douyin"><div class="app-icon">🎵</div><b>${t('douyin')}</b><span>12.8k</span></button>
+    </div>`;
+    screen.querySelectorAll('.app-card').forEach(c=>c.addEventListener('click',()=>{state.phoneApp=c.dataset.app;renderPhone();AudioSys.tone('tick')}));
+  }else if(state.phoneApp==='wechat'){
+    const replies=lang==='zh'?['好的，你先忙。','下班早点回来。','今天发工资吗？','知道啦，注意安全。']:['OK, focus on work.','Come home early.','Got paid today?','Stay safe.'];
+    const msgs=state.wechatMsgs||[];
+    screen.innerHTML=`<div class="phone-title"><b>${t('wife')}</b><button id="phoneBack">← ${t('phoneHome')}</button></div>
+      <div class="chat-list" id="chatList">${msgs.map(m=>`<div class="chat-msg ${m.me?'me':''}">${m.text}</div>`).join('')}</div>
+      <div class="phone-input"><input id="wechatInput" placeholder="${t('send')}…"><button class="btn" id="wechatSend">${t('send')}</button></div>`;
+    $('#phoneBack').onclick=()=>{state.phoneApp='home';renderPhone()};
+    $('#wechatSend').onclick=()=>{const inp=$('#wechatInput');const v=inp.value.trim();if(!v)return;state.wechatMsgs.push({text:v,me:true});setTimeout(()=>{state.wechatMsgs.push({text:replies[Math.floor(Math.random()*replies.length)],me:false});renderPhone()},500);renderPhone();AudioSys.tone('good')};
+  }else{
+    screen.innerHTML=`<div class="phone-title"><b>${t('douyin')}</b><button id="phoneBack">← ${t('phoneHome')}</button></div>
+      <div class="douyin-card"><img src="assets/douyin-cover.jpg" alt="short video"><div class="douyin-overlay"><b>${lang==='zh'?'通勤穿搭 · 今日街拍':'Street style look'}</b><span>12.8k ${t('like')} · 2.1k ${t('comment')}</span></div>
+      <div class="douyin-side"><button id="likeBtn">♡</button><button>💬</button><button>↗</button></div></div>`;
+    $('#phoneBack').onclick=()=>{state.phoneApp='home';renderPhone()};
+    $('#likeBtn').onclick=e=>{e.currentTarget.textContent='♥';AudioSys.tone('good')};
+  }
+}
+
 /* ===== 班次 ===== */
-function tick(){if(!state.running||state.finished)return;state.remaining--;updateHud();if(state.remaining<=0)finishShift()}
+function tick(){if(!state.running||state.finished)return;state.remaining--;bossCycle();checkTask();updateHud();if(state.remaining<=0)finishShift()}
 function startShift(){
   resetState();state.running=true;state.started=true;els.startModal.classList.add('hidden');els.toast.className='toast';
-  setScene('floor',true);updateFloor();updateHud();clearInterval(timerId);timerId=setInterval(tick,1000);
+  setScene('floor',true);updateFloor();updateHud();assignTask();clearInterval(timerId);timerId=setInterval(tick,1000);
   AudioSys.ensure();AudioSys.startMusic();toast(lang==='zh'?'接班 · 先装满一车':'Start shift · load a cart');
 }
 function resetState(){
   clearInterval(timerId);timerId=null;clearTimeout(palletTimer);palletTimer=null;
   state.started=false;state.running=false;state.finished=false;state.scene='floor';state.remaining=SHIFT_SECONDS;
   state.cart={total:0,materials:{},colors:{}};state.sortItems=[];state.missed=0;state.caught=0;state.defects=0;
-  state.bale=null;state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false};
-  state.wireStock=12;state.qualified=0;state.output=0;state.rejected=0;state.acceptedWeights=[];state.acceptedBales=[];
+  state.bale=null;state.machine={loaded:false,door:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],arrangeSkew:false};
+  state.wireStock=30;state.qualified=0;state.output=0;state.rejected=0;state.acceptedWeights=[];state.acceptedBales=[];
+  state.wage=0;state.caughtCount=0;state.tasksDone=0;state.tasksMissed=0;state.loadedKg=0;state.jamsCleared=0;state.strapsTied=0;
+  state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0};state.phoneOpen=false;state.wechatMsgs=[];
+  els.phoneLayer.classList.add('hidden');
   els.sortLayer.innerHTML='';els.tieLayer.classList.add('hidden');els.resultLayer.classList.add('hidden');
   els.floorView.classList.add('active');els.sortView.classList.remove('active');els.balerView.classList.remove('active');els.palletView.classList.remove('active');els.endView.classList.remove('active');
   $$('.wire').forEach(w=>w.classList.remove('done'));updateTieCount();updateHud();
@@ -806,6 +1030,7 @@ function updateEnd(){
   els.endKicker.textContent=`SHIFT REPORT / ${fmtClock()}`;
   els.endQualified.textContent=state.qualified;els.endOutput.innerHTML=`${state.output}<small>kg</small>`;els.endAvg.innerHTML=`${avg}<small>kg</small>`;
   els.endRejects.textContent=state.rejected;els.endCaught.textContent=state.caught;els.endDefects.textContent=state.defects;els.endSafety.textContent='100';
+  els.endWage.innerHTML=`${Math.max(0,Math.round(state.wage))}<small>¥</small>`;els.endCaughtBoss.textContent=state.caughtCount;els.endTasks.textContent=state.tasksDone;
   els.endGrade.textContent=grade;els.endGrade.style.color=state.qualified>=6?'var(--green)':state.qualified>=4?'var(--amber2)':'var(--red)';
   els.endTitle.textContent=state.qualified>=6?t('endTitleDone'):t('endTitleEnd');
   els.endTags.innerHTML=state.acceptedWeights.length?state.acceptedWeights.map((w,i)=>`<span>#${String(i+1).padStart(2,'0')} ${w}kg</span>`).join(''):`<span class="empty">${lang==='zh'?'没有合格包 · 下一班先挑纯色毛':'No passed bales · sort clean fiber next shift'}</span>`;
@@ -827,7 +1052,19 @@ els.againBtn.addEventListener('click',startShift);
 els.langBtn.addEventListener('click',()=>{lang=lang==='zh'?'en':'zh';localStorage.setItem('tw-lang',lang);applyI18n();AudioSys.tone('tick')});
 els.musicBtn.addEventListener('click',()=>{state.musicOn=!state.musicOn;localStorage.setItem('tw-music',state.musicOn?'1':'0');if(state.musicOn)AudioSys.startMusic();else AudioSys.stopMusic();applyI18n();AudioSys.tone('tick')});
 els.sfxBtn.addEventListener('click',()=>{state.sfxOn=!state.sfxOn;localStorage.setItem('tw-sfx',state.sfxOn?'1':'0');applyI18n();AudioSys.tone('tick')});
+els.waterBtn.addEventListener('click',()=>idleAction('water'));
+els.snackBtn.addEventListener('click',()=>idleAction('snack'));
+els.phoneBtn.addEventListener('click',()=>idleAction('phone'));
+els.phoneClose.addEventListener('click',closePhone);
 
+/* ===== 素材加载 ===== */
+function loadAssets(){
+  let done=0; const total=BOOT_ASSETS.length;
+  const mark=()=>{done++;const pct=Math.round(done/total*100);els.bootFill.style.width=pct+'%';els.bootPct.textContent=pct+'%';if(done>=total)setTimeout(()=>{const boot=$('#bootScreen');if(boot)boot.classList.add('loaded')},250)};
+  BOOT_ASSETS.forEach(src=>{const im=new Image();im.onload=mark;im.onerror=mark;im.src='assets/'+src});
+  setTimeout(mark,2500);
+}
+loadAssets();
 applyI18n();
 </script>
 </body>

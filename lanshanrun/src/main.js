@@ -12,16 +12,64 @@
   $('activityTime').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
   const state = { points: [], closed: false, sport: 'running' };
-  const map = L.map('map', { zoomControl: false }).setView([31.2304, 121.4737], 13);
+
+  /* WGS-84（GPS 标准）与 GCJ-02（高德底图）互转。地图上按 GCJ-02 显示，导出前转回 WGS-84。 */
+  const PI = Math.PI;
+  const A = 6378245.0;
+  const E = 0.00669342162296594323;
+  function outOfChina(lat, lng) {
+    return lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271;
+  }
+  function transformLat(x, y) {
+    let v = -100 + 2 * x + 3 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+    v += (20 * Math.sin(6 * x * PI) + 20 * Math.sin(2 * x * PI)) * 2 / 3;
+    v += (20 * Math.sin(y * PI) + 40 * Math.sin(y / 3 * PI)) * 2 / 3;
+    v += (160 * Math.sin(y / 12 * PI) + 320 * Math.sin(y * PI / 30)) * 2 / 3;
+    return v;
+  }
+  function transformLng(x, y) {
+    let v = 300 + x + 2 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+    v += (20 * Math.sin(6 * x * PI) + 20 * Math.sin(2 * x * PI)) * 2 / 3;
+    v += (20 * Math.sin(x * PI) + 40 * Math.sin(x / 3 * PI)) * 2 / 3;
+    v += (150 * Math.sin(x / 12 * PI) + 300 * Math.sin(x / 30 * PI)) * 2 / 3;
+    return v;
+  }
+  function wgsToGcj(lat, lng) {
+    if (outOfChina(lat, lng)) return [lat, lng];
+    const dLat0 = transformLat(lng - 105, lat - 35);
+    const dLng0 = transformLng(lng - 105, lat - 35);
+    const radLat = lat / 180 * PI;
+    let magic = Math.sin(radLat);
+    magic = 1 - E * magic * magic;
+    const sqrtMagic = Math.sqrt(magic);
+    const dLat = (dLat0 * 180) / ((A * (1 - E)) / (magic * sqrtMagic) * PI);
+    const dLng = (dLng0 * 180) / (A / sqrtMagic * Math.cos(radLat) * PI);
+    return [lat + dLat, lng + dLng];
+  }
+  function gcjToWgs(lat, lng) {
+    if (outOfChina(lat, lng)) return [lat, lng];
+    let wLat = lat;
+    let wLng = lng;
+    for (let i = 0; i < 6; i++) {
+      const [gLat, gLng] = wgsToGcj(wLat, wLng);
+      wLat += lat - gLat;
+      wLng += lng - gLng;
+    }
+    return [wLat, wLng];
+  }
+
+  const map = L.map('map', { zoomControl: false }).setView(wgsToGcj(31.2304, 121.4737), 13);
 
   const tiles = [
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors',
+    L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+      subdomains: '1234',
+      maxZoom: 18,
+      attribution: '© 高德地图',
     }),
-    L.tileLayer('https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      maxZoom: 20,
-      attribution: '© OpenStreetMap contributors, Tiles courtesy of Humanitarian OpenStreetMap Team',
+    L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', {
+      subdomains: '1234',
+      maxZoom: 18,
+      attribution: '© 高德地图',
     }),
   ];
   let layer = 0;
@@ -179,16 +227,29 @@
     if (!q) return;
     note('正在搜索地点…');
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}`
-      );
-      const list = await response.json();
-      if (!list.length) throw new Error('没有找到这个地点');
-      map.setView([Number(list[0].lat), Number(list[0].lon)], 15);
-      $('mapLabel').textContent = list[0].display_name.split(',').slice(0, 2).join(' · ');
-      note('地点已定位，点击地图绘制');
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 9000);
+      try {
+        const response = await fetch(
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1`,
+          { signal: controller.signal }
+        );
+        if (!response.ok) throw new Error('搜索服务暂不可用，请稍后重试');
+        const list = await response.json();
+        if (!list.features || !list.features.length) throw new Error('没有找到这个地点');
+        const item = list.features[0];
+        const [lng, lat] = item.geometry.coordinates;
+        map.setView(wgsToGcj(lat, lng), 15);
+        const label = [item.properties.name, item.properties.city || item.properties.state]
+          .filter(Boolean)
+          .join(' · ');
+        $('mapLabel').textContent = label || q;
+        note('地点已定位，点击地图绘制');
+      } finally {
+        clearTimeout(timer);
+      }
     } catch (e) {
-      note(e.message || '搜索失败，请稍后重试');
+      note(e.name === 'AbortError' ? '搜索超时，请在地图上直接点选' : e.message || '搜索失败，请稍后重试');
     }
   }
   $('searchBtn').onclick = search;
@@ -196,14 +257,21 @@
     if (e.key === 'Enter') search();
   };
 
-  $('locateBtn').onclick = () => map.locate({ setView: true, maxZoom: 15 });
-  map.on('locationfound', () => note('已定位到当前位置'));
+  $('locateBtn').onclick = () => map.locate({ setView: false, maxZoom: 15 });
+  map.on('locationfound', (e) => {
+    const [lat, lng] = wgsToGcj(e.latlng.lat, e.latlng.lng);
+    map.setView([lat, lng], 15);
+    note('已定位到当前位置');
+  });
   map.on('locationerror', () => note('无法获取位置，请检查浏览器定位权限'));
   $('fitBtn').onclick = () => state.points.length && map.fitBounds(L.latLngBounds(state.points).pad(0.18));
   $('layerBtn').onclick = () => {
     map.removeLayer(tiles[layer]);
     layer = 1 - layer;
     tiles[layer].addTo(map);
+    const satellite = layer === 1;
+    $('mapSource').textContent = satellite ? 'AMAP SAT' : 'AMAP';
+    note(satellite ? '已切换到卫星图' : '已切换到高德路网');
   };
 
   /* ----------------------------- 文件导出 ----------------------------- */
@@ -223,16 +291,20 @@
     if (!fitSdkPromise) {
       fitSdkPromise = (async () => {
         try {
-          return await import('https://cdn.jsdelivr.net/npm/@garmin/fitsdk@21.222.0/+esm');
-        } catch (firstError) {
+          return await import(new URL('./assets/fitsdk.js', location.href).href);
+        } catch (localError) {
           try {
-            return await import('https://esm.sh/@garmin/fitsdk@21.222.0?bundle');
-          } catch (secondError) {
-            throw new Error(
-              'Garmin FIT 编码器加载失败，请检查网络后重试（' +
-                (secondError.message || firstError.message || '加载失败') +
-                '）'
-            );
+            return await import('https://cdn.jsdelivr.net/npm/@garmin/fitsdk@21.222.0/+esm');
+          } catch (firstError) {
+            try {
+              return await import('https://esm.sh/@garmin/fitsdk@21.222.0?bundle');
+            } catch (secondError) {
+              throw new Error(
+                'Garmin FIT 编码器加载失败，请检查网络后重试（' +
+                  (secondError.message || firstError.message || localError.message || '加载失败') +
+                  '）'
+              );
+            }
           }
         }
       })();
@@ -244,7 +316,7 @@
     const settings = readSettings();
     const start = activityStart();
     const activity = F.buildActivity({
-      points: state.points,
+      points: state.points.map(([lat, lng]) => gcjToWgs(lat, lng)),
       closed: state.closed,
       laps: settings.laps,
       pace: settings.pace,

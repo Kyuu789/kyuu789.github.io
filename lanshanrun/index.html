@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#f5f7f2" />
 <meta name="description" content="Lanshan Run：在地图上设计跑步、骑行和步行路线，并导出 GPX、TCX、FIT 活动文件。" />
 <title>Lanshan Run — Route Studio</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="./src/style.css?v=15" />
+<link rel="stylesheet" href="./assets/leaflet/leaflet.css" />
+<link rel="stylesheet" href="./src/style.css?v=16" />
 </head>
 <body>
 <div class="app-shell">
@@ -32,12 +32,12 @@
     <section class="section export-section"><div class="section-heading"><span>04 / 导出活动</span><span class="format-note">单次运动记录 · 三格式</span></div><div class="export-grid"><button class="export-card" data-format="gpx"><b>GPX</b><small>通用 GPS 轨迹</small><span>↓</span></button><button class="export-card" data-format="tcx"><b>TCX</b><small>Training Center XML</small><span>↓</span></button><button class="export-card fit-card" data-format="fit"><b>FIT <i>●</i></b><small>Garmin SDK 编码</small><span>↓</span></button></div><div class="export-foot"><span class="secure-icon">◇</span>路线数据仅在此设备处理</div></section>
     <footer>BUILT FOR THE LONG WAY HOME <span>© 2026 LANSHAN RUN</span></footer>
   </aside>
-  <main class="map-area"><div id="map"></div><div class="map-top"><div class="map-chip"><span class="green-pulse"></span><span id="mapLabel">中国 · 上海</span><b>⌄</b></div><div class="map-tools"><button id="locateBtn" title="定位">◎</button><button id="fitBtn" title="显示整条路线">⤢</button><button id="layerBtn" title="地图图层">▦</button></div></div><div class="map-hint"><span>＋</span> 点击地图添加路线点 <i></i> 拖动地图浏览</div><div class="scale-mark">ROUTE MAP <span>·</span> OSM</div></main>
+  <main class="map-area"><div id="map"></div><div class="map-top"><div class="map-chip"><span class="green-pulse"></span><span id="mapLabel">中国 · 上海</span><b>⌄</b></div><div class="map-tools"><button id="locateBtn" title="定位">◎</button><button id="fitBtn" title="显示整条路线">⤢</button><button id="layerBtn" title="地图图层">▦</button></div></div><div class="map-hint"><span>＋</span> 点击地图添加路线点 <i></i> 拖动地图浏览</div><div class="scale-mark">ROUTE MAP <span>·</span> <em id="mapSource">AMAP</em> / WGS84 EXPORT</div></main>
 </div>
-<dialog id="helpDialog"><button class="dialog-close" id="closeHelp">×</button><div class="eyebrow">QUICK GUIDE</div><h2>画好路线，带上路。</h2><p>点击地图添加节点。使用撤销、反向或闭合来调整路线；搜索框可定位城市或地址。</p><p>轨迹按每秒一个采样点生成，位置、时间、距离严格递增；多圈会自动闭合回起点，不会出现坐标瞬移。GPX 与 TCX 为 XML 轨迹文件；FIT 使用 Garmin 官方 JavaScript SDK 编码，包含活动、轨迹、圈段、会话与消耗估算。所有文件均在浏览器中生成。</p><button class="primary-btn" id="gotIt">开始绘制</button></dialog>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<dialog id="helpDialog"><button class="dialog-close" id="closeHelp">×</button><div class="eyebrow">QUICK GUIDE</div><h2>画好路线，带上路。</h2><p>点击地图添加节点。使用撤销、反向或闭合来调整路线；搜索框可定位城市或地址。底图使用高德地图，导出前会自动把国内坐标转回 WGS-84，GPX、TCX、FIT 都能正常识别。</p><p>轨迹按每秒一个采样点生成，位置、时间、距离严格递增；多圈会自动闭合回起点，不会出现坐标瞬移。GPX 与 TCX 为 XML 轨迹文件；FIT 使用 Garmin 官方 JavaScript SDK 编码，包含活动、轨迹、圈段、会话与消耗估算。所有文件均在浏览器中生成。</p><button class="primary-btn" id="gotIt">开始绘制</button></dialog>
+<script src="./assets/leaflet/leaflet.js"></script>
 <script src="./src/formats.js?v=2"></script>
-<script src="./src/main.js?v=19"></script>
+<script src="./src/main.js?v=20"></script>
 </body>
 </html>
 

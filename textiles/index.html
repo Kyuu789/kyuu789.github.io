@@ -145,7 +145,8 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
 .pressure-track span{position:absolute;right:18%;top:0;bottom:0;border-left:1px dashed rgba(255,255,255,.2)}
 .steps{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .step{position:relative;min-height:47px;padding:7px 9px 7px 34px;border:1px solid rgba(205,222,210,.2);background:rgba(255,255,255,.035);text-align:left;font-size:11px;letter-spacing:.04em;cursor:pointer}
-.step>span{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--muted)}
+.step>span:first-child{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--muted)}
+.step>span:last-child{position:static;transform:none;font-family:inherit;color:var(--text)}
 .step b{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--amber2);margin-left:4px}
 .step:hover:not(:disabled){border-color:rgba(230,174,82,.7);background:rgba(230,174,82,.09)}
 .step:disabled{opacity:.28;cursor:not-allowed}
@@ -270,8 +271,9 @@ button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
   .machine-readout span{display:none}.machine-readout b{font-size:24px}.machine-readout #baleBatch{font-size:9px;margin:0}
   .safety{right:12px;top:10px;padding:7px 9px;font-size:9px}
   .console{left:12px;right:12px;bottom:12px;width:auto;max-height:63%;padding:11px;overflow:auto}
+  .sort-item{width:48px;height:48px}
   .panel-inset{grid-template-columns:1fr 58px}.panel-inset img{height:46px}
-  .steps{gap:6px}.step{min-height:43px;font-size:10px;padding:6px 7px 6px 29px}.step>span{left:8px;font-size:10px}.console-foot{font-size:9px;margin-top:7px}
+  .steps{gap:6px}.step{min-height:43px;font-size:10px;padding:6px 7px 6px 29px}.step>span:first-child{left:8px;font-size:10px}.console-foot{font-size:9px;margin-top:7px}
   .tie-layer,.result-layer{padding:10px}.tie-card{width:100%;padding:9px}.tie-photo{aspect-ratio:4/3}.wire{width:31px;height:31px}.wire.done::after{height:115px}
   .result-card{width:100%;grid-template-columns:1fr;max-height:91svh;overflow:auto}.result-card>img{height:180px;min-height:180px}.result-body{padding:15px 16px 17px}.result-weight b{font-size:50px}.result-actions .btn{min-width:0}
   .end-sheet{left:12px;right:12px;top:12px;bottom:auto;max-height:calc(100% - 24px);width:auto;padding:18px 17px}.end-sheet h2{font-size:21px}.end-main strong{font-size:48px}.end-main em{font-size:28px}.end-stats{gap:8px;grid-template-columns:repeat(2,1fr)}.end-stats b{font-size:17px}
@@ -692,7 +694,10 @@ function updateBaler(){
   else if(m.pressing){els.machineState.textContent=lang==='zh'?'压合中':'Pressing';els.consoleHint.textContent=lang==='zh'?'压头下行中，手离开压仓。':'Keep hands clear while the ram descends.'}
   else if(!m.loaded){els.machineState.textContent=lang==='zh'?'待料':'Idle';els.consoleHint.textContent=lang==='zh'?'先倒料，再关安全门。':'Load the chamber, then close the gate.'}
   else if(!m.door){els.machineState.textContent=lang==='zh'?'门未锁':'Gate open';els.consoleHint.textContent=lang==='zh'?'关安全门，压头才会动作。':'Close the gate to press.'}
-  else if(!m.pressed){els.machineState.textContent=lang==='zh'?'门已锁':'Gate locked';els.consoleHint.textContent=lang==='zh'?'点下压，把毛料压实。':'Press to compact the fiber.'}
+  else if(!m.pressed){
+    if(m.needRepress){els.machineState.textContent=lang==='zh'?'压力不足':'Low pressure';els.consoleHint.textContent=lang==='zh'?'点补压，把压力补到 160 bar 以上。':'Press repress until pressure reaches 160 bar.'}
+    else{els.machineState.textContent=lang==='zh'?'门已锁':'Gate locked';els.consoleHint.textContent=lang==='zh'?'点下压，把毛料压实。':'Press to compact the fiber.'}
+  }
   else if(m.tied<4){els.machineState.textContent=lang==='zh'?'已压实':'Compacted';els.consoleHint.textContent=`${lang==='zh'?'再穿':'Tie'} ${4-m.tied} ${lang==='zh'?'道丝':'more wire'}。`}
   else{els.machineState.textContent=lang==='zh'?'可开箱':'Ready';els.consoleHint.textContent=lang==='zh'?'四道丝已打结，开箱出包。':'Four ties secured. Eject the bale.'}
   els.stuckAlert.classList.toggle('hidden',!m.stuck);

@@ -1590,12 +1590,12 @@ function initThree(){
   addCylinder(.34,.34,.2,0x555e59,bx,3.9,bz,0,0,20);
   addBox(2.05,.08,1.42,0x242a27,bx,.35,bz,.96,.1);
   // Hinged physical safety gate. It swings open only after the operator completes the cycle.
-  const gate=new THREE.Group();gate.position.set(bx,0,bz+1.02);scene.add(gate);three.machineGate=gate;
-  addBox(.075,1.9,.075,0xd1a13e,-1.28,1.05,0,.6,.35,gate);
-  addBox(.075,1.9,.075,0xd1a13e,1.28,1.05,0,.6,.35,gate);
-  addBox(2.62,.075,.075,0xd1a13e,0,2.0,0,.55,.3,gate);
-  addBox(2.62,.075,.075,0xd1a13e,0,.12,0,.55,.3,gate);
-  for(let i=0;i<7;i++)addBox(.035,1.72,.035,0x7d8980,-1.08+i*.36,1.05,0,.7,.45,gate);
+  const gate=new THREE.Group();gate.position.set(bx-1.28,0,bz+1.02);scene.add(gate);three.machineGate=gate;
+  addBox(.075,1.9,.075,0xd1a13e,0,1.05,0,.6,.35,gate);
+  addBox(.075,1.9,.075,0xd1a13e,2.56,1.05,0,.6,.35,gate);
+  addBox(2.62,.075,.075,0xd1a13e,1.28,2.0,0,.55,.3,gate);
+  addBox(2.62,.075,.075,0xd1a13e,1.28,.12,0,.55,.3,gate);
+  for(let i=0;i<7;i++)addBox(.035,1.72,.035,0x7d8980,.2+i*.36,1.05,0,.7,.45,gate);
   three.gateClosedY=0;three.gateOpenY=-1.22;
   addBox(.72,.82,.12,0x29312e,bx+1.48,1.05,bz-.25,.65,.4);
   for(let i=0;i<3;i++)addBox(.48,.025,.015,0xe6b34d,bx+1.48,1.28+i*.18,bz-.175,.45,.3);

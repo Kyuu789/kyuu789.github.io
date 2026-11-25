@@ -1498,6 +1498,13 @@ function initThree(){
   three={scene,camera,renderer,tex:{},animated:[]};
 
   const mat=(color,rough=.82,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
+  const makeSurfaceMap=(base,light,count=1400)=>{
+    const c=document.createElement('canvas');c.width=256;c.height=256;const g=c.getContext('2d');g.fillStyle=base;g.fillRect(0,0,256,256);
+    for(let i=0;i<count;i++){const v=Math.random()>.5?light:base;g.globalAlpha=.06+Math.random()*.16;g.fillStyle=v;const w=1+Math.random()*3;g.fillRect(Math.random()*256,Math.random()*256,w,w);}
+    g.globalAlpha=.12;g.strokeStyle=light;g.lineWidth=.6;for(let i=0;i<34;i++){const x=Math.random()*256,y=Math.random()*256;g.beginPath();g.moveTo(x,y);g.lineTo(x+4+Math.random()*18,y+Math.random()*2);g.stroke();}
+    g.globalAlpha=1;const tex=new THREE.CanvasTexture(c);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(5,4);tex.encoding=THREE.sRGBEncoding;return tex;
+  };
+  const concreteMap=makeSurfaceMap('#65645e','#b4b0a5',2200),steelMap=makeSurfaceMap('#505953','#b8bdb5',1600),woolMap=makeSurfaceMap('#9d9585','#e2d9c6',2600);
   const addBox=(w,h,d,color,x,y,z,rough=.82,metal=0,parent=scene)=>{
     const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,rough,metal));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
   };
@@ -1518,7 +1525,7 @@ function initThree(){
   const fill=new THREE.DirectionalLight(0x9bb6c2,.65);fill.position.set(9,7,-8);scene.add(fill);
 
   // Concrete floor: full 3D slab, expansion joints and painted work lanes.
-  addBox(25,.32,20,0x66645d,0,-.18,0,.98);
+  const floorSlab=addBox(25,.32,20,0xffffff,0,-.18,0,.98);floorSlab.material.map=concreteMap;floorSlab.material.needsUpdate=true;
   const floorGrid=mat(0x817d72,.98);
   for(let x=-11;x<=11;x+=2){const line=addBox(.018,.006,19,0x4c4b46,x,-.012,0);line.castShadow=false}
   for(let z=-9;z<=9;z+=2){const line=addBox(24,.006,.018,0x4c4b46,0,-.011,z);line.castShadow=false}
@@ -1579,14 +1586,14 @@ function initThree(){
   // Hydraulic baler: four structural columns, cross-beams, platen, hydraulic ram and access gate.
   const bx=5.25,bz=1.15;
   for(const x of [bx-1.25,bx+1.25])for(const z of [bz-.9,bz+.9]){
-    addBox(.18,2.85,.18,0x46514c,x,1.47,z,.58,.65);
+    const column=addBox(.18,2.85,.18,0xffffff,x,1.47,z,.58,.65);column.material.map=steelMap;column.material.needsUpdate=true;
     addBox(.27,.12,.27,0x8b8e82,x,.12,z,.55,.55);
   }
   addBox(2.75,.22,2.05,0x4d5751,bx,2.82,bz,.58,.55);
   addBox(2.75,.2,2.05,0x4d5751,bx,.16,bz,.58,.55);
   addBox(2.35,.16,.16,0x9a9b8f,bx,2.55,bz-.88,.42,.65);
   addBox(2.35,.16,.16,0x9a9b8f,bx,2.55,bz+.88,.42,.65);
-  const platen=addBox(2.18,.22,1.55,0x7e8981,bx,2.12,bz,.42,.7);three.pressPlaten=platen;three.animated.push(platen);
+  const platen=addBox(2.18,.22,1.55,0xffffff,bx,2.12,bz,.42,.7);platen.material.map=steelMap;platen.material.needsUpdate=true;three.pressPlaten=platen;three.animated.push(platen);
   addCylinder(.24,.24,1.05,0xb6b9ad,bx,3.34,bz,0,0,20);
   addCylinder(.34,.34,.2,0x555e59,bx,3.9,bz,0,0,20);
   const pressRod=addCylinder(.095,.095,1,0xc3c8c1,bx,2.5,bz,0,0,16);three.pressRod=pressRod;
@@ -1614,7 +1621,7 @@ function initThree(){
   // Bale on the press bed: volumetric irregular fiber surface and five real strap loops.
   const baleX=bx,baleY=.88,baleZ=bz;
   const baleVisual=new THREE.Group();baleVisual.position.set(baleX,baleY,baleZ);scene.add(baleVisual);three.baleVisual=baleVisual;
-  const bale=addBox(1.62,.92,1.18,0x928a78,0,0,0,.99,.02,baleVisual);three.baleMesh=bale;
+  const bale=addBox(1.62,.92,1.18,0xffffff,0,0,0,.99,.02,baleVisual);bale.material.map=woolMap;bale.material.needsUpdate=true;three.baleMesh=bale;
   const baleFuzz=mat(0xb7ad98,.99);
   for(let i=0;i<95;i++){
     const x=-.78+Math.random()*1.56,y=-.44+Math.random()*.88,z=-.56+Math.random()*1.12;

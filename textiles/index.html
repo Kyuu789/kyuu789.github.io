@@ -914,7 +914,10 @@ function setScene(name,instant=false){
   const old=views[state.scene], next=views[name];
   if(old)old.classList.remove('active');
   if(next)next.classList.add('active');
-  if(name!=='roam')state.roam.sorting=false;
+  if(name!=='roam'){
+    state.roam.sorting=false;
+    if(three&&three.sortJunk)three.sortJunk.forEach(group=>{if(group)group.visible=false});
+  }
   state.scene=name;
   const hideIdle=name==='end';
   els.bossPanel.classList.toggle('hidden',hideIdle);

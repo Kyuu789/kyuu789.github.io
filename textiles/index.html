@@ -1682,29 +1682,30 @@ function initThree(){
   addBox(1.0,.07,.09,0xe2bb61,1.12,.25,.29,.55,.4,forklift);
 
   // Human boss NPC: modeled torso, head, neck, arms and legs (no photo billboard).
-  const bossGroup=new THREE.Group();
+  const bossGroup=new THREE.Group();three.bossArms=[];three.bossLegs=[];
   const skin=mat(0xb98261,.9),shirt=mat(0x303b37,.85),pants=mat(0x242a28,.9),shoe=mat(0x171b1a,.8);
   const torso=new THREE.Mesh(new THREE.BoxGeometry(.62,.88,.34),shirt);torso.position.y=1.28;bossGroup.add(torso);
   const neck=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.16,10),skin);neck.position.y=1.79;bossGroup.add(neck);
   const head=new THREE.Mesh(new THREE.SphereGeometry(.24,18,14),skin);head.position.y=2.04;head.scale.set(.88,1.08,.9);bossGroup.add(head);
   const hair=new THREE.Mesh(new THREE.SphereGeometry(.245,16,8,0,Math.PI*2,0,Math.PI*.48),mat(0x292522,.95));hair.position.set(0,2.12,0);bossGroup.add(hair);
   for(const side of [-1,1]){
-    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.68,10),shirt);arm.position.set(side*.39,1.28,0);arm.rotation.z=side*.12;bossGroup.add(arm);
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.68,10),shirt);arm.position.set(side*.39,1.28,0);arm.rotation.z=side*.12;bossGroup.add(arm);three.bossArms.push(arm);
     const hand=new THREE.Mesh(new THREE.SphereGeometry(.105,10,8),skin);hand.position.set(side*.4,.94,.02);bossGroup.add(hand);
-    const leg=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.72,10),pants);leg.position.set(side*.17,.48,0);bossGroup.add(leg);
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.72,10),pants);leg.position.set(side*.17,.48,0);bossGroup.add(leg);three.bossLegs.push(leg);
     const foot=new THREE.Mesh(new THREE.BoxGeometry(.22,.12,.38),shoe);foot.position.set(side*.17,.12,.08);bossGroup.add(foot);
   }
   bossGroup.position.set(state.boss.x,0,state.boss.z);scene.add(bossGroup);three.boss=bossGroup;
   // Worker silhouettes are also 3D mannequins, not flat photo cutouts.
+  three.workers=[];
   function makeWorker(x,z,shirtColor){
-    const g=new THREE.Group();
+    const g=new THREE.Group(),arms=[],legs=[];
     const body=new THREE.Mesh(new THREE.BoxGeometry(.48,.78,.3),mat(shirtColor,.9));body.position.y=1.15;g.add(body);
     const h=new THREE.Mesh(new THREE.SphereGeometry(.2,12,10),skin);h.position.y=1.72;g.add(h);
     for(const side of [-1,1]){
-      const a=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.58,9),mat(shirtColor,.9));a.position.set(side*.3,1.2,0);a.rotation.z=side*.15;g.add(a);
-      const l=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.58,9),pants);l.position.set(side*.13,.42,0);g.add(l);
+      const a=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.58,9),mat(shirtColor,.9));a.position.set(side*.3,1.2,0);a.rotation.z=side*.15;g.add(a);arms.push(a);
+      const l=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.58,9),pants);l.position.set(side*.13,.42,0);g.add(l);legs.push(l);
     }
-    g.position.set(x,0,z);scene.add(g);return g;
+    g.position.set(x,0,z);scene.add(g);three.workers.push({arms,legs,phase:Math.random()*Math.PI*2});return g;
   }
   makeWorker(-3.6, -3.1,0x49695d);makeWorker(-.2,-5.1,0x6b6252);makeWorker(2.6,3.5,0x56636b);
 
@@ -1739,6 +1740,9 @@ function updateBoss3D(dt){
     else{const sp=.75*dt;b.x+=dx/d*sp;b.z+=dz/d*sp;g.rotation.y=Math.atan2(dx,dz)}
   }
   g.position.set(b.x,0,b.z);
+  const gait=b.watching?0:Math.sin(performance.now()*.009)*.42;
+  if(three.bossArms)three.bossArms.forEach((arm,i)=>{arm.rotation.x=(i===0?1:-1)*gait*.75});
+  if(three.bossLegs)three.bossLegs.forEach((leg,i)=>{leg.rotation.x=(i===0?-1:1)*gait});
 }
 function updateRoamMovement(dt){
   const r=state.roam;let f=0,st=0;
@@ -1773,6 +1777,7 @@ function tickThree(){
     if(three.pressRod){const bottom=three.pressPlaten.position.y+.11,top=2.815,length=Math.max(.08,top-bottom);three.pressRod.scale.y=length;three.pressRod.position.y=(top+bottom)/2;}
   }
   if(three.sortRollers)three.sortRollers.forEach(roller=>{roller.rotation.z+=dt*2.4;});
+  if(three.workers)three.workers.forEach(worker=>{worker.phase+=dt*.9;const sway=Math.sin(worker.phase)*.08;worker.arms.forEach((arm,i)=>{arm.rotation.x=(i===0?1:-1)*sway});worker.legs.forEach((leg,i)=>{leg.rotation.x=(i===0?-1:1)*sway*.65});});
   if(three.truckCargoSlots){const truck=state.truck||{};three.truckCargoSlots.forEach((slot,i)=>{slot.visible=!!(truck.arrived&&i<truck.loaded)});}
   if(three.forklift){const count=state.truck?state.truck.forklift:three.lastForkliftCount;if(count<three.lastForkliftCount)three.forkliftPhase=0;three.lastForkliftCount=count;if(three.forkliftPhase<1.2){three.forkliftPhase+=dt;three.forklift.position.x=three.forkliftBaseX+.9*Math.sin(Math.min(1,three.forkliftPhase/1.2)*Math.PI)}else three.forklift.position.x=three.forkliftBaseX;}
   if(three.machineGate){

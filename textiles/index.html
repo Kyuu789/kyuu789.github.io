@@ -259,6 +259,30 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
 .boss-gauge i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--amber));transition:width .2s ease}
 .boss-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted)}
 .boss-cash{margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--amber2)}
+.anger{display:flex;align-items:center;gap:7px;margin-top:6px;font-family:var(--mono);font-size:9px;color:var(--muted)}
+.anger .track{flex:1;height:5px;background:rgba(255,255,255,.08);overflow:hidden}
+#bossAngerFill{display:block;height:100%;width:0;background:linear-gradient(90deg,#e6ae52,#d96150);transition:width .2s ease}
+body.angry .boss-panel{border-color:rgba(217,97,80,.8)}
+body.angry #bossAngerFill{background:linear-gradient(90deg,#d96150,#ff3b30)}
+.slap-layer{position:absolute;inset:0;z-index:50;display:grid;place-items:center;background:rgba(20,5,5,.78);backdrop-filter:blur(10px)}
+.slap-card{width:min(360px,92vw);padding:18px;text-align:center;border:1px solid rgba(217,97,80,.45);background:linear-gradient(160deg,rgba(28,12,11,.96),rgba(10,14,13,.92));box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.slap-card img{width:86px;height:104px;object-fit:cover;margin:0 auto 10px;border:1px solid rgba(255,255,255,.14);filter:saturate(.9) brightness(.8)}
+.slap-card h3{margin:0 0 6px;font-size:18px;color:#f1b3aa}
+.slap-card p{margin:0 0 10px;font-size:11px;color:var(--muted)}
+.slap-hand{font-size:46px;margin:8px 0;transform-origin:center;animation:handWind .5s ease infinite alternate}
+.slap-hand.from-left{animation:handLeft .5s ease infinite alternate}
+.slap-hand.from-right{animation:handRight .5s ease infinite alternate}
+.slap-hand.from-down{animation:handDown .5s ease infinite alternate}
+.slap-timer{height:6px;background:rgba(255,255,255,.08);margin:10px 0 14px;overflow:hidden}
+.slap-timer i{display:block;height:100%;background:#d96150;transition:width .1s linear}
+.slap-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.slap-actions .btn{min-width:96px}
+@keyframes handLeft{from{transform:translateX(-42px) rotate(-18deg)}to{transform:translateX(18px) rotate(10deg)}}
+@keyframes handRight{from{transform:translateX(42px) rotate(18deg)}to{transform:translateX(-18px) rotate(-10deg)}}
+@keyframes handDown{from{transform:translateY(-28px)}to{transform:translateY(18px)}}
+@keyframes handWind{from{transform:rotate(-10deg)}to{transform:rotate(10deg)}}
+body.shake{animation:screenShake .35s ease}
+@keyframes screenShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-8px,4px)}40%{transform:translate(8px,-4px)}60%{transform:translate(-6px,-3px)}80%{transform:translate(6px,3px)}}
 .idle-bar{position:absolute;left:50%;bottom:24px;z-index:8;display:flex;gap:8px;transform:translateX(-50%);padding:7px;border:1px solid rgba(205,222,210,.2);border-radius:10px;background:linear-gradient(180deg,rgba(8,16,14,.86),rgba(8,16,14,.78)),url('assets/break.jpg') center/cover;backdrop-filter:blur(8px)}
 .idle-btn{min-height:38px;padding:0 12px;border:1px solid rgba(205,222,210,.24);background:rgba(10,19,17,.86);color:var(--text);cursor:pointer;font-size:11px;letter-spacing:.06em;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .idle-btn:hover{border-color:rgba(230,174,82,.7)}
@@ -626,6 +650,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
         <div class="boss-quote" id="bossQuote">📢 —</div>
         <div class="boss-gauge"><i id="bossTaskFill"></i></div>
         <div class="boss-meta"><span id="bossTaskTime">0s</span><span id="bossTaskProg">0/0</span></div>
+        <div class="anger"><span data-i18n="anger">怒气</span><span class="track"><i id="bossAngerFill"></i></span></div>
         <div class="boss-cash" id="bossCashLine" data-i18n="bossCash">老板货款 ¥0</div>
       </div>
     </aside>
@@ -641,6 +666,21 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
         <div class="phone-status"><span>9:41</span><span>●●● 5G</span></div>
         <div class="phone-screen" id="phoneScreen"></div>
         <button class="phone-close" id="phoneClose" aria-label="close phone">✕</button>
+      </div>
+    </div>
+
+    <div class="slap-layer hidden" id="slapLayer">
+      <div class="slap-card">
+        <img id="slapBoss" src="assets/boss.jpg" alt="boss">
+        <h3 id="slapTitle" data-i18n="slapTitle">老板发飙了！</h3>
+        <p id="slapHint">看抬手方向，立刻躲开！</p>
+        <div class="slap-hand" id="slapHand">👋</div>
+        <div class="slap-timer"><i id="slapTimerFill"></i></div>
+        <div class="slap-actions">
+          <button class="btn" data-dodge="left" data-i18n="dodgeLeft">向左躲</button>
+          <button class="btn" data-dodge="down" data-i18n="dodgeDown">低头</button>
+          <button class="btn" data-dodge="right" data-i18n="dodgeRight">向右躲</button>
+        </div>
       </div>
     </div>
 
@@ -680,7 +720,9 @@ const MATERIALS = {
   mixedC:{zh:'杂色 C',en:'Mixed C',shortZh:'地脚毛',shortEn:'Floor sweep',img:'pile-mixed.jpg',grade:'C',gradeVal:55,color:'mixed'}
 };
 const SHIFT_SECONDS=300, TARGET_BALES=6, MIN_BALE=150, MAX_BALE=190, UNIT_KG=15, WIRE_PER_BALE=5, CART_CAP=200;
-const TRUCK_CAP=6, TRUCK_ARRIVE=4, TRUCK_SECONDS=45, FORKLIFT_USES=2, PRICE_PER_KG=1.2;
+const TRUCK_CAP=6, TRUCK_ARRIVE=6, TRUCK_SECONDS=45, FORKLIFT_USES=2, PRICE_PER_KG=1.2;
+/* 月薪约 8000：按 26 个工日折算，每班合格包 +装车+任务奖约 300–340 元，失误扣款另扣。 */
+const WAGE_BALE=45, WAGE_TRUCK_BALE=5, WAGE_TASK=20, WAGE_PENALTY=20;
 const WORKSHOPS=[
   {id:'wool',zh:'废毛打包车间',en:'Wool Bale Shop',machineZh:'液压打包机',machineEn:'Hydraulic Baler',img:'pile-white.jpg',machineImg:'baler.jpg',pool:['whiteA','grayB','darkB'],imgMap:{},descZh:'精回丝为主 · 重量稳',descEn:'Clean yarn · steady weight'},
   {id:'rag',zh:'碎布开松车间',en:'Rag Opening Shop',machineZh:'开松机',machineEn:'Rag opener',img:'sort-table.jpg',machineImg:'sort-facility.jpg',pool:['ragB','oldC','mixedC'],imgMap:{ragB:'sort-table.jpg',oldC:'sort-facility.jpg',mixedC:'pile-mixed.jpg'},descZh:'碎布多 · 异物多 · 奖金高',descEn:'Rags & junk · higher bonus'},
@@ -702,8 +744,8 @@ const TASK_TYPES=[
   {id:'load',key:'taskLoad',target:300,progress:()=>state.loadedKg}
 ];
 const I18N = {
-  zh:{appTitle:'废毛打包间',clock:'班次',remaining:'剩余',qualified:'合格',output:'产量',stock:'丝道',stationFloor:'收毛区',stationSort:'分拣台',stationBaler:'液压打包',floorNote:'只塞干净毛料 · 异物别上车 · 10–13 次 = 150–190kg',cart:'周转车 / CART',empty:'空车',foreign0:'异物 0',toSort:'去分拣台',sortTitle:'分拣 / SORT',weight:'重量',grade:'品级',purity:'挑出',left:'遗留',sendBaler:'送入打包机',chamber:'压仓 / CHAMBER',gate:'安全门',control:'控制台 / CONTROL',pressure:'液压压力',feed:'倒料',close:'关门',press:'下压',repress:'补压',tie:'穿丝',eject:'出包',stuck:'压仓卡毛',clear:'清理',wire:'打包丝 / WIRE',fourTies:'穿 5 道',tieHint:'按住上排节点，滑到下排对应节点，拉出五根 X | X 包带；连错会松脱。',truckKicker:'9.6米大运 · 装车发运',truckTimer:'装车限时',truckLoaded:'已装',truckRevenue:'预计货款',forklift:'铲车',secure:'绑绳加固',depart:'发车卖货',truckHint:'点地上的包人力扛上车；超重包容易打滑，铲车一次装一包。',bossCash:'老板货款',soldKg:'已售毛料',quality:'品质',scoreWeight:'重量',scorePurity:'纯净',scoreGrade:'品级',scoreBind:'打包',palletKicker:'PALLET BAY',of6:'/ 6 包合格',avg:'平均包重',rejected:'返工包',caught:'挑出异物',defects:'故障/失误',safety:'安全',endTitleDone:'目标达成 · 可以交班',endTitleEnd:'本班结束 · 还差一截',startSub:'把地上的废毛，压成能上垛的包。',target:'目标',bales:'包',baleSize:'单包',shiftTime:'班时',flow1:'收集',flow2:'分拣',flow3:'液压打包',flow4:'穿丝',flow5:'码垛',start:'接班',again:'再来一班',wireStock:'丝道',gradeChip:'品级',emptyBatch:'空车',mixColor:'混色',empty0:'—',bootLoading:'正在加载车间素材…',wage:'工资',boss:'老板',water:'喝水',snack:'吃东西',phone:'手机',caughtBoss:'被抓摸鱼',tasksDone:'完成任务',taskBales:'合格打包',taskSort:'挑净异物',taskJam:'清理卡毛',taskStraps:'完成穿丝',taskLoad:'装车产量',bossAway:'背身摸鱼',bossWatch:'正在巡视',taskDone:'任务完成 · 加工资',taskMiss:'任务超时 · 扣工资加派',caughtMsg:'被老板发现摸鱼 · 扣工资加任务',phoneHome:'手机桌面',wechat:'微信',douyin:'抖音',wife:'老婆',send:'发送',like:'点赞',comment:'评论',drinkMsg:'喝口水缓一缓',snackMsg:'吃口饼干垫肚子',dayWorked:'工作天数',totalBales:'累计合格',nextDay:'已达标 · 下一班进入第'},
-  en:{appTitle:'Waste Wool Shift',clock:'Shift',remaining:'Left',qualified:'Pass',output:'Output',stock:'Wires',stationFloor:'Recovery',stationSort:'Sorting',stationBaler:'Hydraulic Baler',floorNote:'Load clean fiber only · keep junk out · 10–13 loads = 150–190kg',cart:'CART',empty:'Empty cart',foreign0:'Contaminants 0',toSort:'To sorting line',sortTitle:'SORTING LINE',weight:'Weight',grade:'Grade',purity:'Picked',left:'Left',sendBaler:'Send to baler',chamber:'CHAMBER',gate:'Gate',control:'CONTROL',pressure:'Hydraulic pressure',feed:'Load',close:'Close gate',press:'Press down',repress:'Repress',tie:'Tie',eject:'Eject',stuck:'Fiber jam',clear:'Clear',wire:'BALE WIRE',fourTies:'Tie 5 wires',tieHint:'Press a top node and drag to its bottom node to draw the five X | X straps; wrong links come loose.',truckKicker:'9.6M DAYUN / LOAD & SHIP',truckTimer:'Loading time',truckLoaded:'Loaded',truckRevenue:'Est. sale',forklift:'Forklift',secure:'Secure ropes',depart:'Drive & sell',truckHint:'Tap a ground bale to carry it aboard; heavy bales may slip, forklift loads one bale per charge.',bossCash:'Boss proceeds',soldKg:'Sold fiber',quality:'Quality',scoreWeight:'Weight',scorePurity:'Purity',scoreGrade:'Grade',scoreBind:'Binding',palletKicker:'PALLET BAY',of6:'/ 6 bales passed',avg:'Avg bale',rejected:'Rejected',caught:'Contaminants',defects:'Faults',safety:'Safety',endTitleDone:'Shift target met',endTitleEnd:'Shift ended · short of target',startSub:'Press loose mill waste into stackable bales.',target:'Target',bales:'bales',baleSize:'Bale',shiftTime:'Shift',flow1:'Collect',flow2:'Sort',flow3:'Bale',flow4:'Tie',flow5:'Stack',start:'Start shift',again:'Next shift',wireStock:'Wires',gradeChip:'Grade',emptyBatch:'Empty cart',mixColor:'Mixed color',empty0:'—',bootLoading:'Loading shift assets…',wage:'Wage',boss:'Boss',water:'Water',snack:'Snack',phone:'Phone',caughtBoss:'Caught idle',tasksDone:'Tasks done',taskBales:'Qualified bales',taskSort:'Catch waste',taskJam:'Clear jams',taskStraps:'Tie straps',taskLoad:'Load cart',bossAway:'Back turned',bossWatch:'Watching',taskDone:'Task done · bonus',taskMiss:'Task missed · pay cut',caughtMsg:'Caught slacking · pay cut and extra task',phoneHome:'Phone',wechat:'WeChat',douyin:'TikTok',wife:'Wife',send:'Send',like:'Like',comment:'Comment',drinkMsg:'Take a sip',snackMsg:'Bite a biscuit',dayWorked:'Days worked',totalBales:'Total passed',nextDay:'Target met · next shift starts day'}
+  zh:{appTitle:'废毛打包间',clock:'班次',remaining:'剩余',qualified:'合格',output:'产量',stock:'丝道',stationFloor:'收毛区',stationSort:'分拣台',stationBaler:'液压打包',floorNote:'只塞干净毛料 · 异物别上车 · 10–13 次 = 150–190kg',cart:'周转车 / CART',empty:'空车',foreign0:'异物 0',toSort:'去分拣台',sortTitle:'分拣 / SORT',weight:'重量',grade:'品级',purity:'挑出',left:'遗留',sendBaler:'送入打包机',chamber:'压仓 / CHAMBER',gate:'安全门',control:'控制台 / CONTROL',pressure:'液压压力',feed:'倒料',close:'关门',press:'下压',repress:'补压',tie:'穿丝',eject:'出包',stuck:'压仓卡毛',clear:'清理',wire:'打包丝 / WIRE',fourTies:'穿 5 道',tieHint:'按住上排节点，滑到下排对应节点，拉出五根 X | X 包带；连错会松脱。',truckKicker:'9.6米大运 · 装车发运',truckTimer:'装车限时',truckLoaded:'已装',truckRevenue:'预计货款',forklift:'铲车',secure:'绑绳加固',depart:'发车卖货',truckHint:'点地上的包人力扛上车；超重包容易打滑，铲车一次装一包。',bossCash:'老板货款',soldKg:'已售毛料',quality:'品质',scoreWeight:'重量',scorePurity:'纯净',scoreGrade:'品级',scoreBind:'打包',palletKicker:'PALLET BAY',of6:'/ 6 包合格',avg:'平均包重',rejected:'返工包',caught:'挑出异物',defects:'故障/失误',safety:'安全',endTitleDone:'目标达成 · 可以交班',endTitleEnd:'本班结束 · 还差一截',startSub:'把地上的废毛，压成能上垛的包。',target:'目标',bales:'包',baleSize:'单包',shiftTime:'班时',flow1:'收集',flow2:'分拣',flow3:'液压打包',flow4:'穿丝',flow5:'码垛',start:'接班',again:'再来一班',wireStock:'丝道',gradeChip:'品级',emptyBatch:'空车',mixColor:'混色',empty0:'—',bootLoading:'正在加载车间素材…',wage:'工资',boss:'老板',water:'喝水',snack:'吃东西',phone:'手机',caughtBoss:'被抓摸鱼',tasksDone:'完成任务',taskBales:'合格打包',taskSort:'挑净异物',taskJam:'清理卡毛',taskStraps:'完成穿丝',taskLoad:'装车产量',bossAway:'背身摸鱼',bossWatch:'正在巡视',taskDone:'任务完成 · 加工资',taskMiss:'任务超时 · 扣工资加派',caughtMsg:'被老板发现摸鱼 · 扣工资加任务',phoneHome:'手机桌面',wechat:'微信',douyin:'抖音',wife:'老婆',send:'发送',like:'点赞',comment:'评论',drinkMsg:'喝口水缓一缓',snackMsg:'吃口饼干垫肚子',dayWorked:'工作天数',totalBales:'累计合格',nextDay:'已达标 · 下一班进入第',anger:'怒气',slapTitle:'老板发飙了！',slapHint:'看抬手方向，立刻躲开！',dodgeLeft:'向左躲',dodgeRight:'向右躲',dodgeDown:'低头',slapSuccess:'躲开了！',slapFail:'被扇到了 · 扣工资'},
+  en:{appTitle:'Waste Wool Shift',clock:'Shift',remaining:'Left',qualified:'Pass',output:'Output',stock:'Wires',stationFloor:'Recovery',stationSort:'Sorting',stationBaler:'Hydraulic Baler',floorNote:'Load clean fiber only · keep junk out · 10–13 loads = 150–190kg',cart:'CART',empty:'Empty cart',foreign0:'Contaminants 0',toSort:'To sorting line',sortTitle:'SORTING LINE',weight:'Weight',grade:'Grade',purity:'Picked',left:'Left',sendBaler:'Send to baler',chamber:'CHAMBER',gate:'Gate',control:'CONTROL',pressure:'Hydraulic pressure',feed:'Load',close:'Close gate',press:'Press down',repress:'Repress',tie:'Tie',eject:'Eject',stuck:'Fiber jam',clear:'Clear',wire:'BALE WIRE',fourTies:'Tie 5 wires',tieHint:'Press a top node and drag to its bottom node to draw the five X | X straps; wrong links come loose.',truckKicker:'9.6M DAYUN / LOAD & SHIP',truckTimer:'Loading time',truckLoaded:'Loaded',truckRevenue:'Est. sale',forklift:'Forklift',secure:'Secure ropes',depart:'Drive & sell',truckHint:'Tap a ground bale to carry it aboard; heavy bales may slip, forklift loads one bale per charge.',bossCash:'Boss proceeds',soldKg:'Sold fiber',quality:'Quality',scoreWeight:'Weight',scorePurity:'Purity',scoreGrade:'Grade',scoreBind:'Binding',palletKicker:'PALLET BAY',of6:'/ 6 bales passed',avg:'Avg bale',rejected:'Rejected',caught:'Contaminants',defects:'Faults',safety:'Safety',endTitleDone:'Shift target met',endTitleEnd:'Shift ended · short of target',startSub:'Press loose mill waste into stackable bales.',target:'Target',bales:'bales',baleSize:'Bale',shiftTime:'Shift',flow1:'Collect',flow2:'Sort',flow3:'Bale',flow4:'Tie',flow5:'Stack',start:'Start shift',again:'Next shift',wireStock:'Wires',gradeChip:'Grade',emptyBatch:'Empty cart',mixColor:'Mixed color',empty0:'—',bootLoading:'Loading shift assets…',wage:'Wage',boss:'Boss',water:'Water',snack:'Snack',phone:'Phone',caughtBoss:'Caught idle',tasksDone:'Tasks done',taskBales:'Qualified bales',taskSort:'Catch waste',taskJam:'Clear jams',taskStraps:'Tie straps',taskLoad:'Load cart',bossAway:'Back turned',bossWatch:'Watching',taskDone:'Task done · bonus',taskMiss:'Task missed · pay cut',caughtMsg:'Caught slacking · pay cut and extra task',phoneHome:'Phone',wechat:'WeChat',douyin:'TikTok',wife:'Wife',send:'Send',like:'Like',comment:'Comment',drinkMsg:'Take a sip',snackMsg:'Bite a biscuit',dayWorked:'Days worked',totalBales:'Total passed',nextDay:'Target met · next shift starts day',anger:'Anger',slapTitle:'Boss is furious!',slapHint:'Watch the wind-up and dodge now!',dodgeLeft:'Dodge left',dodgeRight:'Dodge right',dodgeDown:'Duck',slapSuccess:'Dodged it!',slapFail:'Slapped · wage cut'}
 };
 let lang = localStorage.getItem('tw-lang') || 'zh';
 const t = k => (I18N[lang]&&I18N[lang][k]) || I18N.zh[k] || k;
@@ -723,7 +765,8 @@ const state = {
   wireStock:30,qualified:0,output:0,rejected:0,acceptedWeights:[],acceptedBales:[],
   wage:0,caughtCount:0,tasksDone:0,tasksMissed:0,loadedKg:0,jamsCleared:0,strapsTied:0,
   bossCash:0,soldBales:0,soldKg:0,career:loadSave(),truck:{arrived:false,loaded:0,slotIds:[],groundIds:[],forklift:FORKLIFT_USES,secured:false,timer:TRUCK_SECONDS,loadedBales:[],revenue:0},
-  boss:{watching:false,phaseLeft:4,task:null,extraTasks:0},
+  boss:{watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0},
+  slap:{open:false,dir:null,correct:null,timer:null,timeout:null,left:0},
   phoneOpen:false,phoneApp:'home',
   musicOn:localStorage.getItem('tw-music')!=='0',sfxOn:localStorage.getItem('tw-sfx')!=='0'
 };
@@ -742,7 +785,7 @@ const els={
   palletTitle:$('#palletTitle'),palletMeta:$('#palletMeta'),palletRow:$('#palletRow'),
   truckView:$('#truckView'),truckSlots:$('#truckSlots'),truckGround:$('#truckGround'),truckTimer:$('#truckTimer'),truckLoaded:$('#truckLoaded'),truckRevenue:$('#truckRevenue'),forkliftBtn:$('#forkliftBtn'),forkliftCount:$('#forkliftCount'),secureBtn:$('#secureBtn'),departBtn:$('#departBtn'),
   endKicker:$('#endKicker'),endQualified:$('#endQualified'),endOutput:$('#endOutput'),endAvg:$('#endAvg'),endRejects:$('#endRejects'),endCaught:$('#endCaught'),endDefects:$('#endDefects'),endSafety:$('#endSafety'),endGrade:$('#endGrade'),endTitle:$('#endTitle'),endTags:$('#endTags'),endBossCash:$('#endBossCash'),endSoldKg:$('#endSoldKg'),endDay:$('#endDay'),endTotalBales:$('#endTotalBales'),againBtn:$('#againBtn'),
-  wage:$('#wage'),stationBaler:$('#stationBaler'),balerBg:$('#balerBg'),bossPanel:$('#bossPanel'),bossState:$('#bossState'),bossTask:$('#bossTask'),bossTaskFill:$('#bossTaskFill'),bossTaskTime:$('#bossTaskTime'),bossTaskProg:$('#bossTaskProg'),bossCashLine:$('#bossCashLine'),bossQuote:$('#bossQuote'),idleBar:$('.idle-bar'),
+  wage:$('#wage'),stationBaler:$('#stationBaler'),balerBg:$('#balerBg'),bossPanel:$('#bossPanel'),bossState:$('#bossState'),bossTask:$('#bossTask'),bossTaskFill:$('#bossTaskFill'),bossTaskTime:$('#bossTaskTime'),bossTaskProg:$('#bossTaskProg'),bossCashLine:$('#bossCashLine'),bossQuote:$('#bossQuote'),bossAngerFill:$('#bossAngerFill'),slapLayer:$('#slapLayer'),slapHint:$('#slapHint'),slapHand:$('#slapHand'),slapTimerFill:$('#slapTimerFill'),idleBar:$('.idle-bar'),
   waterBtn:$('#waterBtn'),snackBtn:$('#snackBtn'),phoneBtn:$('#phoneBtn'),phoneLayer:$('#phoneLayer'),phoneScreen:$('#phoneScreen'),phoneClose:$('#phoneClose'),
   endWage:$('#endWage'),endCaughtBoss:$('#endCaughtBoss'),endTasks:$('#endTasks'),bootFill:$('#bootFill'),bootPct:$('#bootPct'),
   fade:$('#fade'),toast:$('#toast'),startModal:$('#startModal'),startBtn:$('#startBtn'),langBtn:$('#langBtn'),musicBtn:$('#musicBtn'),sfxBtn:$('#sfxBtn')
@@ -892,7 +935,7 @@ function addPile(k,card){
 }
 function rejectJunk(type,card){
   if(!state.running||state.scene!=='floor')return;
-  state.defects++; state.wage=Math.max(0,state.wage-5);
+  state.defects++; state.wage=Math.max(0,state.wage-5); addAnger(8);
   card.classList.add('bad'); setTimeout(()=>card.classList.remove('bad'),420);
   toast(lang==='zh'?`${junkLabel(type)}不能塞上车`:`${junkLabel(type)} cannot go aboard`,'bad');
   AudioSys.tone('bad');updateFloor();
@@ -1067,7 +1110,7 @@ function showResult(){
   const quality=Math.round(wScore*.28+purity*.3+grade*.25+bind*.17);
   b.score={wScore,purity,grade,bind,quality};
   const pass=weightOk&&purity>=80&&grade>=68&&bind>=80&&quality>=80;
-  if(pass){state.qualified++;state.output+=b.weight;state.wage+=60;state.acceptedWeights.push(b.weight);state.acceptedBales.push({weight:b.weight,grade:MATERIALS[Object.keys(b.materials).sort((a,c)=>MATERIALS[a].gradeVal-MATERIALS[c].gradeVal)[0]]?.grade})}else{state.rejected++;state.defects++;state.wage=Math.max(0,state.wage-10)}
+  if(pass){state.qualified++;state.output+=b.weight;state.wage+=WAGE_BALE;calmAnger(8);state.acceptedWeights.push(b.weight);state.acceptedBales.push({weight:b.weight,grade:MATERIALS[Object.keys(b.materials).sort((a,c)=>MATERIALS[a].gradeVal-MATERIALS[c].gradeVal)[0]]?.grade})}else{state.rejected++;state.defects++;state.wage=Math.max(0,state.wage-10);addAnger(12)}
   els.resultStamp.textContent=pass?(lang==='zh'?'合格':'Pass'):(lang==='zh'?'返工':'Reject');
   els.resultStamp.className='stamp'+(pass?'':' bad');
   els.resultWeight.textContent=b.weight;els.resultQuality.textContent=quality;
@@ -1135,8 +1178,8 @@ function updateTruck(){
   els.truckRevenue.textContent=`¥${t.revenue}`;
   els.forkliftCount.textContent=t.forklift;
   els.forkliftBtn.disabled=t.forklift<=0||t.loaded>=TRUCK_CAP;
-  els.secureBtn.disabled=t.loaded===0;
-  els.departBtn.disabled=t.loaded===0;
+  els.secureBtn.disabled=t.loaded<TRUCK_CAP;
+  els.departBtn.disabled=t.loaded<TRUCK_CAP;
 }
 function loadBale(groundIndex,useForklift=false){
   const t=state.truck;
@@ -1161,7 +1204,7 @@ function departTruck(auto=false){
   let revenue=t.revenue;
   if(!t.secured)revenue=Math.round(revenue*.9);
   state.bossCash+=revenue;state.soldBales+=t.loaded;state.soldKg+=t.loadedBales.reduce((a,b)=>a+b.weight,0);
-  state.wage+=t.loaded*8;
+  state.wage+=t.loaded*WAGE_TRUCK_BALE;
   t.loadedBales.forEach(b=>b.sold=true);
   toast(lang==='zh'?`货车发车 · 老板货款 ¥${revenue}`:`Truck departed · boss proceeds ¥${revenue}`,auto?'bad':'good');
   AudioSys.tone(auto?'bad':'good');
@@ -1179,8 +1222,8 @@ function assignTask(){
 function checkTask(){
   const task=state.boss.task; if(!task||state.finished)return;
   const prog=Math.min(task.target,task.type.progress());
-  if(prog>=task.target){state.wage+=30;state.tasksDone++;toast(t('taskDone'),'good');AudioSys.tone('good');assignTask();return}
-  if(state.remaining<=task.deadline){state.wage=Math.max(0,state.wage-30);state.tasksMissed++;state.boss.extraTasks++;toast(t('taskMiss'),'bad');AudioSys.tone('bad');assignTask()}
+  if(prog>=task.target){state.wage+=WAGE_TASK;state.tasksDone++;calmAnger(20);toast(t('taskDone'),'good');AudioSys.tone('good');assignTask();return}
+  if(state.remaining<=task.deadline){state.wage=Math.max(0,state.wage-WAGE_PENALTY);state.tasksMissed++;state.boss.extraTasks++;addAnger(30);toast(t('taskMiss'),'bad');AudioSys.tone('bad');assignTask()}
 }
 function bossCycle(){
   const b=state.boss; b.phaseLeft--;
@@ -1198,6 +1241,8 @@ function updateBossPanel(){
   els.bossPanel.classList.toggle('watching',b.watching);
   els.bossState.textContent=b.watching?t('bossWatch'):t('bossAway');
   els.bossQuote.textContent=state.quote||'📢 —';
+  els.bossAngerFill.style.width=Math.min(100,Math.max(0,b.anger))+'%';
+  document.body.classList.toggle('angry',b.anger>=70);
   if(!task){els.bossTask.textContent='—';els.bossTaskFill.style.width='0%';els.bossTaskProg.textContent='0/0';els.bossTaskTime.textContent='0s';return}
   const prog=Math.min(task.target,task.type.progress());
   const left=Math.max(0,state.remaining-task.deadline);
@@ -1209,9 +1254,31 @@ function updateBossPanel(){
 }
 function catchBoss(){
   if(state.phoneOpen)closePhone();
-  state.caughtCount++;state.wage=Math.max(0,state.wage-20);state.boss.extraTasks++;state.defects++;
-  toast(t('caughtMsg'),'bad');AudioSys.tone('bad');updateHud();updateBossPanel();
+  state.caughtCount++;state.wage=Math.max(0,state.wage-15);state.boss.extraTasks++;state.defects++;
+  addAnger(25);toast(t('caughtMsg'),'bad');AudioSys.tone('bad');updateHud();updateBossPanel();
 }
+function addAnger(n){if(!state.running||state.finished||state.slap.open)return;state.boss.anger=Math.min(100,state.boss.anger+n);updateBossPanel();if(state.boss.anger>=100)setTimeout(startSlap,450)}
+function calmAnger(n){state.boss.anger=Math.max(0,state.boss.anger-n);updateBossPanel()}
+function startSlap(){
+  if(state.finished||state.slap.open)return;
+  const dirs=[['left','right'],['right','left'],['down','down']];
+  const [dir,correct]=dirs[Math.floor(Math.random()*dirs.length)];
+  Object.assign(state.slap,{open:true,dir,correct,left:2200});
+  els.slapLayer.classList.remove('hidden');els.slapHand.className='slap-hand from-'+dir;
+  els.slapHint.textContent=dir==='left'?(lang==='zh'?'左手扇来，向右躲！':'Slap from left, dodge right!'):dir==='right'?(lang==='zh'?'右手扇来，向左躲！':'Slap from right, dodge left!'):(lang==='zh'?'从上压下来，低头！':'Duck under the overhead swing!');
+  AudioSys.tone('bad');
+  state.slap.timer=setInterval(()=>{state.slap.left-100;els.slapTimerFill.style.width=Math.max(0,state.slap.left/2200*100)+'%';if(state.slap.left<=0)resolveSlap(false)},100);
+  state.slap.timeout=setTimeout(()=>resolveSlap(false),2200);
+}
+function resolveSlap(success){
+  if(!state.slap.open)return;
+  clearInterval(state.slap.timer);clearTimeout(state.slap.timeout);
+  state.slap.open=false;els.slapLayer.classList.add('hidden');
+  if(success){state.boss.anger=30;state.wage+=5;toast(t('slapSuccess'),'good');AudioSys.tone('good')}
+  else{state.boss.anger=50;state.wage=Math.max(0,state.wage-WAGE_PENALTY);state.defects++;document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),360);toast(t('slapFail'),'bad');AudioSys.tone('bad')}
+  updateHud();updateBossPanel();
+}
+function dodgeSlap(d){if(state.slap.open)resolveSlap(d===state.slap.correct)}
 function idleAction(kind){
   if(!state.running||state.finished)return;
   if(state.boss.watching){catchBoss();return}
@@ -1262,14 +1329,15 @@ function resetState(){
   state.wage=0;state.caughtCount=0;state.tasksDone=0;state.tasksMissed=0;state.loadedKg=0;state.jamsCleared=0;state.strapsTied=0;
   state.bossCash=0;state.soldBales=0;state.soldKg=0;
   state.truck={arrived:false,loaded:0,slotIds:[],groundIds:[],forklift:FORKLIFT_USES,secured:false,timer:TRUCK_SECONDS,loadedBales:[],revenue:0};
-  state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0};state.phoneOpen=false;state.wechatMsgs=[];state.quote='';state.career.recorded=false;
+  state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0};state.slap={open:false,dir:null,correct:null,timer:null,timeout:null,left:0};state.phoneOpen=false;state.wechatMsgs=[];state.quote='';state.career.recorded=false;
+  document.body.classList.remove('angry','shake');els.slapLayer.classList.add('hidden');
   els.phoneLayer.classList.add('hidden');
   els.sortLayer.innerHTML='';els.tieLayer.classList.add('hidden');els.resultLayer.classList.add('hidden');
   els.floorView.classList.add('active');els.sortView.classList.remove('active');els.balerView.classList.remove('active');els.palletView.classList.remove('active');els.endView.classList.remove('active');
   resetTieBoard();updateHud();
 }
 function finishShift(){
-  if(state.finished)return;state.finished=true;state.running=false;clearInterval(timerId);timerId=null;clearTimeout(palletTimer);palletTimer=null;clearInterval(truckTimer);truckTimer=null;clearTimeout(toast._t);els.toast.className='toast';
+  if(state.finished)return;state.finished=true;state.running=false;clearInterval(timerId);timerId=null;clearTimeout(palletTimer);palletTimer=null;clearInterval(truckTimer);truckTimer=null;clearTimeout(toast._t);els.toast.className='toast';clearInterval(state.slap.timer);clearTimeout(state.slap.timeout);state.slap.open=false;els.slapLayer.classList.add('hidden');
   els.tieLayer.classList.add('hidden');els.resultLayer.classList.add('hidden');updateEnd();setScene('end');
 }
 function updateEnd(){
@@ -1331,6 +1399,7 @@ els.waterBtn.addEventListener('click',()=>idleAction('water'));
 els.snackBtn.addEventListener('click',()=>idleAction('snack'));
 els.phoneBtn.addEventListener('click',()=>idleAction('phone'));
 els.phoneClose.addEventListener('click',closePhone);
+$$('[data-dodge]',els.slapLayer).forEach(btn=>btn.addEventListener('click',()=>dodgeSlap(btn.dataset.dodge)));
 
 /* ===== 素材加载 ===== */
 function loadAssets(){

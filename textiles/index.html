@@ -1549,6 +1549,11 @@ function initThree(){
     g.globalAlpha=1;const tex=new THREE.CanvasTexture(c);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(5,4);tex.encoding=THREE.sRGBEncoding;return tex;
   };
   const concreteMap=makeSurfaceMap('#65645e','#b4b0a5',2200),steelMap=makeSurfaceMap('#505953','#b8bdb5',1600),woolMap=makeSurfaceMap('#9d9585','#e2d9c6',2600);
+  three.machineTargets=[];
+  const addMachineTarget=(action,label,x,y,z,color=0x79b88d)=>{
+    const mesh=new THREE.Mesh(new THREE.SphereGeometry(.145,16,12),new THREE.MeshStandardMaterial({color,roughness:.32,metalness:.18,emissive:color,emissiveIntensity:.12}));
+    mesh.position.set(x,y,z);mesh.castShadow=true;mesh.userData.machineAction=action;mesh.userData.machineLabel=label;scene.add(mesh);three.machineTargets.push(mesh);return mesh;
+  };
   const addBox=(w,h,d,color,x,y,z,rough=.82,metal=0,parent=scene)=>{
     const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,rough,metal));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
   };
@@ -1661,6 +1666,13 @@ function initThree(){
   addCylinder(.085,.085,.045,0x4caa76,bx-2.05,1.22,bz-.35,Math.PI/2,0,16);
   addCylinder(.085,.085,.045,0xc64d3d,bx-1.8,1.22,bz-.35,Math.PI/2,0,16);
   addCylinder(.17,.17,.045,0xd8d2bd,bx-1.9,1.58,bz-.35,Math.PI/2,0,24);
+  // Large, tactile controls on the operator-facing side of the console.
+  addMachineTarget('feed','LOAD',bx-2.12,1.2,bz+.02,0x4fbd83);
+  addMachineTarget('clear','CLEAR JAM',bx-1.9,1.2,bz+.02,0xd6a34e);
+  addMachineTarget('press','PRESS',bx-1.68,1.2,bz+.02,0xd45a48);
+  addMachineTarget('tie','TIE STRAPS',bx-2.12,.88,bz+.02,0x5d9fc4);
+  addMachineTarget('eject','EJECT',bx-1.68,.88,bz+.02,0xd5b95d);
+  addMachineTarget('gate','SAFETY GATE',bx,1.12,bz+1.02,0xe1b54d);
 
   // Bale on the press bed: volumetric irregular fiber surface and five real strap loops.
   const baleX=bx,baleY=.88,baleZ=bz;
@@ -1772,11 +1784,20 @@ function initThree(){
   }
 
   canvas.addEventListener('click',e=>{
-    if(!state.roam.active||!state.roam.sorting||!three.sortJunk||Math.hypot(state.roam.x+1.1,state.roam.z+4.4)>5.5)return;
+    if(!state.roam.active)return;
     const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
     three.raycaster.setFromCamera(three.pointer,camera);
-    const targets=three.sortJunk.filter(g=>g&&g.visible),hits=three.raycaster.intersectObjects(targets,true);
-    if(hits.length){let node=hits[0].object;while(node&&node.userData.sortId==null)node=node.parent;if(node)pickContaminant(node.userData.sortId)}
+    if(state.roam.sorting&&three.sortJunk&&Math.hypot(state.roam.x+1.1,state.roam.z+4.4)<=5.5){
+      const targets=three.sortJunk.filter(g=>g&&g.visible),hits=three.raycaster.intersectObjects(targets,true);
+      if(hits.length){let node=hits[0].object;while(node&&node.userData.sortId==null)node=node.parent;if(node)pickContaminant(node.userData.sortId)}
+      return;
+    }
+    if(state.scene==='baler'&&three.machineTargets){
+      const hits=three.raycaster.intersectObjects(three.machineTargets,false);
+      if(hits.length){const action=hits[0].object.userData.machineAction;
+        if(action==='feed')feed();else if(action==='clear')clearStuck();else if(action==='press')press();else if(action==='tie')openTie();else if(action==='eject')eject();else if(action==='gate')closeDoor();
+      }
+    }
   });
   resizeThree();bindRoamControls();requestAnimationFrame(tickThree);
 }

@@ -1821,13 +1821,13 @@ function tickThree(){
   if(!state.started)r.yaw+=dt*.12;
   if(r.active){
     updateRoamMovement(dt);
-    updateBoss3D(dt);
     if(r.sorting)syncSortProps();
     const near=nearestSpot(),spot=r.sorting&&near&&near.id==='sort'?null:near;r.nearest=spot;
     if(r.sorting&&Math.hypot(r.x+1.1,r.z+4.4)<5.5){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=lang==='zh'?'点击台面异物 · 清理后去打包':'Tap contaminants · finish at the baler';els.interactBtn.textContent=lang==='zh'?'送去打包':'Send to baler';els.interactBtn.disabled=false}
     else if(spot){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=t(spot.key);els.interactBtn.textContent=t('interact');els.interactBtn.disabled=!spot.can()}
     else els.roamPrompt.classList.add('hidden');
   }
+  if(state.running)updateBoss3D(dt);
   three.camera.position.set(r.x,1.6,r.z);three.camera.rotation.y=r.yaw;three.camera.rotation.x=r.pitch;
   if(three.pressPlaten){
     const phase=state.machine&&state.machine.pressure?Math.min(1,state.machine.pressure/172):0;

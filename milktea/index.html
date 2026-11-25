@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>今天第几杯？· 宿舍奶茶模拟</title>
+<meta name="description" content="一个学生视角的奶茶习惯模拟：看见快乐，也看见血糖负荷悄悄记下的账。" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧋</text></svg>" />
+<link rel="preconnect" href="https://miaoda.feishu.cn" />
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" />
+<style>
+:root{
+  --ink:#213b34;
+  --ink-soft:#557068;
+  --cream:#fff8e9;
+  --paper:#fffdf5;
+  --line:#223e36;
+  --orange:#f1a33f;
+  --orange-deep:#cf7624;
+  --red:#d85b4c;
+  --green:#37735e;
+  --green-soft:#dfeee5;
+  --blue:#4f86a5;
+  --brown:#7a5a42;
+  --shadow:0 6px 0 rgba(33,59,52,.18);
+  --shadow-lg:0 14px 34px rgba(33,59,52,.18);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  min-height:100dvh;
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 16% 8%,rgba(241,163,63,.2),transparent 28%),
+    radial-gradient(circle at 84% 86%,rgba(79,134,165,.16),transparent 28%),
+    #0f2d27;
+  -webkit-tap-highlight-color:transparent;
+  overscroll-behavior:none;
+}
+button{font-family:inherit}
+button{border:0}
+.hidden{display:none!important}
+
+.app{
+  position:relative;
+  width:min(100%,480px);
+  min-height:100dvh;
+  margin:0 auto;
+  overflow-x:hidden;
+  background:var(--cream);
+  box-shadow:0 0 0 1px rgba(255,255,255,.08);
+}
+.topbar{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:14px 16px 10px;
+  background:rgba(255,248,233,.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(33,59,52,.09);
+}
+.brandline{display:flex;align-items:center;gap:8px;min-width:0}
+.brand-mark{
+  width:34px;height:34px;display:grid;place-items:center;
+  border-radius:50%;background:#f7d9aa;border:2px solid var(--line);
+  font-size:18px;transform:rotate(-6deg);
+}
+.brandline b{display:block;font-size:14px;line-height:1.1;letter-spacing:.02em}
+.brandline small{display:block;font-size:8px;letter-spacing:.12em;color:#947852;margin-top:2px}
+.top-actions{display:flex;gap:6px}
+.ghost-btn{
+  padding:7px 9px;border-radius:999px;background:#fffdf5;
+  border:1.5px solid rgba(33,59,52,.24);color:var(--ink);
+  font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap;
+}
+.ghost-btn:active{transform:scale(.96)}
+.ghost-btn em{font-style:normal;color:#a87639}
+
+.view{padding:0 16px 22px}
+.start-view{padding-bottom:28px}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:5px;
+  margin:14px 0 9px;padding:5px 9px;border-radius:999px;
+  background:#f5e1be;color:#76542e;font-size:9px;font-weight:900;
+  letter-spacing:.13em;border:1px solid rgba(33,59,52,.18);
+}
+.poster{
+  position:relative;margin:0 -16px;
+  height:min(49dvh,390px);min-height:300px;
+  overflow:hidden;
+  background:#c7d3ca;
+}
+.poster img{width:100%;height:100%;object-fit:cover;object-position:center 38%;display:block}
+.poster:after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(15,45,39,.02) 34%,rgba(15,45,39,.76) 100%);
+}
+.poster-copy{
+  position:absolute;left:20px;right:20px;bottom:16px;z-index:2;color:#fff8e9;
+}
+.poster-copy .kicker{font-size:9px;letter-spacing:.18em;font-weight:800;color:#ffd58f}
+.poster-copy h1{
+  margin:5px 0 5px;font-family:"ZCOOL KuaiLe","Noto Sans SC",sans-serif;
+  font-size:43px;line-height:.98;letter-spacing:-.02em;
+  text-shadow:0 3px 0 rgba(9,32,27,.24);
+}
+.poster-copy h1 span{display:block;font-size:27px;color:#ffe0a3;letter-spacing:.02em}
+.poster-copy p{margin:0;font-size:12px;line-height:1.7;color:rgba(255,248,233,.82);max-width:310px}
+.start-body{padding-top:15px}
+.start-body h2{
+  margin:0 0 7px;font-size:20px;line-height:1.3;letter-spacing:-.02em;
+}
+.start-body p{margin:0 0 12px;font-size:13px;line-height:1.85;color:var(--ink-soft)}
+.rule-card{
+  display:flex;gap:9px;align-items:flex-start;
+  padding:11px 12px;margin:12px 0 15px;
+  border:1.5px solid rgba(33,59,52,.16);border-radius:12px;
+  background:#fffdf5;
+}
+.rule-card .rule-icon{font-size:20px;line-height:1}
+.rule-card b{display:block;font-size:12px;margin-bottom:2px}
+.rule-card small{display:block;font-size:11px;line-height:1.65;color:#6d7c73}
+.start-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:0 0 16px}
+.start-chip{
+  padding:10px 6px;border-radius:10px;text-align:center;
+  border:1px solid rgba(33,59,52,.14);background:#fff6e3;
+}
+.start-chip b{display:block;font-size:12px}
+.start-chip small{display:block;margin-top:2px;font-size:8.5px;color:#8a7658;letter-spacing:.06em}
+.primary-btn{
+  width:100%;padding:15px 16px;border-radius:14px;
+  background:linear-gradient(180deg,#ffc666,#f0a03a);
+  border:2px solid #bb6b24;color:#3e2814;
+  font-size:16px;font-weight:900;letter-spacing:.03em;
+  box-shadow:0 6px 0 #b86d27;cursor:pointer;
+}
+.primary-btn:active{transform:translateY(3px);box-shadow:0 3px 0 #b86d27}
+.secondary-btn{
+  width:100%;padding:12px 14px;border-radius:12px;
+  background:#fffdf8;border:2px solid rgba(33,59,52,.22);color:var(--ink);
+  font-size:13px;font-weight:900;cursor:pointer;
+}
+.secondary-btn:active{transform:scale(.98)}
+.start-links{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.tiny-note{margin:12px 0 0;font-size:10px;line-height:1.7;color:#8b9a90;text-align:center}
+
+/* ---------- HUD ---------- */
+.hud{margin:12px 0 10px}
+.hud-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.status-chip{
+  font-size:9px;font-weight:900;padding:5px 8px;border-radius:999px;
+  background:#e3efe7;color:#2f6e54;border:1px solid rgba(47,110,84,.25);
+}
+.status-chip.warn{background:#faeccf;color:#a16d20;border-color:#d3ab5e}
+.status-chip.bad{background:#f7ded8;color:#a64136;border-color:#d89085}
+.tiny-day{font-size:9px;color:#85938b;font-weight:700;letter-spacing:.04em}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.stat{
+  padding:8px 9px 7px;border-radius:10px;
+  background:#fffdf7;border:1px solid rgba(33,59,52,.12);
+}
+.stat-line{display:flex;align-items:baseline;justify-content:space-between;gap:4px}
+.stat-line span{font-size:10px;font-weight:800;color:#718078}
+.stat-line b{font-size:14px;font-variant-numeric:tabular-nums}
+.bar{height:4px;border-radius:999px;background:#edf0e9;overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;border-radius:999px;transition:width .35s ease;background:#e6b05f}
+.stat.happy .bar i{background:#efa646}
+.stat.glucose .bar i{background:#d75d4d}
+.stat.body .bar i{background:#4d8b72}
+.stat.hydration .bar i{background:#5488aa}
+.warning-strip{
+  margin-top:8px;padding:8px 9px;border-radius:9px;
+  background:#fff1dd;border:1px dashed #dca559;
+  font-size:10px;line-height:1.55;color:#8a5d24;font-weight:700;
+}
+
+/* ---------- 场景 ---------- */
+.scene-shell{
+  position:relative;margin:0 -16px;height:238px;overflow:hidden;background:#c9d6ca;
+}
+.scene-shell img{width:100%;height:100%;object-fit:cover;object-position:center 36%;display:block}
+.scene-shell:after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(16,45,39,.02) 45%,rgba(16,45,39,.5) 100%);
+}
+.scene-badge{
+  position:absolute;left:16px;bottom:12px;z-index:2;
+  padding:5px 9px;border-radius:999px;
+  background:rgba(10,38,32,.78);color:#fff5da;
+  font-size:9px;font-weight:900;letter-spacing:.08em;
+  border:1px solid rgba(255,255,255,.2);
+}
+.story-card{
+  position:relative;margin-top:-10px;
+  padding:16px 15px 15px;
+  background:var(--paper);border:2px solid var(--line);border-radius:17px;
+  box-shadow:var(--shadow);
+}
+.chapter-line{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px}
+.chapter-line span{font-size:9px;letter-spacing:.12em;color:#9a7e54;font-weight:900}
+.chapter-line em{font-style:normal;font-size:8px;color:#a9b3aa}
+.speaker{font-size:10px;font-weight:900;color:#36745e;margin-bottom:2px}
+.story-card h2{margin:1px 0 6px;font-size:22px;line-height:1.25;letter-spacing:-.03em}
+.story-text{margin:0;font-size:13.5px;line-height:1.85;color:#4e6258;white-space:pre-line}
+.tip-line{
+  margin-top:10px;padding:8px 9px;border-radius:8px;
+  background:#f6eedc;border-left:3px solid #d9a358;
+  font-size:11px;line-height:1.65;color:#80613a;
+}
+.choices{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.choice-btn{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:10px 11px;text-align:left;
+  border-radius:11px;background:#fff8e8;border:1.5px solid rgba(33,59,52,.2);
+  color:var(--ink);cursor:pointer;
+}
+.choice-btn:hover{background:#fff4dc}
+.choice-btn:active{transform:scale(.985)}
+.choice-no{
+  flex:0 0 auto;width:24px;height:24px;display:grid;place-items:center;
+  border-radius:50%;background:#2f6753;color:#fff4d8;
+  font-size:9px;font-weight:900;
+}
+.choice-main{flex:1;min-width:0}
+.choice-main b{display:block;font-size:14px;line-height:1.3}
+.choice-main small{display:block;margin-top:2px;font-size:10px;line-height:1.45;color:#8a7d68}
+.choice-arrow{font-size:16px;color:#a57a45}
+.result-panel{margin-top:12px;padding:11px;border-radius:12px;background:#f4efe1;border:1px solid #ddd3be}
+.result-kicker{font-size:8px;letter-spacing:.14em;font-weight:900;color:#947650}
+.result-title{margin:2px 0 7px;font-size:17px;font-weight:900;line-height:1.3}
+.delta-row{display:flex;flex-wrap:wrap;gap:5px}
+.delta{font-size:9px;font-weight:900;padding:4px 7px;border-radius:999px;border:1px solid}
+.delta.good{background:#e2f0e7;color:#2a6b4e;border-color:#a9cdb8}
+.delta.bad{background:#fae2dc;color:#a43e32;border-color:#dfa69b}
+.result-tip{margin:8px 0 9px;font-size:10.5px;line-height:1.65;color:#766446}
+.result-next{width:100%;padding:10px;border-radius:9px;background:#255c4a;color:#fff4d8;font-size:12px;font-weight:900;cursor:pointer}
+
+/* ---------- 点单 ---------- */
+.menu-view{padding-top:14px}
+.menu-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
+.menu-head h2{margin:0;font-size:23px;letter-spacing:-.03em}
+.menu-head p{margin:3px 0 0;font-size:11px;line-height:1.65;color:#7a887e}
+.back-link{font-size:10px;font-weight:800;color:#7d6a4f;background:none;padding:5px 0;cursor:pointer;white-space:nowrap}
+.section-label{display:flex;align-items:baseline;justify-content:space-between;margin:14px 0 7px}
+.section-label b{font-size:13px}
+.section-label small{font-size:9px;color:#8d9a90}
+.brand-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.brand-card{
+  display:flex;align-items:center;gap:8px;padding:8px 9px;
+  border-radius:11px;background:#fffaf0;border:1.5px solid rgba(33,59,52,.16);
+  color:var(--ink);text-align:left;cursor:pointer;
+}
+.brand-card.active{border-color:#2f6753;background:#e8f2e9;box-shadow:0 0 0 2px rgba(47,103,83,.12)}
+.brand-card b{display:block;font-size:12px;line-height:1.2}
+.brand-card small{display:block;font-size:8.5px;color:#8d7e6b;margin-top:2px}
+.mini-cup{width:25px;height:29px;position:relative;flex:0 0 auto}
+.mini-cup:before{
+  content:"";position:absolute;left:4px;top:7px;width:17px;height:21px;
+  border-radius:3px 3px 6px 6px;
+  background:linear-gradient(180deg,#fff3d7 0 24%,#d8a678 24% 100%);
+  border:1.5px solid rgba(33,59,52,.38);
+}
+.mini-cup:after{
+  content:"";position:absolute;left:7px;top:2px;width:2px;height:11px;
+  background:var(--cup-color,#c25b4d);transform:rotate(12deg);
+  border-radius:2px;
+}
+.sugar-row{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.pill-btn{
+  padding:8px 2px;border-radius:8px;background:#fffaf0;
+  border:1.5px solid rgba(33,59,52,.16);font-size:10px;font-weight:800;
+  color:#6f7e72;cursor:pointer;
+}
+.pill-btn.active{background:#2f6753;color:#fff6dc;border-color:#2f6753}
+.topping-row{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.order-box{margin-top:13px;padding:11px;border-radius:12px;background:#fff4dc;border:1.5px dashed #d2a256}
+.order-summary{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.order-summary b{display:block;font-size:14px}
+.order-summary small{display:block;font-size:10px;color:#8e7450;margin-top:2px}
+.order-number{text-align:right;font-size:10px;color:#7c6241;line-height:1.5}
+.order-number strong{display:block;font-size:24px;color:#bb5e2c;line-height:1}
+.menu-tip{margin:7px 0 0;font-size:9px;color:#9a886b;line-height:1.6}
+.menu-confirm{margin-top:12px}
+
+/* ---------- 计划 ---------- */
+.plan-view{padding-top:16px}
+.plan-head h2{margin:0;font-size:25px;letter-spacing:-.03em}
+.plan-head p{margin:5px 0 12px;font-size:11px;line-height:1.7;color:#5d7166}
+.plan-list{display:flex;flex-direction:column;gap:8px}
+.plan-card{
+  display:flex;align-items:center;gap:10px;padding:12px;
+  border-radius:12px;background:#fffaf0;border:1.5px solid rgba(33,59,52,.16);
+  text-align:left;color:var(--ink);cursor:pointer;
+}
+.plan-card.active{background:#e6f2e9;border-color:#2f6753}
+.plan-check{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;border:2px solid #7d9788;color:#fff;font-size:14px;flex:0 0 auto}
+.plan-card.active .plan-check{background:#2f6753;border-color:#2f6753}
+.plan-copy{flex:1}
+.plan-copy b{display:block;font-size:12px}
+.plan-copy small{display:block;margin-top:2px;font-size:9px;line-height:1.5;color:#75857a}
+.plan-progress{margin:13px 0 8px;font-size:10px;font-weight:800;color:#6e7d72}
+.plan-progress i{display:block;height:6px;margin-top:5px;border-radius:99px;background:#e6eadf;overflow:hidden}
+.plan-progress i span{display:block;height:100%;width:0;background:#4c886b;transition:width .3s}
+.plan-next{display:none}
+.plan-next.show{display:block}
+
+/* ---------- 结局 ---------- */
+.end-view{padding-top:14px;padding-bottom:26px}
+.end-hero{position:relative;margin:0 -16px;height:250px;overflow:hidden;background:#b4c8b6}
+.end-hero img{width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block}
+.end-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(15,45,39,.72))}
+.end-card{position:relative;margin:-36px 0 0;padding:16px;border:2px solid var(--line);border-radius:18px;background:var(--paper);box-shadow:var(--shadow-lg)}
+.end-badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.1em;background:#e6f1e7;color:#28684b;border:1px solid #a8cbb6}
+.end-badge.bad{background:#f8ddd6;color:#a44436;border-color:#d79589}
+.end-card h2{margin:8px 0 5px;font-size:25px;line-height:1.25;letter-spacing:-.03em}
+.end-desc{margin:0 0 11px;font-size:12px;line-height:1.85;color:#566b60;white-space:pre-line}
+.end-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.end-stat{padding:9px;border-radius:9px;background:#f6efdf;border:1px solid #e0d3bc}
+.end-stat small{display:block;font-size:9px;color:#8a7c64}
+.end-stat b{display:block;margin-top:2px;font-size:18px;line-height:1.1}
+.end-stat b em{font-style:normal;font-size:9px;color:#7b6d56;margin-left:2px}
+.end-note{margin:9px 0 0;padding:8px 9px;border-radius:8px;background:#fff4df;font-size:10px;line-height:1.7;color:#7d6036;font-weight:700}
+.end-actions{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.end-links{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.modal{
+  position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(8,28,24,.72);padding:14px;
+}
+.modal.hidden{display:none}
+.modal-card{
+  width:100%;max-width:460px;max-height:78dvh;overflow:auto;
+  background:#fffaf0;border-radius:16px;padding:17px 15px 20px;
+  border:2px solid rgba(33,59,52,.28);box-shadow:0 16px 48px #0008;
+}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;position:sticky;top:-17px;background:#fffaf0;padding:4px 0 7px;z-index:2}
+.modal-head h2{margin:0;font-size:22px}
+.modal-head small{display:block;font-size:9px;color:#8d7d65;margin-top:3px}
+.modal-close{background:none;font-size:24px;line-height:1;color:#65756b;cursor:pointer;padding:0 2px}
+.gallery-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:5px}
+.gallery-card{padding:10px;border-radius:11px;background:#fff6e3;border:1.5px solid rgba(33,59,52,.14)}
+.gallery-card.locked{background:#f1eee6;border-style:dashed;color:#9a9d94}
+.gallery-card .cup-wrap{display:flex;justify-content:center;padding:2px 0 6px}
+.big-cup{width:44px;height:56px;position:relative}
+.big-cup:before{
+  content:"";position:absolute;left:6px;top:12px;width:32px;height:40px;
+  background:linear-gradient(180deg,#fff1d0 0 25%,#c99a6d 25% 100%);
+  border:2px solid var(--line);border-radius:4px 4px 9px 9px;
+}
+.big-cup:after{
+  content:"";position:absolute;left:14px;top:3px;width:3px;height:17px;
+  background:var(--cup-color,#c25b4d);border-radius:3px;transform:rotate(12deg);
+}
+.big-cup .lid{position:absolute;left:5px;top:8px;width:34px;height:7px;border-radius:5px;background:var(--cup-color,#c25b4d);border:2px solid var(--line);z-index:1}
+.gallery-card b{display:block;font-size:12px;line-height:1.25}
+.gallery-card small{display:block;margin-top:3px;font-size:9px;line-height:1.55;color:#8b7f6c}
+.gallery-card .count{margin-top:4px;font-size:8px;font-weight:900;color:#3d745c}
+.gallery-card.locked .count{color:#9a9d94}
+.knowledge-list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.know-card{padding:10px 11px;border-radius:10px;background:#fff6e3;border:1.5px solid rgba(33,59,52,.14)}
+.know-card h3{margin:0 0 4px;font-size:13px;line-height:1.35}
+.know-card p{margin:0;font-size:11px;line-height:1.75;color:#5d7064;white-space:pre-line}
+.know-card.locked{background:#f1eee6;border-style:dashed}
+.know-card.locked h3,.know-card.locked p{color:#9a9d94}
+.know-card.locked p{margin-top:3px;font-size:9px}
+.footer-note{padding:0 16px 22px;font-size:10px;line-height:1.7;color:#8b978e;text-align:center}
+@media (max-width:360px){
+  .poster-copy h1{font-size:36px}
+  .poster-copy h1 span{font-size:24px}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .brand-card{padding:7px 6px;gap:5px}
+  .mini-cup{width:22px}
+  .brand-card b{font-size:10px}
+  .section-label{margin-top:11px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brandline">
+      <div class="brand-mark">🧋</div>
+      <div>
+        <b>今天第几杯？</b>
+        <small>MILK TEA / HEALTH SIM</small>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="ghost-btn" id="galleryBtn">图鉴 <em id="galleryCount">0/6</em></button>
+      <button class="ghost-btn" id="knowledgeBtn">科普 <em id="knowledgeCount">1/6</em></button>
+    </div>
+  </header>
+
+  <!-- ===== 开始页 ===== -->
+  <main class="view start-view" id="startView">
+    <div class="eyebrow">学生视角 · 奶茶习惯模拟</div>
+    <div class="poster">
+      <img src="assets/hero-dorm.webp" alt="小满在宿舍书桌前喝奶茶" />
+      <div class="poster-copy">
+        <div class="kicker">A SMALL DRINK, A BIG ACCOUNT</div>
+        <h1>今天<span>第几杯？</span></h1>
+        <p>一杯奶茶的快乐，和它悄悄记下的账。<br />小满喜欢奶茶，喜欢到把它当水喝——直到身体开始提醒她。</p>
+      </div>
+    </div>
+    <div class="start-body">
+      <h2>这不是减肥游戏。</h2>
+      <p>它不评价身高，也不评价胖瘦。它只把“每天一杯”背后的糖、热量和身体信号，摊开给你看。你可以替小满做选择，也可以看看自己的习惯。</p>
+      <div class="rule-card">
+        <div class="rule-icon">🧾</div>
+        <div><b>玩法：做选择，看数值，读身体</b><small>快乐、血糖负荷、身体状态、饮水四个指标。没有标准答案，但每个选择都会留下记录。</small></div>
+      </div>
+      <div class="start-chips">
+        <div class="start-chip"><b>拼单</b><small>BRAND / SUGAR</small></div>
+        <div class="start-chip"><b>身体账本</b><small>GLUCOSE / BODY</small></div>
+        <div class="start-chip"><b>校医院</b><small>CHECK / CHANGE</small></div>
+      </div>
+      <button class="primary-btn" id="startBtn">从第一杯开始 →</button>
+      <div class="start-links">
+        <button class="secondary-btn" id="startGalleryBtn">奶茶图鉴</button>
+        <button class="secondary-btn" id="startKnowledgeBtn">控糖知识</button>
+      </div>
+      <p class="tiny-note">纯健康主题模拟 · 无生日内容 · 不构成医学建议<br />全糖数据为 500ml 估算值，不同品牌与配方会有差异。</p>
+    </div>
+  </main>
+
+  <!-- ===== 游戏页 ===== -->
+  <main class="view game-view hidden" id="gameView">
+    <div class="hud">
+      <div class="hud-top">
+        <span class="status-chip" id="statusChip">血糖：平稳</span>
+        <span class="tiny-day" id="hudDay">第 1 天 · 第一章</span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat happy"><div class="stat-line"><span>快乐值</span><b id="happyVal">50</b></div><div class="bar"><i id="happyBar"></i></div></div>
+        <div class="stat glucose"><div class="stat-line"><span>血糖负荷</span><b id="glucoseVal">18</b></div><div class="bar"><i id="glucoseBar"></i></div></div>
+        <div class="stat body"><div class="stat-line"><span>身体状态</span><b id="bodyVal">80</b></div><div class="bar"><i id="bodyBar"></i></div></div>
+        <div class="stat hydration"><div class="stat-line"><span>饮水值</span><b id="hydrationVal">60</b></div><div class="bar"><i id="hydrationBar"></i></div></div>
+      </div>
+      <div class="warning-strip hidden" id="warningStrip"></div>
+    </div>
+    <div class="scene-shell">
+      <img id="sceneArt" src="assets/hero-dorm.webp" alt="小满的宿舍" />
+      <div class="scene-badge" id="sceneBadge">第 1 天 · 第一章</div>
+    </div>
+    <div class="story-card">
+      <div class="chapter-line"><span id="chapterLabel">第一章 · 日常宿舍拼单</span><em id="dayLabel">第 1 天</em></div>
+      <div class="speaker" id="speaker">宿舍 · 晚上</div>
+      <h2 id="sceneTitle">群里又在拼奶茶</h2>
+      <p class="story-text" id="sceneText"></p>
+      <div class="choices" id="choiceList"></div>
+      <div class="result-panel hidden" id="resultPanel">
+        <div class="result-kicker">THIS CHOICE CHANGED</div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="delta-row" id="deltaRow"></div>
+        <p class="result-tip" id="resultTip"></p>
+        <button class="result-next" id="resultNext">继续 →</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== 点单页 ===== -->
+  <main class="view menu-view hidden" id="menuView">
+    <div class="menu-head">
+      <div>
+        <h2>点单台</h2>
+        <p>挑品牌、甜度和加料。价格和糖分都不会替你省。</p>
+      </div>
+      <button class="back-link" id="menuBack">← 先不点</button>
+    </div>
+    <div class="section-label"><b>选品牌</b><small>6 家 · 点过就进图鉴</small></div>
+    <div class="brand-grid" id="brandGrid"></div>
+    <div class="section-label"><b>选甜度</b><small>同一杯，糖量差很多</small></div>
+    <div class="sugar-row" id="sugarRow"></div>
+    <div class="section-label"><b>加小料</b><small>小料也是糖和热量</small></div>
+    <div class="topping-row" id="toppingRow"></div>
+    <div class="order-box">
+      <div class="order-summary">
+        <div><b id="orderName">茶百道 · 杨枝甘露</b><small id="orderDetail">全糖 · 珍珠</small></div>
+        <div class="order-number">估算<strong id="orderSugar">62</strong>g 糖<br /><span id="orderKcal">540</span> kcal</div>
+      </div>
+      <p class="menu-tip">按 500ml、全糖茶底 + 小料估算；无糖不等于零糖，珍珠/芋泥/奶盖本身也带糖和热量。</p>
+    </div>
+    <button class="primary-btn menu-confirm" id="orderConfirm">就这杯，下单 →</button>
+  </main>
+
+  <!-- ===== 调整计划页 ===== -->
+  <main class="view plan-view hidden" id="planView">
+    <div class="plan-head">
+      <div class="eyebrow">第四章 · 把杯子放下一点</div>
+      <h2>两周调整计划</h2>
+      <p>不是立刻戒掉，而是把“每天一杯”改成“偶尔一杯”。三件小事，做到哪件算哪件。</p>
+    </div>
+    <div class="plan-list" id="planList"></div>
+    <div class="plan-progress">完成 <span id="planDone">0</span>/3 件事<i><span id="planBar"></span></i></div>
+    <button class="primary-btn plan-next" id="planNext">两周后，去复查 →</button>
+  </main>
+
+  <!-- ===== 结局页 ===== -->
+  <main class="view end-view hidden" id="endView">
+    <div class="end-hero"><img id="endArt" src="assets/hero-clinic.webp" alt="复查结果" /></div>
+    <div class="end-card">
+      <span class="end-badge" id="endBadge">结局</span>
+      <h2 id="endTitle"></h2>
+      <p class="end-desc" id="endDesc"></p>
+      <div class="end-stats">
+        <div class="end-stat"><small>这次一共喝了</small><b><span id="endCups">0</span><em>杯</em></b></div>
+        <div class="end-stat"><small>估算添加糖</small><b><span id="endSugar">0</span><em>g</em></b></div>
+        <div class="end-stat"><small>约等于方糖</small><b><span id="endCubes">0</span><em>块</em></b></div>
+        <div class="end-stat"><small>估算热量</small><b><span id="endKcal">0</span><em>kcal</em></b></div>
+      </div>
+      <p class="end-note" id="endNote"></p>
+      <div class="end-actions">
+        <button class="primary-btn" id="againBtn">再走一遍</button>
+        <div class="end-links">
+          <button class="secondary-btn" id="endGalleryBtn">查看图鉴</button>
+          <button class="secondary-btn" id="endKnowledgeBtn">控糖知识</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="footer-note">本作只讨论习惯，不评价身材 · 奶茶不是敌人，过量才是<br />如出现持续口渴、乏力、体重异常变化，请及时就医。</div>
+</div>
+
+<!-- ===== 图鉴弹窗 ===== -->
+<div class="modal hidden" id="galleryModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div><h2>奶茶图鉴</h2><small id="gallerySub">喝过的，才会亮起来。</small></div>
+      <button class="modal-close" data-close="galleryModal">×</button>
+    </div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+    <p class="menu-tip">数据为 500ml 全糖估算参考，非品牌官方营养表；不同门店、冰量、配料会变化。</p>
+  </div>
+</div>
+
+<!-- ===== 知识弹窗 ===== -->
+<div class="modal hidden" id="knowledgeModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div><h2>控糖知识库</h2><small id="knowledgeSub">边玩边解锁。</small></div>
+      <button class="modal-close" data-close="knowledgeModal">×</button>
+    </div>
+    <div class="knowledge-list" id="knowledgeList"></div>
+    <p class="menu-tip">科普内容用于健康习惯提醒，不替代医生诊断。若化验指标异常，请到正规医院复查。</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const ART = {
+    dorm: "assets/hero-dorm.webp",
+    tired: "assets/hero-tired.webp",
+    clinic: "assets/hero-clinic.webp",
+    walk: "assets/hero-walk.webp"
+  };
+
+  const BRANDS = [
+    { id: "mixue", name: "蜜雪冰城", drink: "珍珠奶茶", sugar: 48, kcal: 430, color: "#d94f48", initial: "雪" },
+    { id: "chabaidao", name: "茶百道", drink: "杨枝甘露", sugar: 52, kcal: 480, color: "#4b8fc7", initial: "茶" },
+    { id: "guming", name: "古茗", drink: "超A芝士葡萄", sugar: 50, kcal: 460, color: "#5e9761", initial: "古" },
+    { id: "yidian", name: "1点点", drink: "波霸奶茶", sugar: 46, kcal: 420, color: "#c69a3e", initial: "1" },
+    { id: "chagee", name: "霸王茶姬", drink: "伯牙绝弦", sugar: 35, kcal: 320, color: "#7d5c47", initial: "霸" },
+    { id: "xicha", name: "喜茶", drink: "多肉葡萄", sugar: 49, kcal: 450, color: "#363b38", initial: "喜" }
+  ];
+
+  const SWEET = [
+    { id: "full", label: "全糖", mult: 1, note: "默认甜" },
+    { id: "seven", label: "七分", mult: 0.85, note: "少一点" },
+    { id: "half", label: "五分", mult: 0.65, note: "半糖" },
+    { id: "three", label: "三分", mult: 0.45, note: "微甜" },
+    { id: "none", label: "无糖", mult: 0.25, note: "不等于零糖" }
+  ];
+
+  const TOPPINGS = [
+    { id: "pearl", label: "珍珠", sugar: 10, kcal: 90 },
+    { id: "coconut", label: "椰果", sugar: 7, kcal: 50 },
+    { id: "cheese", label: "奶盖", sugar: 5, kcal: 110 },
+    { id: "taro", label: "芋泥", sugar: 12, kcal: 140 },
+    { id: "none", label: "不加", sugar: 0, kcal: 0 }
+  ];
+
+  const KNOWLEDGE = [
+    {
+      id: "sugar", icon: "01", title: "每日添加糖，别超过 25g",
+      body: "WHO 建议成年人每天添加糖最好控制在 25g 左右。一杯 500ml 全糖奶茶的添加糖常在 45–60g——喝完一杯，可能一天的量就超了。"
+    },
+    {
+      id: "hidden", icon: "02", title: "无糖，不等于没有糖",
+      body: "选“无糖”只代表不加糖浆，茶底、乳制品和小料本身仍可能含糖。珍珠、芋泥、奶盖、椰果都会把糖和热量加回来。"
+    },
+    {
+      id: "water", icon: "03", title: "口渴的时候，先喝半杯水",
+      body: "口渴已经是轻度缺水的信号。把水杯放在桌边、每次起身先喝两口，比等到口干再点奶茶更容易做到。"
+    },
+    {
+      id: "warning", icon: "04", title: "糖耐量受损，是身体给的黄牌",
+      body: "2 型糖尿病不是中老年专属。长期高糖、久坐、熬夜，年轻人也可能出现胰岛素抵抗。糖耐量受损属于糖尿病前期，早发现、早调整，很多人可以回到正常范围。"
+    },
+    {
+      id: "signals", icon: "05", title: "这些信号，别只用“累了”解释",
+      body: "持续口渴、夜尿变多、下午特别困、伤口不容易好、反复长痘或感染，都值得去查一次血糖。不是自己吓自己，是给身体一个交代。"
+    },
+    {
+      id: "habit", icon: "06", title: "学生党控糖，从三件小事开始",
+      body: "① 奶茶改成一周 1–2 次，优先三分糖、少小料；② 每天分次喝水 1500–1700ml；③ 每坐 45–60 分钟起身走 3–5 分钟，晚饭后散步 15 分钟。"
+    }
+  ];
+
+  const COLLECTION_KEY = "milktea.collection.v1";
+  const MAX = { happy: 100, glucose: 100, body: 100, hydration: 100 };
+
+  const $ = (id) => document.getElementById(id);
+
+  function clamp(n, min = 0, max = 100) { return Math.max(min, Math.min(max, n)); }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function loadCollection() {
+    try {
+      const raw = localStorage.getItem(COLLECTION_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+  function saveCollection(col) {
+    try { localStorage.setItem(COLLECTION_KEY, JSON.stringify(col)); } catch (e) {}
+  }
+
+  let state = null;
+  let pendingNext = null;
+  let orderNext = null;
+  let returnScene = null;
+  let menuSelection = { brand: "chabaidao", sweet: "full", topping: "pearl" };
+
+  function newState() {
+    return {
+      happy: 50,
+      glucose: 18,
+      body: 80,
+      hydration: 60,
+      cups: 0,
+      sugar: 0,
+      kcal: 0,
+      water: 0,
+      brands: {},
+      collection: loadCollection(),
+      knowledge: new Set(["sugar"]),
+      path: null,
+      listened: false,
+      last: null,
+      lastDelta: null,
+      scene: "day1"
+    };
+  }
+
+  function brandById(id) { return BRANDS.find((b) => b.id === id) || BRANDS[0]; }
+  function sweetById(id) { return SWEET.find((s) => s.id === id) || SWEET[0]; }
+  function toppingById(id) { return TOPPINGS.find((t) => t.id === id) || TOPPINGS[0]; }
+
+  function calcDrink(brandId, sweetId, toppingId) {
+    const b = brandById(brandId), s = sweetById(sweetId), t = toppingById(toppingId);
+    const sugar = Math.round(b.sugar * s.mult + t.sugar);
+    const kcal = Math.round(b.kcal * (0.55 + s.mult * 0.45) + t.kcal);
+    return { sugar, kcal, brand: b, sweet: s, topping: t };
+  }
+
+  function snapshot() {
+    return { happy: state.happy, glucose: state.glucose, body: state.body, hydration: state.hydration };
+  }
+
+  function deltaOf(before) {
+    const meta = [
+      ["happy", "快乐"],
+      ["glucose", "血糖"],
+      ["body", "身体"],
+      ["hydration", "饮水"]
+    ];
+    return meta.map(([key, label]) => ({ key, label, value: Math.round(state[key] - before[key]) }))
+      .filter((d) => d.value !== 0);
+  }
+
+  function applyDrink(brandId, sweetId, toppingId) {
+    const est = calcDrink(brandId, sweetId, toppingId);
+    state.cups += 1;
+    state.sugar += est.sugar;
+    state.kcal += est.kcal;
+    state.brands[brandId] = (state.brands[brandId] || 0) + 1;
+    state.collection[brandId] = (state.collection[brandId] || 0) + 1;
+    saveCollection(state.collection);
+
+    const happinessGain = Math.max(4, Math.round(18 - state.cups * 1.35));
+    state.happy = clamp(state.happy + happinessGain);
+    state.glucose = clamp(state.glucose + Math.round(est.sugar * 0.22 + 2));
+    const g = state.glucose;
+    const bodyLoss = g >= 85 ? 9 : g >= 70 ? 7 : g >= 50 ? 4 : 2;
+    state.body = clamp(state.body - bodyLoss);
+    state.hydration = clamp(state.hydration - 8);
+    if (state.hydration < 30) state.body = clamp(state.body - 2);
+
+    state.last = {
+      brand: est.brand.name,
+      drink: est.brand.drink,
+      sweet: est.sweet.label,
+      topping: est.topping.label,
+      sugar: est.sugar,
+      kcal: est.kcal
+    };
+    state.knowledge.add("hidden");
+    state.knowledge.add("sugar");
+    return state.last;
+  }
+
+  function drinkWater() {
+    state.water += 1;
+    state.hydration = clamp(state.hydration + 20);
+    state.glucose = clamp(state.glucose - 7);
+    state.body = clamp(state.body + 2);
+    state.knowledge.add("water");
+  }
+
+  function drinkTea() {
+    state.water += 1;
+    state.hydration = clamp(state.hydration + 11);
+    state.glucose = clamp(state.glucose + 2);
+    state.body = clamp(state.body + 1);
+    state.happy = clamp(state.happy + 3);
+    state.knowledge.add("water");
+  }
+
+  function sleepEarly() {
+    state.hydration = clamp(state.hydration + 2);
+    state.glucose = clamp(state.glucose - 3);
+    state.body = clamp(state.body + 5);
+    state.happy = clamp(state.happy + 1);
+  }
+
+  function delayCheck() {
+    state.glucose = clamp(state.glucose + 8);
+    state.body = clamp(state.body - 6);
+    state.hydration = clamp(state.hydration - 3);
+  }
+
+  function quickDrink(sweetId, toppingId) {
+    const brand = pick(BRANDS.filter((b) => b.id !== "chagee" || Math.random() > 0.4));
+    return applyDrink(brand.id, sweetId, toppingId);
+  }
+
+  function updateHUD() {
+    $("happyVal").textContent = Math.round(state.happy);
+    $("glucoseVal").textContent = Math.round(state.glucose);
+    $("bodyVal").textContent = Math.round(state.body);
+    $("hydrationVal").textContent = Math.round(state.hydration);
+    $("happyBar").style.width = state.happy + "%";
+    $("glucoseBar").style.width = state.glucose + "%";
+    $("bodyBar").style.width = state.body + "%";
+    $("hydrationBar").style.width = state.hydration + "%";
+
+    const chip = $("statusChip");
+    let status = "血糖：平稳", cls = "status-chip";
+    if (state.glucose >= 85) { status = "血糖：危险"; cls += " bad"; }
+    else if (state.glucose >= 65) { status = "血糖：超标"; cls += " warn"; }
+    else if (state.glucose >= 45) { status = "血糖：偏高"; cls += " warn"; }
+    if (state.body <= 35) { status += " · 身体透支"; cls += " bad"; }
+    chip.textContent = status;
+    chip.className = cls;
+
+    const strip = $("warningStrip");
+    let warning = "";
+    if (state.glucose >= 85) warning = "身体提醒：血糖负荷很高，可能更容易口渴、犯困。";
+    else if (state.body <= 40) warning = "身体提醒：精力在下降，别再用“年轻”硬撑。";
+    else if (state.hydration <= 30) warning = "身体提醒：今天水喝得太少，先补一杯。";
+    strip.textContent = warning;
+    strip.classList.toggle("hidden", !warning);
+
+    $("galleryCount").textContent = Object.keys(state.collection).length + "/6";
+    $("knowledgeCount").textContent = state.knowledge.size + "/6";
+    $("hudDay").textContent = $("sceneBadge").textContent || "第 1 天 · 第一章";
+  }
+
+  function showView(view) {
+    ["startView", "gameView", "menuView", "planView", "endView"].forEach((id) => {
+      $(id).classList.toggle("hidden", id !== view);
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  const SCENES = {
+    day1: {
+      day: "第 1 天", chapter: "第一章 · 日常宿舍拼单", speaker: "宿舍 · 晚上", art: "dorm",
+      title: "群里又在拼奶茶",
+      text: "晚上七点半，宿舍群弹出一句：“有人拼奶茶吗？满 30 减 8。”\n小满刚下课，书包还没放下，手指已经点开了小程序。",
+      choices: [
+        { label: "跟着拼一杯", sub: "打开菜单：品牌、甜度、小料都自己选", orderNext: "firstCup" },
+        { label: "今天先不喝", sub: "快乐 -5 · 饮水 +12 · 血糖更稳", apply: () => { drinkWater(); state.happy = clamp(state.happy - 5); }, resultTitle: "今天省下了一杯", tip: "偶尔不喝不会失去朋友。省下的糖和钱，都还在。", next: "skip1" }
+      ]
+    },
+    skip1: {
+      day: "第 1 天", chapter: "第一章 · 日常宿舍拼单", speaker: "宿舍 · 晚上", art: "dorm",
+      title: "第一天，没点",
+      text: "她给自己倒了杯水，群里那杯奶茶被阿禾拼走了。\n晚上有点馋，但也没那么难受。",
+      choices: [{ label: "第二天，看看", go: "day2" }]
+    },
+    firstCup: {
+      day: "第 1 天", chapter: "第一章 · 日常宿舍拼单", speaker: "宿舍 · 晚上", art: "dorm",
+      title: "第一杯，快乐来得很快",
+      text: () => `你点了 ${state.last.brand} 的 ${state.last.drink}，${state.last.sweet}、${state.last.topping}。\n第一口下去，甜味把一天的疲惫压下去了。小满想：就一杯，能有什么事。`,
+      choices: [{ label: "继续", go: "day2" }]
+    },
+    day2: {
+      day: "第 2 天", chapter: "第一章 · 日常宿舍拼单", speaker: "宿舍 · 下午", art: "dorm",
+      title: "第二天，手比脑子快",
+      text: "下午四点，群里又有人拼单。\n小满说“就一杯”，但这次她连甜度都没看。",
+      choices: [
+        { label: "老样子：全糖 + 珍珠", sub: "习惯形成得比想象中快", apply: () => quickDrink("full", "pearl"), resultTitle: "手比脑子快", tip: "连续两天都点，习惯就开始成形。全糖 + 珍珠，一杯可能就有 60g 左右的糖。", next: "chapter1End" },
+        { label: "换三分糖，不加料", sub: "快乐少一点，糖也少一点", apply: () => quickDrink("three", "none"), resultTitle: "第一次主动减糖", tip: "三分糖不是“没糖”，但比全糖少了一截。先减甜度，再减小料，是比较容易坚持的顺序。", next: "chapter1End" },
+        { label: "今天喝水", sub: "省一杯，身体轻一点", apply: drinkWater, resultTitle: "今天没有奶茶", tip: "用白水或淡茶替代一杯甜饮，血糖负荷不会继续叠加。", next: "chapter1End" }
+      ]
+    },
+    chapter1End: {
+      day: "第 7 天", chapter: "第一章 · 日常宿舍拼单", speaker: "宿舍 · 周末", art: "dorm",
+      title: "一周过去，杯子堆起来了",
+      text: () => `这一周，你替小满喝了 ${state.cups} 杯奶茶，估算 ${Math.round(state.sugar)}g 糖。\n她开始觉得，下午不来一杯就少点什么。不是饿，是“想”。`,
+      choices: [{ label: "进入第二章 · 成瘾加重期", go: "afternoon" }]
+    },
+    afternoon: {
+      day: "第 9 天", chapter: "第二章 · 成瘾加重期", speaker: "教室 · 14:40", art: "tired",
+      title: "第二杯半价，刚好在犯困",
+      text: "专业课最困的时候，外卖弹窗亮了：第二杯半价，20 分钟送到。\n小满盯着屏幕，手指停在“去结算”。",
+      choices: [
+        { label: "下单，和室友一人一杯", sub: "短期的快乐，叠加的糖", apply: () => quickDrink("full", "pearl"), resultTitle: "困的时候，甜最会趁虚而入", tip: "下午犯困不一定是没睡好，也可能是血糖波动。先喝半杯水、站起来走两分钟，常常比一杯奶茶更有效。", next: "night" },
+        { label: "去接一大杯水", sub: "饮水 +20 · 血糖 -7", apply: drinkWater, resultTitle: "先去接水", tip: "把水杯放在视线里，是学生党最容易做到的控糖动作之一。", next: "night" },
+        { label: "买瓶无糖茶替代", sub: "有味道，但没那么多糖", apply: drinkTea, resultTitle: "用无糖茶顶了一下", tip: "无糖茶、气泡水可以给“想喝点有味道的”一个出口，但别用它们完全替代白水。", next: "night" }
+      ]
+    },
+    night: {
+      day: "第 9 天", chapter: "第二章 · 成瘾加重期", speaker: "宿舍 · 23:10", art: "tired",
+      title: "十一点，剧还没追完",
+      text: "嘴巴不渴，但手边空着。\n她第一反应不是倒水，是打开外卖。",
+      choices: [
+        { label: "点一杯，配剧", sub: "嘴巴不渴，只是嘴馋", apply: () => quickDrink("full", "pearl"), resultTitle: "不是渴，是习惯", tip: "“嘴巴空”和“身体缺水”是两件事。先分清是嘴馋还是口渴，能少掉很多杯。", next: "roommate" },
+        { label: "喝水，刷牙睡觉", sub: "身体 +5 · 血糖 -3", apply: sleepEarly, resultTitle: "今晚到这儿", tip: "熬夜会让人更想吃高糖高脂的食物。早睡本身，就是一种控糖。", next: "roommate" },
+        { label: "无糖气泡水", sub: "给嘴一个替代", apply: drinkTea, resultTitle: "换了个有气泡的", tip: "用无糖气泡水替代甜饮，比强行“什么都不喝”更容易坚持。", next: "roommate" }
+      ]
+    },
+    roommate: {
+      day: "第 12 天", chapter: "第二章 · 成瘾加重期", speaker: "宿舍 · 晚上", art: "tired",
+      title: "舍友说：你最近脸有点肿",
+      text: "阿禾把镜子推过来：“不是说你胖。你最近气色真的差，下午一直打哈欠，脸也有点肿。”\n小满有点烦，又有点心虚。",
+      choices: [
+        { label: "听她的，今天不喝", sub: "快乐 -4 · 身体 +2", apply: () => { state.listened = true; drinkWater(); state.happy = clamp(state.happy - 4); }, resultTitle: "第一次承认有点不对", tip: "关心你的人，通常不是想管你，是看见了你自己没看见的变化。", next: "bodySigns" },
+        { label: "我快乐就行，别管我", sub: "把提醒挡回去，也把身体信号挡住", apply: () => quickDrink("full", "pearl"), resultTitle: "快乐是真的，代价也是真的", tip: "“我开心就好”不是错，但快乐如果只能靠每天的高糖维持，就值得看一眼。", next: "bodySigns" }
+      ]
+    },
+    bodySigns: {
+      day: "第 16 天", chapter: "第二章 · 成瘾加重期", speaker: "宿舍 · 早上", art: "tired",
+      title: "身体开始记账",
+      text: "口干、爆痘、爬两层楼就喘；晚上躺下，心跳却很快。\n校医院就在学校东门，走过去只要八分钟。",
+      choices: [
+        { label: "去校医院查一下", sub: "给自己一个交代", go: "clinic" },
+        { label: "再撑撑，年轻扛得住", sub: "血糖 +8 · 身体 -6", apply: delayCheck, resultTitle: "再撑撑", tip: "“年轻”不是免死金牌。身体的代偿能力很强，但代偿不等于没有损伤。", next: "collapse" }
+      ]
+    },
+    collapse: {
+      day: "第 17 天", chapter: "第三章 · 健康亮起红灯", speaker: "教学楼 · 早八", art: "clinic",
+      title: "眼前一黑，被室友架去校医院",
+      text: "第二天早八，小满站起来眼前发黑。\n阿禾没说话，直接把她的包拎起来，往校医院走。",
+      choices: [{ label: "坐到诊室里", go: "clinic" }]
+    },
+    clinic: {
+      day: "第 17 天", chapter: "第三章 · 健康亮起红灯", speaker: "校医院 · 诊室", art: "clinic",
+      title: "化验单上的箭头",
+      text: "空腹血糖 6.4 mmol/L，医生建议进一步做糖耐量检查。\n“2 型糖尿病不是中老年专属。长期高糖、久坐、熬夜，年轻人也可能糖耐量异常。”",
+      choices: [
+        { label: "不当回事，继续喝", sub: "把报告折起来，继续点外卖", apply: () => { state.path = "warning"; state.glucose = 100; state.body = Math.max(18, state.body - 10); }, resultTitle: "报告被折进了口袋", tip: "糖耐量受损是糖尿病前期。它还不是糖尿病，但已经是身体给出的明确黄牌。", next: "warningTime" },
+        { label: "听校医的，开始调整", sub: "先把杯子放下一点", apply: () => { state.path = "improve"; state.knowledge.add("warning"); state.knowledge.add("signals"); }, resultTitle: "这一次，先停一下", tip: "不用立刻戒断。先把频率降下来、甜度降下来、水补上来，身体会给你回应。", next: "plan" }
+      ]
+    },
+    warningTime: {
+      day: "第 4 个月", chapter: "第四章 · 结局", speaker: "医院 · 复查", art: "clinic",
+      title: "三个月后，复查",
+      text: "糖耐量检查结果：糖耐量受损。\n医生把报告推过来：“现在改，还来得及；再这样下去，发展成糖尿病的风险很高。”",
+      choices: [{ label: "看看这三个月", go: "END_WARN" }]
+    },
+    improveTime: {
+      day: "第 4 个月", chapter: "第四章 · 结局", speaker: "校园 · 傍晚", art: "walk",
+      title: "两周后，身体给了回应",
+      text: "奶茶改成一周 1–2 次、三分糖；水杯放在桌边；晚饭后绕操场走 20 分钟。\n脸没那么肿了，下午也不再只能靠奶茶吊着。",
+      choices: [{ label: "看看结果", go: "END_GOOD" }]
+    }
+  };
+
+  function renderScene(id) {
+    if (id === "plan") { openPlan(); return; }
+    if (id === "END_WARN") { showEnding("warning"); return; }
+    if (id === "END_GOOD") { showEnding("good"); return; }
+    const scene = SCENES[id];
+    if (!scene) return;
+    state.scene = id;
+    showView("gameView");
+    $("sceneArt").src = ART[scene.art] || ART.dorm;
+    $("sceneBadge").textContent = scene.day;
+    $("dayLabel").textContent = scene.day;
+    $("chapterLabel").textContent = scene.chapter;
+    $("speaker").textContent = scene.speaker;
+    $("sceneTitle").textContent = scene.title;
+    $("sceneText").textContent = typeof scene.text === "function" ? scene.text() : scene.text;
+    $("resultPanel").classList.add("hidden");
+    $("choiceList").classList.remove("hidden");
+    $("choiceList").innerHTML = "";
+    scene.choices.forEach((choice, i) => {
+      const btn = document.createElement("button");
+      btn.className = "choice-btn";
+      btn.innerHTML = '<span class="choice-no">0' + (i + 1) + '</span><span class="choice-main"><b>' + choice.label + '</b>' + (choice.sub ? '<small>' + choice.sub + '</small>' : '') + '</span><span class="choice-arrow">→</span>';
+      btn.addEventListener("click", () => resolveChoice(choice));
+      $("choiceList").appendChild(btn);
+    });
+    updateHUD();
+  }
+
+  function resolveChoice(choice) {
+    if (choice.orderNext) {
+      openMenu(choice.orderNext);
+      return;
+    }
+    if (choice.go) {
+      renderScene(choice.go);
+      return;
+    }
+    const before = snapshot();
+    if (choice.apply) choice.apply();
+    const deltas = deltaOf(before);
+    pendingNext = choice.next || null;
+    showResult(choice.resultTitle || "选择之后", deltas, choice.tip || "");
+  }
+
+  function showResult(title, deltas, tip) {
+    $("choiceList").classList.add("hidden");
+    $("resultPanel").classList.remove("hidden");
+    $("resultTitle").textContent = title;
+    $("resultTip").textContent = tip;
+    $("deltaRow").innerHTML = deltas.map((d) => {
+      const good = (d.key === "glucose" ? d.value < 0 : d.value > 0);
+      const sign = d.value > 0 ? "+" : "";
+      return '<span class="delta ' + (good ? "good" : "bad") + '">' + d.label + " " + sign + d.value + "</span>";
+    }).join("");
+    $("resultNext").onclick = advance;
+    updateHUD();
+  }
+
+  function advance() {
+    if (!pendingNext) return;
+    const next = pendingNext;
+    pendingNext = null;
+    $("resultPanel").classList.add("hidden");
+    renderScene(next);
+  }
+
+  /* ---------- 点单 ---------- */
+  function openMenu(next) {
+    returnScene = state.scene;
+    orderNext = next;
+    menuSelection = { brand: "chabaidao", sweet: "full", topping: "pearl" };
+    showView("menuView");
+    renderMenu();
+  }
+
+  function renderMenu() {
+    const grid = $("brandGrid");
+    grid.innerHTML = "";
+    BRANDS.forEach((b) => {
+      const btn = document.createElement("button");
+      btn.className = "brand-card" + (menuSelection.brand === b.id ? " active" : "");
+      btn.innerHTML = '<span class="mini-cup" style="--cup-color:' + b.color + '"></span><span><b>' + b.name + '</b><small>' + b.drink + " · 全糖约 " + b.sugar + "g</small></span>";
+      btn.addEventListener("click", () => { menuSelection.brand = b.id; renderMenu(); });
+      grid.appendChild(btn);
+    });
+
+    $("sugarRow").innerHTML = "";
+    SWEET.forEach((s) => {
+      const btn = document.createElement("button");
+      btn.className = "pill-btn" + (menuSelection.sweet === s.id ? " active" : "");
+      btn.textContent = s.label;
+      btn.title = s.note;
+      btn.addEventListener("click", () => { menuSelection.sweet = s.id; renderMenu(); });
+      $("sugarRow").appendChild(btn);
+    });
+
+    $("toppingRow").innerHTML = "";
+    TOPPINGS.forEach((t) => {
+      const btn = document.createElement("button");
+      btn.className = "pill-btn" + (menuSelection.topping === t.id ? " active" : "");
+      btn.textContent = t.label;
+      btn.addEventListener("click", () => { menuSelection.topping = t.id; renderMenu(); });
+      $("toppingRow").appendChild(btn);
+    });
+
+    const est = calcDrink(menuSelection.brand, menuSelection.sweet, menuSelection.topping);
+    $("orderName").textContent = est.brand.name + " · " + est.brand.drink;
+    $("orderDetail").textContent = est.sweet.label + " · " + est.topping.label;
+    $("orderSugar").textContent = est.sugar;
+    $("orderKcal").textContent = est.kcal;
+    $("orderConfirm").onclick = confirmOrder;
+    $("orderConfirm").textContent = "就这杯，下单 · 估算 " + est.sugar + "g 糖 →";
+  }
+
+  function confirmOrder() {
+    const before = snapshot();
+    const last = applyDrink(menuSelection.brand, menuSelection.sweet, menuSelection.topping);
+    const deltas = deltaOf(before);
+    pendingNext = orderNext;
+    showView("gameView");
+    $("resultPanel").classList.remove("hidden");
+    $("choiceList").classList.add("hidden");
+    $("resultTitle").textContent = "这杯，甜度自己选的";
+    $("resultTip").textContent = last.brand + " " + last.drink + "（" + last.sweet + " + " + last.topping + "）估算 " + last.sugar + "g 糖 / " + last.kcal + " kcal。";
+    $("deltaRow").innerHTML = deltas.map((d) => {
+      const good = (d.key === "glucose" ? d.value < 0 : d.value > 0);
+      const sign = d.value > 0 ? "+" : "";
+      return '<span class="delta ' + (good ? "good" : "bad") + '">' + d.label + " " + sign + d.value + "</span>";
+    }).join("");
+    $("resultNext").onclick = advance;
+    updateHUD();
+  }
+
+  /* ---------- 计划 ---------- */
+  const PLAN_ITEMS = [
+    { id: "sugar", title: "奶茶降到一周 1–2 次", sub: "优先三分糖、少小料" },
+    { id: "water", title: "每天分次喝够 1.5L 水", sub: "水杯放在桌边，起身就喝两口" },
+    { id: "walk", title: "晚饭后走 20 分钟", sub: "不用跑步，绕操场走两圈" }
+  ];
+  let planDone = new Set();
+
+  function openPlan() {
+    planDone = new Set();
+    showView("planView");
+    renderPlan();
+  }
+
+  function renderPlan() {
+    const list = $("planList");
+    list.innerHTML = "";
+    PLAN_ITEMS.forEach((item) => {
+      const btn = document.createElement("button");
+      btn.className = "plan-card" + (planDone.has(item.id) ? " active" : "");
+      btn.innerHTML = '<span class="plan-check">' + (planDone.has(item.id) ? "✓" : "") + '</span><span class="plan-copy"><b>' + item.title + '</b><small>' + item.sub + '</small></span>';
+      btn.addEventListener("click", () => {
+        planDone.add(item.id);
+        renderPlan();
+      });
+      list.appendChild(btn);
+    });
+    $("planDone").textContent = planDone.size;
+    $("planBar").style.width = (planDone.size / 3 * 100) + "%";
+    $("planNext").classList.toggle("show", planDone.size === 3);
+    $("planNext").onclick = () => {
+      state.knowledge.add("habit");
+      state.glucose = Math.max(32, state.glucose - 30);
+      state.body = Math.min(100, state.body + 22);
+      state.hydration = Math.max(80, state.hydration);
+      state.happy = Math.max(62, state.happy);
+      state.path = "improve";
+      renderScene("improveTime");
+    };
+  }
+
+  /* ---------- 结局 ---------- */
+  function showEnding(kind) {
+    if (kind === "warning") {
+      state.glucose = 100;
+      state.body = Math.min(state.body, 20);
+      state.hydration = Math.min(state.hydration, 35);
+    } else {
+      state.glucose = Math.max(32, state.glucose - 30);
+      state.body = Math.min(100, state.body + 22);
+      state.hydration = Math.max(80, state.hydration);
+    }
+    showView("endView");
+    $("endArt").src = kind === "warning" ? ART.clinic : ART.walk;
+    const badge = $("endBadge");
+    if (kind === "warning") {
+      badge.textContent = "红线结局 · 糖耐量受损";
+      badge.className = "end-badge bad";
+      $("endTitle").textContent = "身体把账单递过来了";
+      $("endDesc").textContent = "三个月后复查，糖耐量受损。医生严肃地说：如果继续保持这个习惯，发展成糖尿病的风险很高。\n奶茶是解馋的饮品，不能当日常饮用水。长期高糖，会给胰腺带来真实的负担。";
+      $("endNote").textContent = "健康评级：红灯 · 需要认真调整。这不是“胖不胖”的问题，是血糖和代谢的问题。现在开始改，仍然来得及。";
+    } else {
+      badge.textContent = "绿灯结局 · 正在回到正轨";
+      badge.className = "end-badge";
+      $("endTitle").textContent = "喜欢奶茶，也学会照顾自己";
+      $("endDesc").textContent = "奶茶改成一周 1–2 次、选低糖；日常主动喝水，课余出门走一走。血糖负荷回落，精力变好，浮肿和长痘也慢慢缓解。\n喜欢奶茶没有错，学会适度，才是好好照顾自己。";
+      $("endNote").textContent = "健康评级：绿灯 · 习惯正在改善。健康不是“永远不喝”，而是知道什么时候停、停多久、用什么替代。";
+    }
+    $("endCups").textContent = state.cups;
+    $("endSugar").textContent = Math.round(state.sugar);
+    $("endCubes").textContent = Math.round(state.sugar / 4);
+    $("endKcal").textContent = Math.round(state.kcal);
+    $("galleryCount").textContent = Object.keys(state.collection).length + "/6";
+  }
+
+  /* ---------- 图鉴 ---------- */
+  function openGallery() {
+    const grid = $("galleryGrid");
+    grid.innerHTML = "";
+    const count = Object.keys(state.collection).length;
+    $("gallerySub").textContent = "已收集 " + count + "/6 家。喝过的，才会亮起来。";
+    BRANDS.forEach((b) => {
+      const got = state.collection[b.id];
+      const card = document.createElement("div");
+      card.className = "gallery-card" + (got ? "" : " locked");
+      card.innerHTML = '<div class="cup-wrap"><div class="big-cup" style="--cup-color:' + b.color + '"><span class="lid"></span></div></div><b>' + b.name + '</b><small>' + b.drink + ' · 500ml 全糖约 ' + b.sugar + 'g 糖 / ' + b.kcal + ' kcal</small><div class="count">' + (got ? "喝过 " + got + " 次" : "还没点过") + '</div>';
+      grid.appendChild(card);
+    });
+    $("galleryModal").classList.remove("hidden");
+  }
+
+  /* ---------- 科普 ---------- */
+  function openKnowledge() {
+    const list = $("knowledgeList");
+    list.innerHTML = "";
+    $("knowledgeSub").textContent = "已解锁 " + state.knowledge.size + "/6。玩到对应章节会继续解锁。";
+    KNOWLEDGE.forEach((item) => {
+      const unlocked = state.knowledge.has(item.id);
+      const card = document.createElement("div");
+      card.className = "know-card" + (unlocked ? "" : " locked");
+      card.innerHTML = '<h3>' + (unlocked ? item.icon + " · " + item.title : "🔒 " + item.title) + '</h3><p>' + (unlocked ? item.body : "继续往后玩，解锁这条。") + '</p>';
+      list.appendChild(card);
+    });
+    $("knowledgeModal").classList.remove("hidden");
+  }
+
+  /* ---------- 流程 ---------- */
+  function startGame() {
+    state = newState();
+    showView("gameView");
+    renderScene("day1");
+  }
+
+  $("startBtn").addEventListener("click", startGame);
+  $("againBtn").addEventListener("click", startGame);
+  $("galleryBtn").addEventListener("click", openGallery);
+  $("knowledgeBtn").addEventListener("click", openKnowledge);
+  $("startGalleryBtn").addEventListener("click", openGallery);
+  $("startKnowledgeBtn").addEventListener("click", openKnowledge);
+  $("endGalleryBtn").addEventListener("click", openGallery);
+  $("endKnowledgeBtn").addEventListener("click", openKnowledge);
+  $("menuBack").addEventListener("click", () => { showView("gameView"); renderScene(returnScene || "day1"); });
+
+  document.querySelectorAll("[data-close]").forEach((btn) => {
+    btn.addEventListener("click", () => { $(btn.dataset.close).classList.add("hidden"); });
+  });
+  document.querySelectorAll(".modal").forEach((modal) => {
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.add("hidden"); });
+  });
+
+  state = newState();
+  $("galleryCount").textContent = Object.keys(state.collection).length + "/6";
+  $("knowledgeCount").textContent = state.knowledge.size + "/6";
+})();
+</script>
+</body>
+</html>

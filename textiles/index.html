@@ -1870,7 +1870,7 @@ function bindRoamControls(){
   const endPointer=e=>{if(lookPointer===e.pointerId)lookPointer=null;if(joyPointer===e.pointerId){joyPointer=null;state.roam.joyX=0;state.roam.joyY=0;els.joyKnob.style.transform='translate(-50%,-50%)'}};
   window.addEventListener('pointerup',endPointer);window.addEventListener('pointercancel',endPointer);
   els.joyBase.addEventListener('pointerdown',e=>{joyPointer=e.pointerId;e.preventDefault()});
-  els.interactBtn.addEventListener('click',()=>{if(state.roam.sorting){setScene('sort',true);sendBaler();return}const s=state.roam.nearest;if(s&&s.can())s.run()});
+  els.interactBtn.addEventListener('click',()=>{const s=state.roam.nearest;if(state.roam.sorting&&(!s||s.id==='sort')){setScene('sort',true);sendBaler();return}if(s&&s.can())s.run()});
   els.roamBack.addEventListener('click',enterRoam);
 }
 

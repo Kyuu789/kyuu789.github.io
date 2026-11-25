@@ -1735,7 +1735,7 @@ function initThree(){
   for(const x of [-8,-4,4,8])for(const z of [-6,2,7]){
     addBox(.9,.12,.62,0x343d38,x,5.02,z,.38,.48);
     for(const side of [-1,1])addBox(.035,.28,.035,0xb5bdb4,x+side*.43,4.88,z,.4,.45);
-    const lampGlow=new THREE.PointLight(0xffe1ad,.42,7);lampGlow.position.set(x,4.78,z);scene.add(lampGlow);
+    if((z===-6||z===7)&&(x===-8||x===4||x===8)){const lampGlow=new THREE.PointLight(0xffe1ad,.48,8);lampGlow.position.set(x,4.78,z);scene.add(lampGlow);}
   }
   // Wall-mounted cable trays, conduit elbows and numbered safety bollards.
   for(const z of [-8,-4,0,4,8]){
@@ -1948,12 +1948,21 @@ function initThree(){
   three.workers=[];
   function makeWorker(x,z,shirtColor){
     const g=new THREE.Group(),arms=[],legs=[];
-    const body=new THREE.Mesh(new THREE.BoxGeometry(.48,.78,.3),mat(shirtColor,.9));body.position.y=1.15;g.add(body);
-    const h=new THREE.Mesh(new THREE.SphereGeometry(.2,12,10),skin);h.position.y=1.72;g.add(h);
+    const workShirt=mat(shirtColor,.84),hiVis=mat(0xd3a943,.72,.05),reflect=mat(0xd9e1d5,.42,.18);
+    const body=new THREE.Mesh(new THREE.BoxGeometry(.48,.78,.3),workShirt);body.position.y=1.15;g.add(body);
+    const h=new THREE.Mesh(new THREE.SphereGeometry(.2,18,14),skin);h.position.y=1.72;g.add(h);
+    // PPE: hard hat, brim, reflective vest panels and safety footwear.
+    const helmet=new THREE.Mesh(new THREE.SphereGeometry(.225,18,10,0,Math.PI*2,0,Math.PI*.52),hiVis);helmet.position.set(0,1.91,0);g.add(helmet);
+    const brim=new THREE.Mesh(new THREE.CylinderGeometry(.245,.245,.035,24),hiVis);brim.position.set(0,1.84,0);g.add(brim);
     for(const side of [-1,1]){
-      const a=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.58,9),mat(shirtColor,.9));a.position.set(side*.3,1.2,0);a.rotation.z=side*.15;g.add(a);arms.push(a);
-      const l=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.58,9),pants);l.position.set(side*.13,.42,0);g.add(l);legs.push(l);
+      const vest=new THREE.Mesh(new THREE.BoxGeometry(.19,.62,.035),hiVis);vest.position.set(side*.105,1.18,.168);g.add(vest);
+      const band=new THREE.Mesh(new THREE.BoxGeometry(.195,.055,.045),reflect);band.position.set(side*.105,1.08,.19);g.add(band);
+      const a=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.58,12),workShirt);a.position.set(side*.3,1.2,0);a.rotation.z=side*.15;g.add(a);arms.push(a);
+      const glove=new THREE.Mesh(new THREE.SphereGeometry(.075,10,8),mat(0x343b36,.85));glove.position.set(side*.31,.88,.015);g.add(glove);
+      const l=new THREE.Mesh(new THREE.CylinderGeometry(.105,.09,.58,12),pants);l.position.set(side*.13,.42,0);g.add(l);legs.push(l);
+      const boot=new THREE.Mesh(new THREE.BoxGeometry(.22,.14,.34),mat(0x242a27,.72,.12));boot.position.set(side*.13,.11,.075);g.add(boot);
     }
+    const belt=new THREE.Mesh(new THREE.BoxGeometry(.43,.07,.32),mat(0x343a35,.78,.18));belt.position.set(0,.78,0);g.add(belt);
     g.position.set(x,0,z);scene.add(g);three.workers.push({arms,legs,phase:Math.random()*Math.PI*2});return g;
   }
   makeWorker(-3.6, -3.1,0x49695d);makeWorker(-.2,-5.1,0x6b6252);makeWorker(2.6,3.5,0x56636b);

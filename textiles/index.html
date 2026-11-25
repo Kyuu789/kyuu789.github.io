@@ -1778,7 +1778,7 @@ function initThree(){
   const strapMat=new THREE.MeshStandardMaterial({color:0xf2cf83,roughness:.42,metalness:.12,emissive:0x6b481b,emissiveIntensity:.22});three.baleStraps=[];three.tieNodeMeshes={};
   const tieNodeMat=new THREE.MeshStandardMaterial({color:0x63e0bd,emissive:0x16a987,emissiveIntensity:.7,roughness:.25});
   const tieNodeOrder=['t1','t2','t3','t4','t5','b1','b2','b3','b4','b5'];
-  tieNodeOrder.forEach((id,index)=>{const col=index%5,x=-.62+col*.31,y=index<5?.32:-.32;const node=new THREE.Mesh(new THREE.SphereGeometry(.075,14,10),tieNodeMat);node.position.set(x,y,.605);node.visible=false;node.userData.tieNode=id;node.userData.baseScale=1;baleVisual.add(node);three.tieNodeMeshes[id]=node});
+  tieNodeOrder.forEach((id,index)=>{const col=index%5,x=-.62+col*.31,y=index<5?.32:-.32;const node=new THREE.Mesh(new THREE.SphereGeometry(.145,18,12),tieNodeMat);node.position.set(x,y,.605);node.visible=false;node.userData.tieNode=id;node.userData.baseScale=1;baleVisual.add(node);three.tieNodeMeshes[id]=node});
   for(let i=0;i<5;i++){
     const x=-.62+i*.31;
     const pts=[[x,.47,-.61],[x,.47,.61],[x,-.47,.61],[x,-.47,-.61],[x,.47,-.61]].map(p=>new THREE.Vector3(...p));
@@ -1889,21 +1889,42 @@ function initThree(){
     const plate=addBox(2.2,.025,1.25,c,x,.025,z,.92,.05);plate.material.transparent=true;plate.material.opacity=.25;
   }
 
+  // Touch-friendly tie interaction: test projected screen distance, not tiny 3D raycast spheres.
+  // This makes the ten threading points reliably tappable on phones and tablets.
+  const tieNodeAt=(clientX,clientY,radius=52)=>{
+    if(!three.tieNodeMeshes)return null;
+    const rect=canvas.getBoundingClientRect();let best=null,bestDist=radius;
+    Object.values(three.tieNodeMeshes).forEach(node=>{
+      if(!node.visible)return;
+      const world=new THREE.Vector3();node.getWorldPosition(world);world.project(camera);
+      const sx=rect.left+(world.x+1)*.5*rect.width,sy=rect.top+(-world.y+1)*.5*rect.height;
+      const d=Math.hypot(clientX-sx,clientY-sy);
+      if(d<bestDist){bestDist=d;best=node}
+    });
+    return best;
+  };
   canvas.addEventListener('pointerdown',e=>{
     if(state.scene!=='baler'||!state.machine.threeTieMode||!three.tieNodeMeshes)return;
-    const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;three.raycaster.setFromCamera(three.pointer,camera);
-    const nodes=Object.values(three.tieNodeMeshes).filter(node=>node.visible),hits=three.raycaster.intersectObjects(nodes,false);
-    if(hits.length){state.machine.threeTieGesture=hits[0].object.userData.tieNode;hits[0].object.scale.setScalar(1.55);e.preventDefault();e.stopPropagation()}
-  });
-  window.addEventListener('pointerup',e=>{
+    const hit=tieNodeAt(e.clientX,e.clientY,58);
+    if(!hit)return;
+    state.machine.threeTieGesture=hit.userData.tieNode;
+    hit.scale.setScalar(1.5);
+    try{canvas.setPointerCapture(e.pointerId)}catch(_){}
+    e.preventDefault();e.stopPropagation();
+  },{passive:false});
+  const finishTieGesture=e=>{
     if(state.scene!=='baler'||!state.machine.threeTieGesture)return;
     const from=state.machine.threeTieGesture;state.machine.threeTieGesture=null;
-    const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;three.raycaster.setFromCamera(three.pointer,camera);
-    const nodes=Object.values(three.tieNodeMeshes).filter(node=>node.visible),hits=three.raycaster.intersectObjects(nodes,false);
-    Object.values(three.tieNodeMeshes).forEach(node=>node.scale.setScalar(1));
-    if(!hits.length)return;const to=hits[0].object.userData.tieNode;if(from===to)return;
-    const pair=pairFor(from,to);if(pair>=0)completeTiePair(pair);else{AudioSys.tone('bad');toast(lang==='zh'?'穿丝路径错误，再试一次':'Wrong strap route · try again','bad')}
-  });
+    const target=tieNodeAt(e.clientX,e.clientY,64);
+    Object.values(three.tieNodeMeshes).forEach(node=>node.scale.setScalar(1.18));
+    if(!target)return;
+    const to=target.userData.tieNode;if(from===to)return;
+    const pair=pairFor(from,to);
+    if(pair>=0)completeTiePair(pair);
+    else{AudioSys.tone('bad');toast(lang==='zh'?'穿丝路径错误：请从上方圆点拖到对应下方圆点':'Wrong route · drag an upper point to its matching lower point','bad')}
+  };
+  window.addEventListener('pointerup',finishTieGesture);
+  window.addEventListener('pointercancel',()=>{state.machine.threeTieGesture=null;if(three&&three.tieNodeMeshes)Object.values(three.tieNodeMeshes).forEach(node=>node.scale.setScalar(1.18))});
   canvas.addEventListener('click',e=>{
     if(!state.roam.active&&state.scene!=='baler'&&state.scene!=='truck')return;
     const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;

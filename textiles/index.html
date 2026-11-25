@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08110f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b1513'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='monospace' font-size='38' fill='%23e6ae52'%3EW%3C/text%3E%3C/svg%3E">
+<title>废毛打包间 · WASTE WOOL SHIFT</title>
+<link rel="preconnect" href="https://miaoda.feishu.cn">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Barlow+Condensed:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+/* ===== 基础 ===== */
+:root{
+  --bg:#07100e;
+  --bg2:#0d1816;
+  --panel:rgba(8,16,14,.88);
+  --panel2:rgba(14,26,23,.94);
+  --line:rgba(191,213,198,.18);
+  --line-hot:rgba(230,174,82,.65);
+  --text:#ece8dc;
+  --muted:#9daca3;
+  --amber:#e6ae52;
+  --amber2:#f3cc82;
+  --green:#83b69d;
+  --red:#d96150;
+  --blue:#7ea9b7;
+  --mono:"Barlow Condensed","DIN Alternate","SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  --sans:"Noto Sans SC","Source Han Sans SC","Microsoft YaHei",sans-serif;
+  --shadow:0 18px 55px rgba(0,0,0,.42);
+}
+*{box-sizing:border-box}
+html{height:100%;margin:0;background:#07100e}
+body{
+  min-height:100vh;height:100vh;margin:0;
+  background:radial-gradient(900px 500px at 50% -20%,#183029 0%,#07100e 58%,#040807 100%);
+  color:var(--text);font-family:var(--sans);overflow:hidden;
+  -webkit-tap-highlight-color:transparent;user-select:none;
+}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:2px solid var(--amber2);outline-offset:3px}
+.hidden{display:none!important}
+
+/* ===== 顶栏 ===== */
+#app{position:relative;height:100vh;height:100svh;display:grid;grid-template-rows:70px minmax(0,1fr)}
+.hud{
+  position:relative;z-index:20;display:grid;grid-template-columns:minmax(190px,1fr) minmax(240px,330px) minmax(260px,1fr);
+  align-items:center;gap:22px;padding:10px 24px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(8,16,14,.96),rgba(8,16,14,.78));
+  box-shadow:0 8px 26px rgba(0,0,0,.32);backdrop-filter:blur(12px);
+}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand-mark{
+  width:40px;height:40px;border:1px solid rgba(230,174,82,.55);display:grid;place-items:center;
+  background:linear-gradient(135deg,rgba(230,174,82,.18),rgba(230,174,82,.02));
+  box-shadow:inset 0 0 18px rgba(230,174,82,.12);flex:0 0 auto;
+}
+.brand-mark span{font-family:var(--mono);font-weight:700;font-size:23px;color:var(--amber2);letter-spacing:.05em}
+.brand-txt{min-width:0}
+.brand h1{margin:0;font-size:20px;line-height:1.15;letter-spacing:.14em;font-weight:700;white-space:nowrap}
+.brand p{margin:3px 0 0;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--muted);white-space:nowrap}
+.shift{min-width:0}
+.shift-line{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:5px}
+.shift-line .lbl{font-size:10px;color:var(--muted);letter-spacing:.12em}
+.shift-line strong{font-family:var(--mono);font-size:21px;font-weight:600;letter-spacing:.06em;color:var(--text)}
+.shift-line strong:last-child{color:var(--amber2);font-size:18px}
+.shift-track{height:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.shift-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));transition:width .9s linear}
+.stats{display:flex;justify-content:flex-end;gap:18px;min-width:0}
+.stat{text-align:right;min-width:54px}
+.stat span{display:block;font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:2px}
+.stat strong{display:block;font-family:var(--mono);font-size:27px;line-height:.95;font-weight:600;letter-spacing:.03em}
+.stat strong em{font-style:normal}
+.stat small{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:2px;letter-spacing:.04em}
+.stat strong#safety{color:var(--green);font-size:24px}
+
+/* ===== 场景 ===== */
+.stage{position:relative;min-height:0;overflow:hidden;background:#0b1412}
+.view{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .28s ease, visibility .28s ease;overflow:hidden}
+.view.active{opacity:1;visibility:visible}
+.backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.76) contrast(1.06) brightness(.66);transform:scale(1.025)}
+.baler-bg{object-position:50% 35%}
+.vignette{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(3,8,7,.88) 0%,rgba(3,8,7,.26) 44%,rgba(3,8,7,.72) 100%),
+    linear-gradient(0deg,rgba(3,8,7,.92) 0%,rgba(3,8,7,.08) 42%,rgba(3,8,7,.54) 100%);
+}
+.vignette::after{
+  content:"";position:absolute;inset:0;opacity:.09;pointer-events:none;
+  background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.7) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;
+}
+.station{position:absolute;left:24px;top:18px;z-index:4;display:flex;align-items:baseline;gap:9px;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.station b{font-family:var(--mono);font-size:15px;color:var(--amber2);letter-spacing:.1em}
+.station span{font-size:16px;font-weight:700;letter-spacing:.12em}
+.station small{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.16em;margin-left:2px}
+.floor-note{
+  position:absolute;left:26px;top:52px;z-index:4;font-size:11px;color:rgba(236,232,220,.62);
+  letter-spacing:.08em;text-shadow:0 1px 8px #000;
+}
+.floor-note i{font-style:normal;color:var(--amber);margin:0 5px}
+
+/* ===== 收毛区 ===== */
+.pile-deck{position:absolute;left:24px;bottom:24px;z-index:5;display:flex;gap:10px}
+.pile-card{
+  position:relative;width:118px;height:160px;padding:0;border:1px solid rgba(205,222,210,.22);
+  background:#0d1715;overflow:hidden;cursor:pointer;text-align:left;box-shadow:var(--shadow);
+  transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.pile-card:hover{transform:translateY(-4px);border-color:rgba(230,174,82,.72);box-shadow:0 12px 36px rgba(0,0,0,.5)}
+.pile-card:active{transform:translateY(-1px)}
+.pile-card img{display:block;width:100%;height:110px;object-fit:cover;filter:saturate(.82) contrast(1.08) brightness(.86);transition:transform .3s ease}
+.pile-card:hover img{transform:scale(1.035)}
+.pile-card::after{content:"";position:absolute;left:0;right:0;top:0;height:110px;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.42));pointer-events:none}
+.pile-caption{position:absolute;left:9px;top:9px;z-index:2;font-size:12px;font-weight:700;letter-spacing:.08em;color:#f5efdf;text-shadow:0 1px 6px #000}
+.pile-caption i{font-style:normal;font-size:9px;color:rgba(255,255,255,.7);margin-left:4px}
+.pile-card b{position:absolute;left:9px;bottom:9px;z-index:2;font-family:var(--mono);font-size:25px;line-height:1;color:var(--amber2);text-shadow:0 2px 9px #000}
+.pile-card b small{font-size:10px;color:rgba(255,255,255,.72);margin-left:2px}
+.pile-plus{
+  position:absolute;right:8px;bottom:8px;z-index:2;width:27px;height:27px;border:1px solid rgba(255,255,255,.32);
+  display:grid;place-items:center;font-family:var(--mono);font-size:17px;color:#fff;background:rgba(0,0,0,.28);
+}
+.cart-panel{
+  position:absolute;right:24px;bottom:24px;z-index:5;width:246px;padding:13px 14px 14px;
+  border:1px solid rgba(205,222,210,.24);background:linear-gradient(145deg,rgba(10,19,17,.93),rgba(8,14,13,.86));
+  box-shadow:var(--shadow);backdrop-filter:blur(12px);
+}
+.cart-panel.is-warn{border-color:rgba(217,97,80,.72);box-shadow:0 0 0 1px rgba(217,97,80,.1),var(--shadow)}
+.cart-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:9px}
+.cart-head span{font-size:10px;color:var(--muted);letter-spacing:.14em}
+.cart-head b{font-family:var(--mono);font-size:36px;line-height:.9;font-weight:600;color:var(--amber2)}
+.cart-head b small{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:3px}
+.cart-gauge{height:5px;background:rgba(255,255,255,.08);margin-bottom:10px;overflow:hidden}
+.cart-gauge i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));transition:width .18s ease}
+.cart-meta{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:10px}
+.cart-meta b{font-weight:500;color:var(--text)}
+.cart-meta .warn{color:var(--red)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 15px;
+  border:1px solid rgba(213,226,215,.28);background:rgba(255,255,255,.05);color:var(--text);
+  cursor:pointer;letter-spacing:.08em;font-size:12px;transition:background .15s ease,border-color .15s ease,transform .15s ease;
+}
+.btn:hover{border-color:rgba(230,174,82,.8);background:rgba(230,174,82,.1)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn.primary{border-color:var(--amber);background:linear-gradient(180deg,var(--amber2),var(--amber));color:#1a1710;font-weight:700}
+.btn.primary:hover{background:var(--amber2)}
+.btn.ghost{border-color:rgba(217,97,80,.5);color:#f0b0a7;background:rgba(217,97,80,.08)}
+#toBaler{width:100%}
+#toBaler span{margin-left:auto;font-family:var(--mono);font-size:16px;color:#2a2113}
+.foreign-layer{position:absolute;inset:0;z-index:7;pointer-events:none}
+.foreign{
+  position:absolute;width:54px;height:54px;border-radius:50%;pointer-events:auto;cursor:pointer;
+  background:radial-gradient(circle,rgba(217,97,80,.30),rgba(217,97,80,.04) 68%);
+  border:1px solid rgba(255,210,158,.8);box-shadow:0 0 0 0 rgba(230,174,82,.44),0 0 24px rgba(230,174,82,.32);
+  animation:foreignPulse 1.25s infinite;display:grid;place-items:center;padding:8px;
+}
+.foreign svg{width:100%;height:100%;filter:drop-shadow(0 2px 3px #000);opacity:.95}
+.foreign:active{transform:scale(.92)}
+@keyframes foreignPulse{0%{box-shadow:0 0 0 0 rgba(230,174,82,.44),0 0 14px rgba(230,174,82,.2)}70%{box-shadow:0 0 0 10px rgba(230,174,82,0),0 0 22px rgba(230,174,82,.28)}100%{box-shadow:0 0 0 0 rgba(230,174,82,0),0 0 14px rgba(230,174,82,.2)}}
+
+/* ===== 打包机 ===== */
+.machine-readout{
+  position:absolute;left:24px;bottom:24px;z-index:5;width:210px;padding:12px 14px;
+  border:1px solid rgba(205,222,210,.2);background:rgba(8,16,14,.82);backdrop-filter:blur(10px);box-shadow:var(--shadow);
+}
+.machine-readout span{display:block;font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:3px}
+.machine-readout b{display:block;font-family:var(--mono);font-size:36px;line-height:1;color:var(--amber2);font-weight:600}
+.machine-readout b small{font-size:11px;color:var(--muted);margin-left:3px}
+.machine-readout #baleBatch{font-size:11px;color:var(--muted);letter-spacing:.1em;margin-top:6px}
+.safety{
+  position:absolute;right:24px;top:18px;z-index:5;display:flex;align-items:center;gap:8px;
+  padding:9px 12px;border:1px solid rgba(217,97,80,.46);background:rgba(42,15,13,.7);
+  font-size:10px;letter-spacing:.1em;color:#f3b4aa;backdrop-filter:blur(8px);
+}
+.safety i{width:8px;height:8px;background:var(--red);border-radius:50%;box-shadow:0 0 12px var(--red)}
+.safety b{color:#fff;font-family:var(--mono);font-size:13px;letter-spacing:.08em}
+.safety.ok{border-color:rgba(131,182,157,.45);background:rgba(11,34,25,.64);color:#b8ddc8}
+.safety.ok i{background:var(--green);box-shadow:0 0 12px var(--green)}
+.console{
+  position:absolute;right:24px;bottom:24px;z-index:6;width:334px;padding:14px;
+  border:1px solid rgba(205,222,210,.25);background:linear-gradient(150deg,rgba(11,20,18,.94),rgba(7,13,12,.9));
+  box-shadow:var(--shadow);backdrop-filter:blur(12px);
+}
+.console-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:11px}
+.console-head span{font-size:10px;color:var(--muted);letter-spacing:.14em}
+.console-head b{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--amber2);letter-spacing:.1em}
+.pressure{margin-bottom:12px}
+.gauge-label{display:flex;justify-content:space-between;align-items:baseline;font-size:10px;color:var(--muted);letter-spacing:.1em;margin-bottom:5px}
+.gauge-label b{font-family:var(--mono);font-size:17px;color:var(--text)}
+.gauge-label em{font-style:normal}
+.gauge-label small{font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:2px}
+.pressure-track{position:relative;height:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);overflow:hidden}
+.pressure-track i{display:block;width:0;height:100%;background:linear-gradient(90deg,#4d7b66,#d7a14a 60%,#d96150);transition:width .12s linear}
+.pressure-track span{position:absolute;right:30%;top:0;bottom:0;border-left:1px dashed rgba(255,255,255,.2)}
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.step{
+  position:relative;min-height:47px;padding:7px 9px 7px 34px;border:1px solid rgba(205,222,210,.2);
+  background:rgba(255,255,255,.035);text-align:left;font-size:11px;letter-spacing:.04em;cursor:pointer;
+  transition:border-color .15s ease,background .15s ease;
+}
+.step>span{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--muted)}
+.step b{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--amber2);margin-left:4px}
+.step:hover:not(:disabled){border-color:rgba(230,174,82,.7);background:rgba(230,174,82,.09)}
+.step:disabled{opacity:.28;cursor:not-allowed}
+.step.active{border-color:var(--amber);background:rgba(230,174,82,.13)}
+.console-foot{font-size:10px;line-height:1.5;color:var(--muted);letter-spacing:.05em;margin-top:10px;min-height:15px}
+
+/* ===== 穿丝 / 结果 ===== */
+.tie-layer,.result-layer{
+  position:absolute;inset:0;z-index:10;display:grid;place-items:center;padding:24px;
+  background:rgba(2,7,6,.76);backdrop-filter:blur(9px);animation:layerIn .22s ease both;
+}
+@keyframes layerIn{from{opacity:0}to{opacity:1}}
+.tie-card{width:min(760px,94vw);background:#0b1513;border:1px solid rgba(205,222,210,.3);box-shadow:0 26px 80px rgba(0,0,0,.55);padding:13px}
+.tie-head{display:flex;align-items:baseline;gap:9px;padding:1px 2px 11px}
+.tie-head span{font-size:10px;color:var(--muted);letter-spacing:.14em}
+.tie-head b{font-size:15px;letter-spacing:.12em}
+.tie-head small{margin-left:auto;font-family:var(--mono);font-size:15px;color:var(--amber2)}
+.tie-photo{position:relative;aspect-ratio:16/10;overflow:hidden;border:1px solid rgba(255,255,255,.13)}
+.tie-photo>img{width:100%;height:100%;object-fit:cover;filter:saturate(.72) contrast(1.08) brightness(.72)}
+.tie-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.25));pointer-events:none}
+.wire{
+  position:absolute;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,210,158,.8);
+  background:radial-gradient(circle,rgba(230,174,82,.2),rgba(0,0,0,.6));cursor:pointer;
+  box-shadow:0 0 0 0 rgba(230,174,82,.35),0 2px 8px rgba(0,0,0,.5);transition:background .16s ease,transform .16s ease;
+}
+.wire:hover{background:rgba(230,174,82,.45);transform:scale(1.06)}
+.wire.done{border-color:var(--green);background:rgba(131,182,157,.55);box-shadow:0 0 16px rgba(131,182,157,.4)}
+.wire.done::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:160px;background:linear-gradient(180deg,var(--green),rgba(131,182,157,.1))}
+.wire.w1{left:27%;top:40%}.wire.w2{left:41%;top:40%}.wire.w3{left:55%;top:40%}.wire.w4{left:69%;top:40%}
+.tie-foot{font-size:10px;line-height:1.5;color:var(--muted);padding:10px 2px 2px;letter-spacing:.06em}
+.result-card{width:min(730px,94vw);display:grid;grid-template-columns:235px minmax(0,1fr);background:#0b1513;border:1px solid rgba(205,222,210,.3);box-shadow:0 26px 80px rgba(0,0,0,.58);overflow:hidden}
+.result-card>img{width:100%;height:100%;min-height:290px;object-fit:cover;filter:saturate(.78) contrast(1.05) brightness(.74)}
+.result-body{padding:19px 22px 20px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.stamp{
+  align-self:flex-start;display:inline-block;padding:4px 9px;border:2px solid var(--green);color:#bde4cf;
+  font-size:11px;font-weight:700;letter-spacing:.2em;transform:rotate(-5deg);margin-bottom:12px;
+}
+.stamp.bad{border-color:var(--red);color:#f1b3aa}
+.result-weight{display:flex;align-items:baseline;gap:5px;margin-bottom:13px}
+.result-weight b{font-family:var(--mono);font-size:64px;line-height:.8;font-weight:600;color:var(--amber2)}
+.result-weight small{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.result-meta{display:flex;flex-wrap:wrap;gap:8px 16px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em;margin-bottom:18px}
+.result-meta b{font-weight:500;color:var(--text)}
+.result-actions{display:flex;gap:8px;flex-wrap:wrap}
+.result-actions .btn{flex:1;min-width:120px}
+
+/* ===== 交班 ===== */
+.end-sheet{
+  position:absolute;left:24px;top:22px;bottom:auto;max-height:calc(100% - 46px);z-index:5;width:min(660px,calc(100vw - 48px));
+  padding:26px 27px;border:1px solid rgba(205,222,210,.3);background:rgba(7,14,13,.88);
+  backdrop-filter:blur(14px);box-shadow:var(--shadow);overflow:auto;
+}
+.kicker{margin:0 0 7px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--muted)}
+.end-sheet h2{margin:0 0 13px;font-size:25px;letter-spacing:.1em}
+.end-main{display:flex;align-items:baseline;gap:8px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px}
+.end-main strong{font-family:var(--mono);font-size:58px;line-height:.8;color:var(--amber2);font-weight:600}
+.end-main span{font-size:12px;color:var(--muted)}
+.end-main em{margin-left:auto;font-family:var(--mono);font-style:normal;font-size:34px;color:var(--green)}
+.end-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.end-stats div{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid rgba(255,255,255,.08);padding:8px 2px}
+.end-stats span{font-size:10px;color:var(--muted);letter-spacing:.1em}
+.end-stats b{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--text)}
+.end-stats small{font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:2px}
+.end-tags{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;margin-bottom:18px}
+.end-tags span{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid rgba(131,182,157,.34);background:rgba(131,182,157,.06);font-family:var(--mono);font-size:10px;color:#c6e2d3}
+.end-tags .empty{border-color:rgba(217,97,80,.35);background:rgba(217,97,80,.05);color:#e0a39b}
+#againBtn{width:100%}
+
+/* ===== 遮罩 / 提示 ===== */
+.fade{position:absolute;inset:0;z-index:18;background:#020504;opacity:0;pointer-events:none;transition:opacity .22s ease}
+.fade.on{opacity:1}
+.toast{
+  position:absolute;left:50%;top:82px;z-index:19;transform:translate(-50%,-8px);opacity:0;
+  padding:9px 14px;border:1px solid rgba(230,174,82,.45);background:rgba(8,15,13,.92);
+  color:var(--amber2);font-family:var(--mono);font-size:12px;letter-spacing:.08em;
+  box-shadow:0 8px 28px rgba(0,0,0,.42);pointer-events:none;transition:opacity .18s ease,transform .18s ease;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.good{border-color:rgba(131,182,157,.6);color:#c5e4d2}
+.toast.bad{border-color:rgba(217,97,80,.65);color:#f0b3a8}
+
+/* ===== 接班 ===== */
+.modal{
+  position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;overflow:hidden;
+  background:#06100d;
+}
+.modal-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.65) contrast(1.06) brightness(.4)}
+.modal::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(3,8,7,.12),rgba(3,8,7,.86) 76%)}
+.start-card{
+  position:relative;z-index:2;width:min(620px,94vw);padding:29px 31px 26px;border:1px solid rgba(230,174,82,.3);
+  background:linear-gradient(150deg,rgba(9,17,15,.94),rgba(7,13,12,.9));box-shadow:0 28px 90px rgba(0,0,0,.62);
+  backdrop-filter:blur(10px);
+}
+.start-card .kicker{margin-bottom:9px}
+.start-card h2{margin:0 0 5px;font-size:clamp(36px,5vw,54px);line-height:1;letter-spacing:.13em}
+.start-sub{margin:0 0 22px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--muted)}
+.specs{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:0 0 20px}
+.specs div{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0}
+.specs span{display:block;font-size:10px;color:var(--muted);letter-spacing:.1em;margin-bottom:5px}
+.specs b{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--amber2)}
+.specs small{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:3px}
+.start-flow{display:flex;flex-wrap:wrap;gap:6px 0;font-size:11px;color:rgba(236,232,220,.7);margin:0 0 22px;line-height:1.7}
+.start-flow span{padding:0 7px;border-right:1px solid rgba(255,255,255,.16)}
+.start-flow span:first-child{padding-left:0}
+.start-flow span:last-child{border-right:0}
+#startBtn{width:100%;min-height:50px;font-size:13px;letter-spacing:.2em}
+
+/* ===== 响应式 ===== */
+@media (max-width:900px){
+  #app{grid-template-rows:62px minmax(0,1fr)}
+  .hud{grid-template-columns:minmax(120px,1fr) minmax(150px,1.4fr) auto;gap:10px;padding:8px 12px}
+  .brand-mark{width:31px;height:31px}
+  .brand-mark span{font-size:19px}
+  .brand h1{font-size:15px;letter-spacing:.1em}
+  .brand p{font-size:8px;letter-spacing:.14em}
+  .shift-line strong{font-size:18px}
+  .shift-line strong:last-child{font-size:15px}
+  .shift-line .lbl{font-size:9px}
+  .stats{gap:9px}
+  .stat{min-width:42px}
+  .stat span{font-size:9px}
+  .stat strong{font-size:21px}
+  .stat strong#safety{font-size:19px}
+  .station{left:14px;top:12px}
+  .station span{font-size:13px}
+  .station small{display:none}
+  .floor-note{left:16px;top:40px;font-size:10px}
+}
+@media (max-width:760px){
+  .hud{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;gap:2px 10px;padding:6px 12px;align-items:center}
+  .brand{grid-column:1;grid-row:1;gap:8px}
+  .brand-mark{width:30px;height:30px}
+  .brand-mark span{font-size:18px}
+  .brand h1{font-size:15px;letter-spacing:.08em}
+  .brand p{display:none}
+  .stats{grid-column:2;grid-row:1 / span 2;gap:8px;align-items:center}
+  .stat{min-width:40px}
+  .stat span{font-size:8px;letter-spacing:.07em;margin-bottom:1px}
+  .stat strong{font-size:19px}
+  .stat strong#safety{font-size:17px}
+  .shift{grid-column:1;grid-row:2;width:auto;min-width:0;display:flex;align-items:center;gap:7px}
+  .shift-line{flex:0 0 auto;margin:0;gap:4px}
+  .shift-line .lbl{font-size:8px}
+  .shift-line strong{font-size:13px}
+  .shift-line strong:last-child{font-size:12px}
+  .shift-track{flex:1;min-width:46px}
+  .stage{overflow:hidden}
+  .backdrop{filter:saturate(.82) contrast(1.02) brightness(.74)}
+  .station{top:10px;left:12px}
+  .station b{font-size:12px}
+  .station span{font-size:12px;letter-spacing:.08em}
+  .floor-note{top:32px;left:12px;font-size:9px}
+  .pile-deck{left:12px;right:12px;bottom:112px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .pile-card{width:auto;height:130px}
+  .pile-card img{height:84px}
+  .pile-card::after{height:84px}
+  .pile-caption{font-size:10px;left:7px;top:7px}
+  .pile-caption i{display:none}
+  .pile-card b{font-size:20px;left:7px;bottom:7px}
+  .pile-card .pile-plus{width:24px;height:24px;right:6px;bottom:6px;font-size:14px}
+  .cart-panel{left:12px;right:12px;bottom:12px;width:auto;padding:9px 11px 10px;display:grid;grid-template-columns:1fr auto;column-gap:12px;row-gap:4px;align-items:center}
+  .cart-head{grid-column:1;margin:0}
+  .cart-head span{font-size:9px}
+  .cart-head b{font-size:30px}
+  .cart-gauge{grid-column:1;margin:0;height:4px}
+  .cart-meta{grid-column:1;margin:0;font-size:9px}
+  #toBaler{grid-column:2;grid-row:1 / span 3;width:128px;min-height:47px;padding:0 8px;font-size:11px}
+  .machine-readout{left:12px;top:36px;bottom:auto;width:auto;min-width:156px;padding:6px 9px 7px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+  .machine-readout span{display:none}
+  .machine-readout b{font-size:24px}
+  .machine-readout #baleBatch{font-size:9px;margin:0}
+  .safety{right:12px;top:10px;padding:7px 9px;font-size:9px}
+  .console{left:12px;right:12px;bottom:12px;width:auto;max-height:61%;padding:11px;overflow:auto}
+  .console-head{margin-bottom:8px}
+  .pressure{margin-bottom:9px}
+  .steps{gap:6px}
+  .step{min-height:43px;font-size:10px;padding:6px 7px 6px 29px}
+  .step>span{left:8px;font-size:10px}
+  .console-foot{font-size:9px;margin-top:7px}
+  .tie-layer,.result-layer{padding:10px}
+  .tie-card{width:100%;padding:9px}
+  .tie-head{padding-bottom:8px}
+  .tie-photo{aspect-ratio:4/3}
+  .wire{width:31px;height:31px}
+  .wire.done::after{height:115px}
+  .tie-foot{font-size:9px;padding-top:8px}
+  .result-card{width:100%;grid-template-columns:1fr;max-height:91svh;overflow:auto}
+  .result-card>img{height:190px;min-height:190px}
+  .result-body{padding:15px 16px 17px}
+  .result-weight b{font-size:50px}
+  .result-actions .btn{min-width:0}
+  .end-sheet{left:12px;right:12px;top:12px;bottom:auto;max-height:calc(100% - 24px);width:auto;padding:18px 17px}
+  .end-sheet h2{font-size:21px}
+  .end-main strong{font-size:48px}
+  .end-main em{font-size:28px}
+  .end-stats{gap:8px}
+  .end-stats b{font-size:17px}
+  .start-card{padding:22px 18px 20px}
+  .start-card h2{font-size:clamp(31px,9vw,42px)}
+  .start-sub{font-size:9px;margin-bottom:17px}
+  .specs{gap:6px;margin-bottom:16px}
+  .specs div{padding:8px 0}
+  .specs b{font-size:19px}
+  .start-flow{font-size:10px;margin-bottom:17px}
+  .toast{top:70px;font-size:10px;max-width:calc(100vw - 30px);white-space:normal;text-align:center}
+}
+@media (max-height:620px){
+  #app{grid-template-rows:56px minmax(0,1fr)}
+  .hud{padding-top:6px;padding-bottom:6px}
+  .brand p{display:none}
+  .station{top:8px}
+  .floor-note{display:none}
+  .pile-deck{bottom:104px}
+  .pile-card{height:118px}
+  .pile-card img{height:74px}
+  .pile-card::after{height:74px}
+  .console{max-height:67%}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="hud">
+    <div class="brand">
+      <div class="brand-mark"><span>W</span></div>
+      <div class="brand-txt">
+        <h1>废毛打包间</h1>
+        <p>WASTE WOOL / SHIFT 01</p>
+      </div>
+    </div>
+    <div class="shift">
+      <div class="shift-line">
+        <span class="lbl">班次</span><strong id="clock">08:00</strong>
+        <span class="lbl">剩余</span><strong id="timer">05:00</strong>
+      </div>
+      <div class="shift-track"><i id="shiftFill"></i></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>合格</span><strong><em id="qualified">0</em><small>/6</small></strong></div>
+      <div class="stat"><span>产量</span><strong><em id="output">0</em><small>kg</small></strong></div>
+      <div class="stat"><span>安全</span><strong id="safety">100</strong></div>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <!-- 收毛区 -->
+    <section class="view active" id="floorView">
+      <img class="backdrop" src="assets/floor.jpg" alt="纺织车间实景">
+      <div class="vignette"></div>
+      <div class="station"><b>01</b><span>收毛区</span><small>FLOOR / SORTING</small></div>
+      <div class="floor-note">点毛堆装车 <i>·</i> 7–9 次 = 70–90kg</div>
+
+      <div class="pile-deck" id="pileDeck">
+        <button class="pile-card" data-pile="white">
+          <img src="assets/pile-white.jpg" alt="白毛堆">
+          <span class="pile-caption">白毛 <i>回丝</i></span>
+          <b>10<small>kg</small></b>
+          <span class="pile-plus">+</span>
+        </button>
+        <button class="pile-card" data-pile="dark">
+          <img src="assets/pile-dark.jpg" alt="黑毛料堆">
+          <span class="pile-caption">黑毛 <i>落毛</i></span>
+          <b>10<small>kg</small></b>
+          <span class="pile-plus">+</span>
+        </button>
+        <button class="pile-card" data-pile="mixed">
+          <img src="assets/pile-mixed.jpg" alt="杂色毛料堆">
+          <span class="pile-caption">杂色 <i>地脚毛</i></span>
+          <b>10<small>kg</small></b>
+          <span class="pile-plus">+</span>
+        </button>
+      </div>
+
+      <aside class="cart-panel" id="cartPanel">
+        <div class="cart-head"><span>周转车 / CART</span><b id="cartWeight">0<small>kg</small></b></div>
+        <div class="cart-gauge"><i id="cartFill"></i></div>
+        <div class="cart-meta"><span id="cartBatch">空车</span><span id="cartForeign">异物 0</span></div>
+        <button id="toBaler" class="btn primary" disabled>送进打包机 <span>→</span></button>
+      </aside>
+      <div class="foreign-layer" id="foreignLayer"></div>
+    </section>
+
+    <!-- 液压打包 -->
+    <section class="view" id="balerView">
+      <img class="backdrop baler-bg" src="assets/baler.jpg" alt="液压打包机实景">
+      <div class="vignette"></div>
+      <div class="station"><b>02</b><span>液压打包</span><small>BALER / 4T</small></div>
+
+      <div class="machine-readout">
+        <span>压仓 / CHAMBER</span>
+        <b id="baleMass">0<small>kg</small></b>
+        <div id="baleBatch">待料</div>
+      </div>
+
+      <div class="safety" id="safetyLamp"><i></i><span>安全门 <b id="doorState">开</b></span></div>
+
+      <aside class="console">
+        <div class="console-head"><span>控制台 / CONTROL</span><b id="machineState">待料</b></div>
+        <div class="pressure">
+          <div class="gauge-label"><span>液压压力</span><b><em id="pressureVal">0</em><small>bar</small></b></div>
+          <div class="pressure-track"><i id="pressureFill"></i><span></span></div>
+        </div>
+        <div class="steps">
+          <button class="step" id="feedBtn"><span>01</span>倒料</button>
+          <button class="step" id="closeBtn" disabled><span>02</span>关安全门</button>
+          <button class="step" id="pressBtn" disabled><span>03</span>下压</button>
+          <button class="step" id="tieBtn" disabled><span>04</span>穿丝 <b id="tieCount">0/4</b></button>
+          <button class="step" id="ejectBtn" disabled><span>05</span>开箱出包</button>
+        </div>
+        <div class="console-foot" id="consoleHint">先倒料，再关安全门</div>
+      </aside>
+
+      <div class="tie-layer hidden" id="tieLayer">
+        <div class="tie-card">
+          <div class="tie-head"><span>打包丝 / WIRE</span><b>穿 4 道</b><small id="tieProgress">0 / 4</small></div>
+          <div class="tie-photo">
+            <img src="assets/bale-tie.jpg" alt="羊毛打包块穿丝">
+            <button class="wire w1" data-wire="0" aria-label="穿第1道打包丝"></button>
+            <button class="wire w2" data-wire="1" aria-label="穿第2道打包丝"></button>
+            <button class="wire w3" data-wire="2" aria-label="穿第3道打包丝"></button>
+            <button class="wire w4" data-wire="3" aria-label="穿第4道打包丝"></button>
+          </div>
+          <div class="tie-foot">依次点击四道丝扣。少一道，包在出箱时会散。</div>
+        </div>
+      </div>
+
+      <div class="result-layer hidden" id="resultLayer">
+        <div class="result-card">
+          <img src="assets/bale-result.jpg" alt="打包完成出包">
+          <div class="result-body">
+            <span class="stamp" id="resultStamp">合格</span>
+            <div class="result-weight"><b id="resultWeight">80</b><small>kg</small></div>
+            <div class="result-meta"><span>品质 <b id="resultQuality">100</b></span><span id="resultReason">纯色 · 无杂</span></div>
+            <div class="result-actions" id="resultActions"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 交班 -->
+    <section class="view" id="endView">
+      <img class="backdrop" src="assets/warehouse.jpg" alt="成品打包块仓库">
+      <div class="vignette"></div>
+      <div class="end-sheet">
+        <p class="kicker" id="endKicker">SHIFT REPORT / 08:05</p>
+        <h2 id="endTitle">本班结束</h2>
+        <div class="end-main"><strong id="endQualified">0</strong><span>/ 6 包合格</span><em id="endGrade">D</em></div>
+        <div class="end-stats">
+          <div><span>总产量</span><b id="endOutput">0<small>kg</small></b></div>
+          <div><span>平均包重</span><b id="endAvg">0<small>kg</small></b></div>
+          <div><span>返工包</span><b id="endRejects">0</b></div>
+          <div><span>安全</span><b id="endSafety">100</b></div>
+        </div>
+        <div class="end-tags" id="endTags"></div>
+        <button class="btn primary" id="againBtn">再来一班</button>
+      </div>
+    </section>
+
+    <div class="fade" id="fade"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+</div>
+
+<div class="modal" id="startModal">
+  <img class="modal-bg" src="assets/floor.jpg" alt="纺织车间实景">
+  <div class="start-card">
+    <p class="kicker">TEXTILE MILL / WASTE WOOL / DAY SHIFT</p>
+    <h2>废毛打包间</h2>
+    <p class="start-sub">把地上的废毛，压成能上垛的包。</p>
+    <div class="specs">
+      <div><span>目标</span><b>6<small>包</small></b></div>
+      <div><span>单包</span><b>70–90<small>kg</small></b></div>
+      <div><span>班时</span><b>5<small>min</small></b></div>
+    </div>
+    <div class="start-flow">
+      <span>点毛堆装车</span><span>关安全门</span><span>液压下压</span><span>穿 4 道丝</span><span>过秤码垛</span>
+    </div>
+    <button class="btn primary" id="startBtn">接班</button>
+  </div>
+</div>
+
+<script>
+/* ===== 数据 ===== */
+const PILES = {
+  white:{label:'白毛', short:'回丝', cls:'white'},
+  dark:{label:'黑毛', short:'落毛', cls:'dark'},
+  mixed:{label:'杂色', short:'地脚毛', cls:'mixed'}
+};
+const SHIFT_SECONDS = 300;
+const TARGET_BALES = 6;
+const MIN_BALE = 70;
+const MAX_BALE = 90;
+const UNIT_KG = 10;
+
+const state = {
+  started:false, running:false, finished:false, scene:'floor',
+  remaining:SHIFT_SECONDS,
+  cart:{total:0, colors:{white:0,dark:0,mixed:0}},
+  foreign:null, missed:0, caught:0,
+  bale:null,
+  machine:{loaded:false,door:false,pressing:false,pressed:false,tied:0,opened:false,pressure:0},
+  qualified:0, output:0, rejected:0, acceptedWeights:[],
+  lastPass:false
+};
+
+let timerId = null;
+let audioCtx = null;
+
+/* ===== 元素 ===== */
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+const els = {
+  clock:$('#clock'), timer:$('#timer'), shiftFill:$('#shiftFill'),
+  qualified:$('#qualified'), output:$('#output'), safety:$('#safety'),
+  floorView:$('#floorView'), balerView:$('#balerView'), endView:$('#endView'),
+  cartWeight:$('#cartWeight'), cartFill:$('#cartFill'), cartBatch:$('#cartBatch'),
+  cartForeign:$('#cartForeign'), cartPanel:$('#cartPanel'), toBaler:$('#toBaler'),
+  foreignLayer:$('#foreignLayer'),
+  baleMass:$('#baleMass'), baleBatch:$('#baleBatch'), doorState:$('#doorState'),
+  safetyLamp:$('#safetyLamp'), machineState:$('#machineState'),
+  pressureVal:$('#pressureVal'), pressureFill:$('#pressureFill'), consoleHint:$('#consoleHint'),
+  feedBtn:$('#feedBtn'), closeBtn:$('#closeBtn'), pressBtn:$('#pressBtn'),
+  tieBtn:$('#tieBtn'), ejectBtn:$('#ejectBtn'), tieCount:$('#tieCount'),
+  tieLayer:$('#tieLayer'), tieProgress:$('#tieProgress'),
+  resultLayer:$('#resultLayer'), resultStamp:$('#resultStamp'), resultWeight:$('#resultWeight'),
+  resultQuality:$('#resultQuality'), resultReason:$('#resultReason'), resultActions:$('#resultActions'),
+  endKicker:$('#endKicker'), endQualified:$('#endQualified'), endOutput:$('#endOutput'), endAvg:$('#endAvg'),
+  endRejects:$('#endRejects'), endSafety:$('#endSafety'), endGrade:$('#endGrade'),
+  endTitle:$('#endTitle'), endTags:$('#endTags'), againBtn:$('#againBtn'),
+  fade:$('#fade'), toast:$('#toast'), startModal:$('#startModal'), startBtn:$('#startBtn')
+};
+
+/* ===== 音效 ===== */
+function ensureAudio(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ audioCtx = null; }
+  }
+  if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function sound(kind='click'){
+  ensureAudio();
+  if(!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  let freq=380, dur=.06, type='square', vol=.025;
+  if(kind==='clank'){freq=220;dur=.13;type='triangle';vol=.035;}
+  if(kind==='wire'){freq=720;dur=.09;type='square';vol=.025;}
+  if(kind==='good'){freq=520;dur=.16;type='sine';vol=.04;}
+  if(kind==='bad'){freq=160;dur=.25;type='sawtooth';vol=.035;}
+  if(kind==='press'){freq=100;dur=.55;type='sawtooth';vol=.025;}
+  osc.type=type; osc.frequency.setValueAtTime(freq,now);
+  if(kind==='press') osc.frequency.exponentialRampToValueAtTime(62,now+dur);
+  gain.gain.setValueAtTime(vol,now);
+  gain.gain.exponentialRampToValueAtTime(.0001,now+dur);
+  osc.start(now); osc.stop(now+dur);
+  if(navigator.vibrate) navigator.vibrate(kind==='bad'?[18,50,18]:10);
+}
+
+/* ===== 工具 ===== */
+function fmtClock(){
+  const elapsed = SHIFT_SECONDS - state.remaining;
+  const mins = 8*60 + Math.floor(elapsed/60);
+  const h = Math.floor(mins/60), m = mins%60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+function fmtLeft(sec){
+  const s=Math.max(0,sec), m=Math.floor(s/60), r=s%60;
+  return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`;
+}
+function toast(msg, kind=''){
+  els.toast.textContent=msg;
+  els.toast.className='toast show '+kind;
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>{els.toast.className='toast '+kind;},1700);
+}
+function updateHud(){
+  els.clock.textContent=fmtClock();
+  els.timer.textContent=fmtLeft(state.remaining);
+  els.shiftFill.style.width=Math.min(100,(SHIFT_SECONDS-state.remaining)/SHIFT_SECONDS*100)+'%';
+  els.qualified.textContent=state.qualified;
+  els.output.textContent=state.output;
+  els.safety.textContent=state.finished?100:100;
+}
+
+function setScene(name, instant=false){
+  if(state.scene===name && !instant) return;
+  const from = state.scene;
+  const to = {floor:els.floorView, baler:els.balerView, end:els.endView}[name];
+  const old = {floor:els.floorView, baler:els.balerView, end:els.endView}[from];
+  const swap=()=>{
+    if(old) old.classList.remove('active');
+    if(to) to.classList.add('active');
+    state.scene=name;
+  };
+  if(instant){ swap(); return; }
+  els.fade.classList.add('on');
+  setTimeout(()=>{
+    swap();
+    els.fade.classList.remove('on');
+  },230);
+}
+
+/* ===== 收毛 ===== */
+function updateFloor(){
+  const total=state.cart.total;
+  els.cartWeight.innerHTML = `${total}<small>kg</small>`;
+  els.cartFill.style.width=Math.min(100,total)+'%';
+  const activeColors=Object.keys(state.cart.colors).filter(k=>state.cart.colors[k]>0);
+  let batch='空车';
+  if(total){
+    if(activeColors.length>1) batch='混色';
+    else if(activeColors[0]==='mixed') batch='杂色';
+    else batch=PILES[activeColors[0]].label;
+  }
+  els.cartBatch.textContent=batch;
+  els.cartBatch.className=(batch==='混色'||batch==='杂色'||total>MAX_BALE)?'warn':'';
+  els.cartForeign.textContent=`异物 ${state.foreign?1:0}`;
+  els.cartForeign.className=state.foreign?'warn':'';
+  els.cartPanel.classList.toggle('is-warn', batch==='混色'||batch==='杂色'||total>MAX_BALE);
+  els.toBaler.disabled = total < 50 || !state.running;
+  els.toBaler.innerHTML = total>=50 ? `送进打包机 <span>→</span>` : `还需 ${Math.max(0,50-total)}kg <span>→</span>`;
+}
+
+function addPile(key){
+  if(!state.running || state.scene!=='floor') return;
+  if(state.cart.total>=100){ toast('车满了，先送打包','bad'); return; }
+  state.cart.total += UNIT_KG;
+  state.cart.colors[key]=(state.cart.colors[key]||0)+1;
+  sound('click');
+  if(state.cart.total>=30 && state.cart.total<100 && !state.foreign && Math.random()<0.22){
+    spawnForeign();
+  }
+  updateFloor();
+  toast(`+${UNIT_KG}kg ${PILES[key].label}`);
+}
+
+function foreignSVG(type){
+  if(type==='metal') return `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M19 12c8 3 16 10 22 18l8 11c3 4 8 5 12 3l7-4c3 8-1 16-8 19-8 3-16-1-20-8l-8-11c-2-3-5-4-8-4l8-9z" fill="#c7b7a2" stroke="#5c4e40" stroke-width="2"/></svg>`;
+  if(type==='paper') return `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M17 9l22 3 10 17-4 31-28-5-6-24z" fill="#b9b69e" stroke="#5c5b4b" stroke-width="2"/><path d="M20 23l25 5M18 31l23 4" stroke="#6a6956" stroke-width="2" opacity=".6"/></svg>`;
+  return `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M15 53c8-2 9-10 15-13 5-3 10 0 13-5 4-7 1-13-3-16 2 4 8 5 13 9 12 5 10 11 6 20-4 7-12 7-19 2z" fill="#3e7fa0" stroke="#183d51" stroke-width="2"/></svg>`;
+}
+
+function spawnForeign(){
+  const types=['plastic','metal','paper'];
+  const type=types[Math.floor(Math.random()*types.length)];
+  const x=32+Math.random()*36, y=23+Math.random()*34;
+  const label={plastic:'塑料打包带',metal:'金属钩',paper:'纸片'}[type];
+  state.foreign=type;
+  els.foreignLayer.innerHTML=`<button class="foreign" style="left:${x}%;top:${y}%" aria-label="挑出${label}" title="${label}">${foreignSVG(type)}</button>`;
+  const b=els.foreignLayer.firstElementChild;
+  b.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(!state.foreign) return;
+    state.foreign=null; state.caught++;
+    els.foreignLayer.innerHTML='';
+    updateFloor(); sound('good'); toast(`挑出${label}`,'good');
+  });
+}
+function clearForeign(){
+  state.foreign=null;
+  els.foreignLayer.innerHTML='';
+}
+
+function goBaler(){
+  if(!state.running || state.scene!=='floor' || state.cart.total<50) return;
+  let missed=state.missed;
+  if(state.foreign){ missed++; clearForeign(); }
+  const colors={...state.cart.colors};
+  const keys=Object.keys(colors).filter(k=>colors[k]>0);
+  const mixed = keys.length>1 || colors.mixed>0;
+  state.bale={
+    weight:state.cart.total,
+    colors,
+    mixed,
+    missed,
+    quality:Math.max(0,100-(mixed?25:0)-missed*15)
+  };
+  state.cart={total:0,colors:{white:0,dark:0,mixed:0}};
+  state.missed=0;
+  state.machine={loaded:false,door:false,pressing:false,pressed:false,tied:0,opened:false,pressure:0};
+  updateFloor();
+  setScene('baler');
+  updateBaler();
+  toast(missed?'有杂物未挑出，品质会扣分':'倒料前先关安全门', missed?'bad':'');
+}
+
+/* ===== 打包 ===== */
+function updateTieCount(){
+  els.tieCount.textContent=`${state.machine.tied}/4`;
+  els.tieProgress.textContent=`${state.machine.tied} / 4`;
+}
+function updateBaler(){
+  const b=state.bale;
+  if(!b) return;
+  els.baleMass.innerHTML=`${b.weight}<small>kg</small>`;
+  els.baleBatch.textContent=b.mixed?'混色批次':`${PILES[Object.keys(b.colors).find(k=>b.colors[k]>0)||'white']?.label||'白毛'}批次`;
+  els.doorState.textContent=state.machine.door?'锁':'开';
+  els.safetyLamp.classList.toggle('ok', state.machine.door);
+  els.pressureVal.textContent=Math.round(state.machine.pressure);
+  els.pressureFill.style.width=`${Math.min(100,state.machine.pressure/165*100)}%`;
+  updateTieCount();
+
+  const m=state.machine;
+  els.feedBtn.disabled=m.loaded||m.pressing;
+  els.closeBtn.disabled=!m.loaded||m.door||m.pressing;
+  els.pressBtn.disabled=!m.door||m.pressed||m.pressing;
+  els.tieBtn.disabled=!m.pressed||m.tied>=4;
+  els.ejectBtn.disabled=m.tied<4||m.pressing;
+  els.feedBtn.classList.toggle('active',!m.loaded);
+  els.closeBtn.classList.toggle('active',m.loaded&&!m.door);
+  els.pressBtn.classList.toggle('active',m.door&&!m.pressed);
+  els.tieBtn.classList.toggle('active',m.pressed&&m.tied<4);
+  els.ejectBtn.classList.toggle('active',m.tied>=4);
+
+  if(m.pressing){ els.machineState.textContent='压合中'; els.consoleHint.textContent='压头下行中，手离开压仓。'; }
+  else if(!m.loaded){ els.machineState.textContent='待料'; els.consoleHint.textContent='先倒料，再关安全门。'; }
+  else if(!m.door){ els.machineState.textContent='门未锁'; els.consoleHint.textContent='关安全门，压头才会动作。'; }
+  else if(!m.pressed){ els.machineState.textContent='门已锁'; els.consoleHint.textContent='点下压，把毛料压实。'; }
+  else if(m.tied<4){ els.machineState.textContent='已压实'; els.consoleHint.textContent=`再穿 ${4-m.tied} 道丝，才能开箱。`; }
+  else { els.machineState.textContent='可开箱'; els.consoleHint.textContent='四道丝已打结，开箱出包。'; }
+}
+
+function feed(){
+  if(state.machine.loaded || state.machine.pressing) return;
+  state.machine.loaded=true;
+  sound('clank');
+  updateBaler();
+  toast('料已倒入压仓');
+}
+function closeDoor(){
+  if(!state.machine.loaded || state.machine.door) return;
+  state.machine.door=true;
+  sound('clank');
+  updateBaler();
+  toast('安全门已锁','good');
+}
+function press(){
+  if(!state.machine.door || state.machine.pressed || state.machine.pressing) return;
+  state.machine.pressing=true;
+  state.machine.pressure=0;
+  updateBaler();
+  sound('press');
+  let p=0;
+  const int=setInterval(()=>{
+    p=Math.min(165,p+11);
+    state.machine.pressure=p;
+    if(state.scene==='baler') updateBaler();
+    if(p>=165) clearInterval(int);
+  },100);
+  setTimeout(()=>{
+    if(state.finished) return;
+    clearInterval(int);
+    state.machine.pressing=false;
+    state.machine.pressed=true;
+    state.machine.pressure=165;
+    updateBaler();
+    toast('压实完成，开始穿丝','good');
+  },2200);
+}
+function openTie(){
+  if(!state.machine.pressed) return;
+  state.machine.tied=0;
+  $$('.wire').forEach(w=>w.classList.remove('done'));
+  updateTieCount();
+  els.tieLayer.classList.remove('hidden');
+  sound('clank');
+}
+function tieWire(btn){
+  if(btn.classList.contains('done')) return;
+  btn.classList.add('done');
+  state.machine.tied++;
+  updateTieCount();
+  sound('wire');
+  if(state.machine.tied>=4){
+    state.machine.tied=4;
+    setTimeout(()=>{
+      els.tieLayer.classList.add('hidden');
+      updateBaler();
+      toast('四道丝已打结','good');
+    },700);
+  }
+}
+function eject(){
+  if(state.machine.tied<4 || state.machine.opened) return;
+  state.machine.opened=true;
+  sound('clank');
+  updateBaler();
+  setTimeout(()=>{ if(!state.finished) showResult(); },850);
+}
+
+/* ===== 结果 ===== */
+function showResult(){
+  const b=state.bale;
+  if(!b || state.finished) return;
+  const passWeight=b.weight>=MIN_BALE && b.weight<=MAX_BALE;
+  const pass=passWeight && b.quality>=80;
+  state.lastPass=pass;
+  if(pass){
+    state.qualified++;
+    state.output+=b.weight;
+    state.acceptedWeights.push(b.weight);
+  }else{
+    state.rejected++;
+  }
+  els.resultStamp.textContent=pass?'合格':'返工';
+  els.resultStamp.className='stamp'+(pass?'':' bad');
+  els.resultWeight.textContent=b.weight;
+  els.resultQuality.textContent=b.quality;
+  let reason='纯色 · 无杂';
+  if(!passWeight) reason=b.weight<MIN_BALE?'偏轻 · 再加料':'超重 · 拆分返工';
+  else if(b.mixed) reason='混色 · 降级返工';
+  else if(b.missed) reason='合格 · 轻微含杂';
+  else if(b.quality<80) reason='品质不达标';
+  els.resultReason.textContent=reason;
+  els.resultActions.innerHTML = pass
+    ? `<button class="btn primary" data-result="stack">码垛 →</button>`
+    : `<button class="btn ghost" data-result="discard">拆包返工</button>`;
+  els.resultLayer.classList.remove('hidden');
+  updateHud();
+  sound(pass?'good':'bad');
+}
+
+function afterResult(goStack){
+  els.resultLayer.classList.add('hidden');
+  if(goStack){
+    const n=state.qualified;
+    toast(`第 ${n} 包已上垛`,'good');
+  }else{
+    toast('这包拆散，毛料回废料区','bad');
+  }
+  state.bale=null;
+  state.machine={loaded:false,door:false,pressing:false,pressed:false,tied:0,opened:false,pressure:0};
+  setScene('floor');
+  updateFloor();
+  if(state.qualified>=TARGET_BALES){
+    state.running=false;
+    setTimeout(finishShift,900);
+  }
+}
+
+/* ===== 班次 ===== */
+function tick(){
+  if(!state.running || state.finished) return;
+  state.remaining--;
+  updateHud();
+  if(state.remaining<=0) finishShift();
+}
+function startShift(){
+  resetState();
+  state.running=true; state.started=true;
+  els.startModal.classList.add('hidden');
+  els.toast.className='toast';
+  setScene('floor',true);
+  updateFloor(); updateHud();
+  clearInterval(timerId);
+  timerId=setInterval(tick,1000);
+  toast('接班 · 先装满一车');
+}
+function resetState(){
+  clearInterval(timerId); timerId=null;
+  state.started=false; state.running=false; state.finished=false; state.scene='floor';
+  state.remaining=SHIFT_SECONDS;
+  state.cart={total:0,colors:{white:0,dark:0,mixed:0}};
+  state.foreign=null; state.missed=0; state.caught=0;
+  state.bale=null;
+  state.machine={loaded:false,door:false,pressing:false,pressed:false,tied:0,opened:false,pressure:0};
+  state.qualified=0; state.output=0; state.rejected=0; state.acceptedWeights=[]; state.lastPass=false;
+  els.foreignLayer.innerHTML='';
+  els.tieLayer.classList.add('hidden');
+  els.resultLayer.classList.add('hidden');
+  els.floorView.classList.add('active');
+  els.balerView.classList.remove('active');
+  els.endView.classList.remove('active');
+  $$('.wire').forEach(w=>w.classList.remove('done'));
+  updateTieCount();
+  updateHud();
+}
+function finishShift(){
+  if(state.finished) return;
+  state.finished=true; state.running=false;
+  clearInterval(timerId); timerId=null;
+  clearTimeout(toast._t);
+  els.toast.className='toast';
+  els.tieLayer.classList.add('hidden');
+  els.resultLayer.classList.add('hidden');
+  updateEnd();
+  setScene('end');
+}
+function updateEnd(){
+  els.endKicker.textContent = `SHIFT REPORT / ${fmtClock()}`;
+  const avg=state.acceptedWeights.length?Math.round(state.acceptedWeights.reduce((a,b)=>a+b,0)/state.acceptedWeights.length):0;
+  let grade='D';
+  if(state.qualified>=6) grade='A';
+  else if(state.qualified>=5) grade='B';
+  else if(state.qualified>=4) grade='C';
+  els.endQualified.textContent=state.qualified;
+  els.endOutput.innerHTML=`${state.output}<small>kg</small>`;
+  els.endAvg.innerHTML=`${avg}<small>kg</small>`;
+  els.endRejects.textContent=state.rejected;
+  els.endSafety.textContent='100';
+  els.endGrade.textContent=grade;
+  els.endGrade.style.color=state.qualified>=6?'var(--green)':state.qualified>=4?'var(--amber2)':'var(--red)';
+  els.endTitle.textContent=state.qualified>=6?'目标达成 · 可以交班':'本班结束 · 还差一截';
+  els.endTags.innerHTML=state.acceptedWeights.length
+    ? state.acceptedWeights.map((w,i)=>`<span>#${String(i+1).padStart(2,'0')} ${w}kg</span>`).join('')
+    : '<span class="empty">没有合格包 · 下一班先挑纯色毛</span>';
+}
+function again(){
+  startShift();
+}
+
+/* ===== 绑定 ===== */
+$$('.pile-card').forEach(card=>card.addEventListener('click',()=>addPile(card.dataset.pile)));
+els.toBaler.addEventListener('click',goBaler);
+els.feedBtn.addEventListener('click',feed);
+els.closeBtn.addEventListener('click',closeDoor);
+els.pressBtn.addEventListener('click',press);
+els.tieBtn.addEventListener('click',openTie);
+els.ejectBtn.addEventListener('click',eject);
+$$('.wire').forEach(w=>w.addEventListener('click',()=>tieWire(w)));
+els.resultActions.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-result]');
+  if(!btn) return;
+  afterResult(btn.dataset.result==='stack');
+});
+els.startBtn.addEventListener('click',startShift);
+els.againBtn.addEventListener('click',again);
+
+/* 初始 */
+updateHud(); updateFloor(); updateBaler();
+</script>
+</body>
+</html>

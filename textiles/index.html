@@ -64,7 +64,8 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
 /* Stage */
 .stage{position:relative;min-height:0;overflow:hidden;background:#0b1412}
 #threeCanvas{position:absolute;inset:0;z-index:0;width:100%;height:100%;display:block}
-body.before-start .view,body.before-start .hud,body.before-start .boss-panel,body.before-start .idle-bar{opacity:0;visibility:hidden}
+body.before-start .view,body.before-start .hud,body.before-start .boss-panel,body.before-start .idle-bar,body.before-start #threeCanvas{opacity:0;visibility:hidden}
+body.before-start #threeCanvas{display:none!important}
 .roam-controls{position:absolute;inset:0;z-index:8;pointer-events:none}
 #joyBase{position:absolute;left:18px;bottom:28px;width:112px;height:112px;border:1px solid rgba(230,174,82,.32);border-radius:50%;background:rgba(8,16,14,.34);pointer-events:auto;touch-action:none}
 #joyKnob{position:absolute;left:50%;top:50%;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(243,204,130,.9),rgba(230,174,82,.55));transform:translate(-50%,-50%);box-shadow:0 8px 20px rgba(0,0,0,.35)}
@@ -1352,6 +1353,7 @@ function tick(){if(!state.running||state.finished)return;state.remaining--;bossC
 function startShift(){
   resetState();state.running=true;state.started=true;document.body.classList.remove('before-start');els.startModal.classList.add('hidden');els.toast.className='toast';
   state.quote=BOSS_QUOTES[lang][Math.floor(Math.random()*BOSS_QUOTES[lang].length)];
+  initThree();
   setScene('roam',true);const ws=activeWorkshop();els.stationBaler.textContent=lang==='zh'?ws.machineZh:ws.machineEn;els.balerBg.src='assets/'+ws.machineImg;updateFloor();updateHud();assignTask();clearInterval(timerId);timerId=setInterval(tick,1000);
   AudioSys.ensure();AudioSys.startMusic();toast(lang==='zh'?'接班 · 先装满一车':'Start shift · load a cart');
 }
@@ -1609,7 +1611,6 @@ function loadAssets(){
 }
 loadAssets();
 applyI18n();
-initThree();
 </script>
 </body>
 </html>

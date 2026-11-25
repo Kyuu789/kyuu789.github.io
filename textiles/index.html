@@ -64,6 +64,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
 /* Stage */
 .stage{position:relative;min-height:0;overflow:hidden;background:#0b1412}
 #threeCanvas{position:absolute;inset:0;z-index:0;width:100%;height:100%;display:block}
+body.before-start .view,body.before-start .hud,body.before-start .boss-panel,body.before-start .idle-bar{opacity:0;visibility:hidden}
 .roam-controls{position:absolute;inset:0;z-index:8;pointer-events:none}
 #joyBase{position:absolute;left:18px;bottom:28px;width:112px;height:112px;border:1px solid rgba(230,174,82,.32);border-radius:50%;background:rgba(8,16,14,.34);pointer-events:auto;touch-action:none}
 #joyKnob{position:absolute;left:50%;top:50%;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(243,204,130,.9),rgba(230,174,82,.55));transform:translate(-50%,-50%);box-shadow:0 8px 20px rgba(0,0,0,.35)}
@@ -349,10 +350,10 @@ body.shake{animation:screenShake .35s ease}
 .toast.bad{border-color:rgba(217,97,80,.65);color:#f0b3a8}
 
 /* Start modal */
-.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;overflow:hidden;background:#06100d}
-.modal-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.65) contrast(1.06) brightness(.4)}
+.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:12px;overflow-y:auto;background:linear-gradient(180deg,rgba(6,16,13,.68),rgba(3,8,7,.86))}
+.modal-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.18;filter:saturate(.65) contrast(1.06) brightness(.4)}
 .modal::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(3,8,7,.12),rgba(3,8,7,.86) 76%)}
-.start-card{position:relative;z-index:2;width:min(620px,94vw);padding:29px 31px 26px;border:1px solid rgba(230,174,82,.3);background:linear-gradient(150deg,rgba(9,17,15,.94),rgba(7,13,12,.9));box-shadow:0 28px 90px rgba(0,0,0,.62);backdrop-filter:blur(10px)}
+.start-card{position:relative;z-index:2;width:min(620px,100%);max-height:calc(100dvh - 24px);overflow-y:auto;margin:auto;padding:29px 31px 26px;border:1px solid rgba(230,174,82,.3);background:linear-gradient(150deg,rgba(9,17,15,.94),rgba(7,13,12,.9));box-shadow:0 28px 90px rgba(0,0,0,.62);backdrop-filter:blur(10px)}
 .start-card .kicker{margin-bottom:9px}
 .start-card h2{margin:0 0 5px;font-size:clamp(36px,5vw,54px);line-height:1;letter-spacing:.13em}
 .start-sub{margin:0 0 22px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--muted)}
@@ -426,7 +427,13 @@ body.shake{animation:screenShake .35s ease}
   .tie-layer,.result-layer{padding:10px}.tie-card{width:100%;padding:9px}.tie-photo{aspect-ratio:4/3;touch-action:none}.tie-node{width:38px;height:38px}
   .result-card{width:100%;grid-template-columns:1fr;max-height:91svh;overflow:auto}.result-card>img{height:180px;min-height:180px}.result-body{padding:15px 16px 17px}.result-weight b{font-size:50px}.result-actions .btn{min-width:0}
   .end-sheet{left:12px;right:12px;top:12px;bottom:auto;max-height:calc(100% - 24px);width:auto;padding:18px 17px}.end-sheet h2{font-size:21px}.end-main strong{font-size:48px}.end-main em{font-size:28px}.end-stats{gap:8px;grid-template-columns:repeat(2,1fr)}.end-stats b{font-size:17px}
-  .start-card{padding:22px 18px 20px}.start-card h2{font-size:clamp(31px,9vw,42px)}.specs{gap:6px;margin-bottom:16px}.start-flow{font-size:10px}
+  .modal{padding:10px}
+  .start-card{padding:16px 14px 14px;max-height:calc(100dvh - 20px)}
+  .start-card .kicker{margin-bottom:6px}.start-card h2{font-size:clamp(28px,9vw,38px);margin-bottom:3px}.start-sub{margin-bottom:12px}
+  .specs{grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px}.specs div{padding:7px 0}.specs b{font-size:19px}
+  .start-flow{font-size:10px;margin:0 0 12px;line-height:1.5}
+  .workshop-grid{gap:6px;margin-bottom:12px}.workshop-card{grid-template-columns:46px 1fr;gap:8px;padding:7px 8px}.ws-img{width:46px;height:46px}.workshop-card b{font-size:12px}.workshop-card i{margin-top:3px}.workshop-card small{margin-top:2px;font-size:9px}
+  #startBtn{min-height:44px}
   .toast{top:70px;font-size:10px;max-width:calc(100vw - 30px);white-space:normal;text-align:center}
 }
 @media (max-height:620px){
@@ -434,7 +441,7 @@ body.shake{animation:screenShake .35s ease}
 }
 </style>
 </head>
-<body>
+<body class="before-start">
 <div id="bootScreen">
   <div class="boot-box">
     <div class="boot-mark">W</div>
@@ -1343,7 +1350,7 @@ function renderPhone(){
 /* ===== 班次 ===== */
 function tick(){if(!state.running||state.finished)return;state.remaining--;bossCycle();checkTask();updateHud();if(state.remaining<=0)finishShift()}
 function startShift(){
-  resetState();state.running=true;state.started=true;els.startModal.classList.add('hidden');els.toast.className='toast';
+  resetState();state.running=true;state.started=true;document.body.classList.remove('before-start');els.startModal.classList.add('hidden');els.toast.className='toast';
   state.quote=BOSS_QUOTES[lang][Math.floor(Math.random()*BOSS_QUOTES[lang].length)];
   setScene('roam',true);const ws=activeWorkshop();els.stationBaler.textContent=lang==='zh'?ws.machineZh:ws.machineEn;els.balerBg.src='assets/'+ws.machineImg;updateFloor();updateHud();assignTask();clearInterval(timerId);timerId=setInterval(tick,1000);
   AudioSys.ensure();AudioSys.startMusic();toast(lang==='zh'?'接班 · 先装满一车':'Start shift · load a cart');
@@ -1533,6 +1540,7 @@ function tickThree(){
   requestAnimationFrame(tickThree);if(!three)return;
   const now=performance.now(),dt=Math.min(.05,(now-lastFrame)/1000);lastFrame=now;
   const r=state.roam;
+  if(!state.started)r.yaw+=dt*.12;
   if(r.active){
     updateRoamMovement(dt);
     const spot=nearestSpot();r.nearest=spot;

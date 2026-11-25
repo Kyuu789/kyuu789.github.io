@@ -1749,7 +1749,7 @@ function tickThree(){
     three.pressPlaten.position.y+=(target-three.pressPlaten.position.y)*Math.min(1,dt*7);
   }
   if(three.machineGate){
-    const target=state.machine&&state.machine.door?three.gateOpenY:three.gateClosedY;
+    const target=state.machine&&state.machine.door?three.gateClosedY:three.gateOpenY;
     three.machineGate.rotation.y+=(target-three.machineGate.rotation.y)*Math.min(1,dt*5);
   }
   if(three.baleVisual){
@@ -1757,7 +1757,7 @@ function tickThree(){
     three.baleVisual.visible=visible;
     const compact=m.pressed||m.pressing?0.72:1;
     three.baleMesh.scale.y+=(compact-three.baleMesh.scale.y)*Math.min(1,dt*4);
-    three.baleVisual.position.y+=(.88-(.88-(1-compact)*.18)-three.baleVisual.position.y)*Math.min(1,dt*4);
+    const baleCenter=.42+.46*compact;three.baleVisual.position.y+=(baleCenter-three.baleVisual.position.y)*Math.min(1,dt*4);
     const tied=Math.max(0,Math.min(5,m.tied||0));
     if(three.baleStraps)three.baleStraps.forEach((strap,i)=>{strap.visible=visible&&i<tied});
   }

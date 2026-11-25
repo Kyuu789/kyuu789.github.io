@@ -63,7 +63,8 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
 
 /* Stage */
 .stage{position:relative;min-height:0;overflow:hidden;background:#0b1412}
-#threeCanvas{position:absolute;inset:0;z-index:0;width:100%;height:100%;display:block}
+#threeCanvas{position:absolute;inset:0;z-index:0;width:100%;height:100%;display:block;touch-action:none;overscroll-behavior:contain}
+.stage{touch-action:none;overscroll-behavior:none}
 body.before-start .view,body.before-start .hud,body.before-start .boss-panel,body.before-start .idle-bar{opacity:0;visibility:hidden}
 .roam-controls{position:absolute;inset:0;z-index:8;pointer-events:none}
 #joyBase{position:absolute;left:18px;bottom:28px;width:112px;height:112px;border:1px solid rgba(230,174,82,.32);border-radius:50%;background:rgba(8,16,14,.34);pointer-events:auto;touch-action:none}
@@ -1525,6 +1526,8 @@ const BOSS_WAYPOINTS=[{x:4.2,z:2.2},{x:1.2,z:3.2},{x:-3,z:1.4},{x:2,z:-2.4},{x:4
 const ROAM_BLOCKERS=[{x:-6.9,z:2.8,r:1.25},{x:-1.1,z:-4.4,r:1.55},{x:5.25,z:1.15,r:1.6},{x:-5.4,z:-6.1,r:1.3},{x:7.9,z:-3.35,r:1.55}];
 const roamKeys={};
 let lookPointer=null,lastLookX=0,lastLookY=0,joyPointer=null,lastJoyX=0,lastJoyY=0,lastFrame=performance.now();
+const cameraTouchPoints=new Map();
+let lastTwoFingerCenter=null;
 
 function box(w,h,d,color,x,y,z,rough=.85){
   const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:rough,metalness:.08}));
@@ -1948,7 +1951,7 @@ function tickThree(){
   requestAnimationFrame(tickThree);if(!three)return;
   const now=performance.now(),dt=Math.min(.05,(now-lastFrame)/1000);lastFrame=now;
   const r=state.roam;
-  if(!state.started)r.yaw+=dt*.12;
+  // Keep the view completely still until the player deliberately moves it.
   if(r.active||state.scene==='baler'||state.scene==='truck'){
     updateRoamMovement(dt);
     if(r.active){
@@ -1996,9 +1999,32 @@ function bindRoamControls(){
   window.addEventListener('resize',resizeThree);
   els.stage.addEventListener('pointerdown',e=>{
     if((!state.roam.active&&state.scene!=='baler'&&state.scene!=='truck')||e.target.closest('button,.view,.roam-controls,.hud,.boss-panel'))return;
+    if(e.pointerType==='touch'){
+      cameraTouchPoints.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(cameraTouchPoints.size===2){
+        const pts=[...cameraTouchPoints.values()];
+        lastTwoFingerCenter={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};
+      }
+      e.preventDefault();
+      return;
+    }
+    // Desktop: keep familiar single-mouse drag; touch uses two fingers only.
     lookPointer=e.pointerId;lastLookX=e.clientX;lastLookY=e.clientY;
   });
   window.addEventListener('pointermove',e=>{
+    if(e.pointerType==='touch'&&cameraTouchPoints.has(e.pointerId)){
+      cameraTouchPoints.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(cameraTouchPoints.size===2){
+        const pts=[...cameraTouchPoints.values()],center={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};
+        if(lastTwoFingerCenter){
+          const dx=center.x-lastTwoFingerCenter.x,dy=center.y-lastTwoFingerCenter.y;
+          state.roam.yaw-=dx*.0032;
+          state.roam.pitch=Math.max(-.55,Math.min(.55,state.roam.pitch-dy*.0028));
+        }
+        lastTwoFingerCenter=center;
+      }
+      e.preventDefault();
+    }
     if(lookPointer===e.pointerId){
       const dx=e.clientX-lastLookX,dy=e.clientY-lastLookY;lastLookX=e.clientX;lastLookY=e.clientY;
       state.roam.yaw-=dx*.0032;state.roam.pitch=Math.max(-.55,Math.min(.55,state.roam.pitch-dy*.0028));
@@ -2010,8 +2036,15 @@ function bindRoamControls(){
       state.roam.joyX=dx/max;state.roam.joyY=dy/max;
       els.joyKnob.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;
     }
-  });
-  const endPointer=e=>{if(lookPointer===e.pointerId)lookPointer=null;if(joyPointer===e.pointerId){joyPointer=null;state.roam.joyX=0;state.roam.joyY=0;els.joyKnob.style.transform='translate(-50%,-50%)'}};
+  },{passive:false});
+  const endPointer=e=>{
+    if(cameraTouchPoints.has(e.pointerId)){
+      cameraTouchPoints.delete(e.pointerId);
+      lastTwoFingerCenter=null;
+    }
+    if(lookPointer===e.pointerId)lookPointer=null;
+    if(joyPointer===e.pointerId){joyPointer=null;state.roam.joyX=0;state.roam.joyY=0;els.joyKnob.style.transform='translate(-50%,-50%)'}
+  };
   window.addEventListener('pointerup',endPointer);window.addEventListener('pointercancel',endPointer);
   els.joyBase.addEventListener('pointerdown',e=>{joyPointer=e.pointerId;e.preventDefault()});
   els.interactBtn.addEventListener('click',()=>{const s=state.roam.nearest;if(state.roam.sorting&&(!s||s.id==='sort')){setScene('sort',true);sendBaler();return}if(s&&s.can())s.run()});

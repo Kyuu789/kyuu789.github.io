@@ -354,7 +354,29 @@ body.shake{animation:screenShake .35s ease}
 .modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:12px;overflow-y:auto;background:linear-gradient(180deg,rgba(6,16,13,.68),rgba(3,8,7,.86))}
 .modal-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.18;filter:saturate(.65) contrast(1.06) brightness(.4)}
 .modal::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(3,8,7,.12),rgba(3,8,7,.86) 76%)}
-.start-card{position:relative;z-index:2;width:min(620px,100%);max-height:calc(100dvh - 24px);overflow-y:auto;margin:auto;padding:29px 31px 26px;border:1px solid rgba(230,174,82,.3);background:linear-gradient(150deg,rgba(9,17,15,.94),rgba(7,13,12,.9));box-shadow:0 28px 90px rgba(0,0,0,.62);backdrop-filter:blur(10px)}
+.start-card{position:relative;z-index:2;width:min(720px,100%);max-height:calc(100dvh - 24px);overflow-y:auto;margin:auto;padding:26px 30px 18px;border:1px solid rgba(230,174,82,.42);background:linear-gradient(150deg,rgba(9,17,15,.97),rgba(7,13,12,.94));box-shadow:0 28px 90px rgba(0,0,0,.68);backdrop-filter:blur(14px)}
+.start-card h2{font-size:clamp(34px,5vw,50px)}
+.start-card .start-sub{font-size:12px;letter-spacing:.08em;margin-bottom:14px}
+.start-card .specs{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.start-card .specs div{padding:9px 0}
+.start-card .specs b{font-size:20px}
+.start-flow{margin-bottom:12px;font-size:12px}
+.start-guide{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 16px}
+.start-guide div{min-width:0;border:1px solid rgba(230,174,82,.2);background:rgba(255,255,255,.035);padding:10px}
+.start-guide b{display:block;color:var(--amber2);font:700 11px var(--mono);margin-bottom:5px;letter-spacing:.08em}
+.start-guide span{display:block;color:rgba(236,232,220,.82);font-size:11px;line-height:1.5}
+.start-controls{margin:0 0 14px;padding:10px 12px;border-left:3px solid var(--mint);background:rgba(125,190,160,.08);color:#d4e2d8;font-size:11px;line-height:1.6}
+.start-controls strong{color:var(--mint2)}
+.start-card #startBtn{position:sticky;bottom:-18px;z-index:6;margin:14px -30px -18px;width:calc(100% + 60px);min-height:62px;border:0;border-top:1px solid rgba(255,255,255,.18);background:linear-gradient(90deg,#b98237,#e6ae52 55%,#f1ca83);color:#17130b;font-weight:900;font-size:16px;letter-spacing:.14em;box-shadow:0 -12px 30px rgba(0,0,0,.35);text-shadow:none}
+.start-card #startBtn::after{content:"  ▶";font-size:13px}
+@media(max-width:620px){
+ .start-card{padding:19px 17px 14px;max-height:calc(100dvh - 16px)}
+ .start-card .specs{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ .start-card .specs div:nth-child(4),.start-card .specs div:nth-child(5){display:block}
+ .start-guide{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ .start-guide div{padding:8px}
+ .start-card #startBtn{bottom:-14px;margin:12px -17px -14px;width:calc(100% + 34px);min-height:58px}
+}
 .start-card .kicker{margin-bottom:9px}
 .start-card h2{margin:0 0 5px;font-size:clamp(36px,5vw,54px);line-height:1;letter-spacing:.13em}
 .start-sub{margin:0 0 22px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--muted)}
@@ -726,13 +748,22 @@ body.shake{animation:screenShake .35s ease}
       <div><span data-i18n="target">目标</span><b>6<small data-i18n="bales">包</small></b></div>
       <div><span data-i18n="baleSize">单包</span><b>150–190<small>kg</small></b></div>
       <div><span data-i18n="shiftTime">班时</span><b>5<small>min</small></b></div>
+      <div><span>仓库面积</span><b>2000<small>㎡</small></b></div>
+      <div><span>建筑尺寸</span><b>40×50<small>m</small></b></div>
       <div><span data-i18n="dayWorked">工作天数</span><b id="startDay">1</b></div>
     </div>
     <div class="start-flow">
-      <span data-i18n="flow1">收集</span><span data-i18n="flow2">分拣</span><span data-i18n="flow3">液压打包</span><span data-i18n="flow4">穿丝</span><span data-i18n="flow5">码垛</span>
+      <span data-i18n="flow1">收集</span><span data-i18n="flow2">分拣</span><span data-i18n="flow3">液压打包</span><span data-i18n="flow4">穿丝</span><span data-i18n="flow5">码垛</span><span>装车发货</span>
     </div>
-    <div class="workshop-grid" id="workshopGrid" aria-label="workshop"></div>
-    <button class="btn primary" id="startBtn" data-i18n="start">接班</button>
+    <div class="start-guide" aria-label="新手玩法说明">
+      <div><b>01 / MOVE</b><span>进入仓库后，用 WASD 或左下角摇杆移动，拖动屏幕转动视角。</span></div>
+      <div><b>02 / SORT</b><span>走到分拣台，清掉塑料、铁钩等异物，把合格废毛送去打包。</span></div>
+      <div><b>03 / BALE</b><span>操作液压机压包，再按包体上的绿色节点依次穿好五根包带。</span></div>
+      <div><b>04 / SHIP</b><span>把合格包码上托盘，凑齐一车后用叉车装进 9.6 米货车。</span></div>
+    </div>
+    <div class="start-controls"><strong>操作提示：</strong>靠近设备后看屏幕中央/底部提示；电脑按 E 交互，手机点设备上的发光按钮。老板巡查时注意躲避，别让他抓到摸鱼。</div>
+    <div class="workshop-grid" id="workshopGrid" aria-label="选择体验的车间"></div>
+    <button class="btn primary" id="startBtn" data-i18n="start">开始游戏 · 进入 2000㎡ 仓库</button>
   </div>
 </div>
 
@@ -1575,6 +1606,8 @@ function initThree(){
   const key=new THREE.DirectionalLight(0xffe4bd,2.0);key.position.set(-7,13,8);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-15;key.shadow.camera.right=15;key.shadow.camera.top=15;key.shadow.camera.bottom=-15;key.shadow.camera.near=.5;key.shadow.camera.far=35;key.shadow.bias=-.00015;scene.add(key);
   const fill=new THREE.DirectionalLight(0x9bb6c2,.65);fill.position.set(9,7,-8);scene.add(fill);
 
+  // Scale reference: 1 scene unit = 2 real metres; 25 x 20 units represents 40 x 50 m = 2,000 m².
+  three.worldScaleMeters=2;
   // Concrete floor: full 3D slab, expansion joints and painted work lanes.
   const floorSlab=addBox(25,.32,20,0xffffff,0,-.18,0,.98);floorSlab.material.map=concreteMap;floorSlab.material.needsUpdate=true;
   const floorGrid=mat(0x817d72,.98);
@@ -1609,6 +1642,11 @@ function initThree(){
     addBox(.04,1.05,.85,0x273a3b,-11.61,3.45,z,.38,.55);
     addBox(.04,1.05,.85,0x273a3b,11.61,3.45,z,.38,.55);
   }
+  // Warehouse identity board and scale marker, mounted high at the receiving end.
+  const areaSign=makeLabel('WASTE WOOL WAREHOUSE  /  2,000 m²',0,-8.72,4.55);
+  areaSign.scale.set(4.9,1.05,1);
+  const baySign=makeLabel('40 m  ×  50 m  /  INDUSTRIAL HALL',0,8.65,4.55);
+  baySign.scale.set(4.3,.88,1);
   // Roof rafters and suspended industrial lights.
   for(let z=-8;z<=8;z+=4){
     addBox(23,.12,.14,0x424a45,0,5.55,z,.7,.4);

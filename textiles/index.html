@@ -1763,19 +1763,19 @@ function initThree(){
     addBox(.06,.65,.82,0x424b46,x+.36,.34,-6.15,.72,.38);
   }
   // Baler finishing details: bolt heads, hazard stripes, pressure gauge and machine identity plate.
-  for(const x of [bx-1.25,bx+1.25])for(const z of [bz-.9,bz+.9]){
+  for(const x of [5.25-1.25,5.25+1.25])for(const z of [1.15-.9,1.15+.9]){
     for(const y of [.35,1.05,1.78,2.55]){
       addCylinder(.045,.045,.035,0xc3c8bd,x,y,z,Math.PI/2,0,12);
     }
   }
   for(let i=0;i<9;i++){
-    const stripe=addBox(.14,.018,.07,i%2===0?0xe4b74d:0x202724,bx-1.02+i*.25,.055,bz+.94,.55,.18);
+    const stripe=addBox(.14,.018,.07,i%2===0?0xe4b74d:0x202724,5.25-1.02+i*.25,.055,1.15+.94,.55,.18);
     stripe.rotation.y=.08;
   }
   const gaugeRing=new THREE.Mesh(new THREE.TorusGeometry(.19,.035,10,28),mat(0xc0c8bd,.35,.65));
-  gaugeRing.position.set(bx-1.9,1.58,bz-.29);gaugeRing.rotation.x=Math.PI/2;scene.add(gaugeRing);
-  addLine([[bx-1.9,1.58,bz-.27],[bx-1.82,1.68,bz-.25]],0xc94e40,.018);
-  makeLabel('HYDRAULIC PRESS  /  160 T',bx,3.18,bz+1.02).scale.set(2.35,.48,1);
+  gaugeRing.position.set(5.25-1.9,1.58,1.15-.29);gaugeRing.rotation.x=Math.PI/2;scene.add(gaugeRing);
+  addLine([[5.25-1.9,1.58,1.15-.27],[5.25-1.82,1.68,1.15-.25]],0xc94e40,.018);
+  makeLabel('HYDRAULIC PRESS  /  160 T',5.25,3.18,1.15+1.02).scale.set(2.35,.48,1);
   // Floor drainage channels and expansion-joint covers make the large slab read as a working site.
   for(const z of [-8.6,0,8.6]){
     addBox(22,.018,.11,0x3c4540,0,.012,z,.9,.22);

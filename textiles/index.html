@@ -1084,6 +1084,7 @@ function updateBaler(){
   else if(m.pressing){els.machineState.textContent=lang==='zh'?'压合中':'Pressing';els.consoleHint.textContent=lang==='zh'?'压头下行中，手离开压仓。':'Keep hands clear while the ram descends.'}
   else if(!m.loaded){els.machineState.textContent=lang==='zh'?'待料':'Idle';els.consoleHint.textContent=lang==='zh'?'先倒料，再关安全门。':'Load the chamber, then close the gate.'}
   else if(m.handInside){els.machineState.textContent=lang==='zh'?'手未退出':'Hand inside';els.consoleHint.textContent=lang==='zh'?'先抽手，再关安全门，防止夹手。':'Pull your hand out, then close the gate.'}
+  else if(m.opened){els.machineState.textContent=lang==='zh'?'已出包':'Ejected';els.consoleHint.textContent=lang==='zh'?'成品包已推出，准备码垛。':'Bale released · ready to stack.'}
   else if(!m.door){els.machineState.textContent=lang==='zh'?'门未锁':'Gate open';els.consoleHint.textContent=lang==='zh'?'关安全门，压头才会动作。':'Close the gate to press.'}
   else if(!m.pressed){
     if(m.needRepress){els.machineState.textContent=lang==='zh'?'压力不足':'Low pressure';els.consoleHint.textContent=lang==='zh'?'点补压，把压力补到 160 bar 以上。':'Press repress until pressure reaches 160 bar.'}
@@ -1167,7 +1168,7 @@ function onTieUp(e){
 }
 function eject(){
   if(state.machine.tied<WIRE_PER_BALE||state.machine.opened||state.wireStock<WIRE_PER_BALE)return;
-  state.machine.opened=true;state.wireStock-=WIRE_PER_BALE;AudioSys.tone('clank');updateBaler();
+  state.machine.opened=true;state.machine.door=false;state.wireStock-=WIRE_PER_BALE;AudioSys.tone('clank');updateBaler();
   setTimeout(()=>{if(!state.finished)showResult()},850);
 }
 
@@ -1848,8 +1849,9 @@ function tickThree(){
     three.machineGate.rotation.y+=(target-three.machineGate.rotation.y)*Math.min(1,dt*5);
   }
   if(three.baleVisual){
-    const m=state.machine||{},visible=!!(state.bale&&m.loaded&&!m.opened);
+    const m=state.machine||{},visible=!!(state.bale&&m.loaded);
     three.baleVisual.visible=visible;
+    const ejectZ=m.opened?3.0:1.15;three.baleVisual.position.z+=(ejectZ-three.baleVisual.position.z)*Math.min(1,dt*3);
     const compact=1-.28*Math.min(1,(m.pressure||0)/172);
     three.baleMesh.scale.y+=(compact-three.baleMesh.scale.y)*Math.min(1,dt*4);
     const baleCenter=.42+.46*compact;three.baleVisual.position.y+=(baleCenter-three.baleVisual.position.y)*Math.min(1,dt*4);

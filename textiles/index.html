@@ -75,7 +75,8 @@ body.before-start .view,body.before-start .hud,body.before-start .boss-panel,bod
 .roam-back{position:absolute;right:14px;top:14px;z-index:9;min-height:36px;padding:0 12px;border:1px solid rgba(230,174,82,.42);background:rgba(8,16,14,.82);color:var(--amber2);font-family:var(--mono);font-size:11px;letter-spacing:.08em;cursor:pointer}
 .view{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .28s ease,visibility .28s ease;overflow:hidden}
 .view.active{opacity:1;visibility:visible}
-.backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.76) contrast(1.06) brightness(.66);transform:scale(1.025)}
+.backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.76) contrast(1.06) brightness(.66);transform:scale(1.025);transition:opacity .2s}
+body.three-world .backdrop{opacity:0}
 .baler-bg{object-position:50% 35%}
 .vignette{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(3,8,7,.88) 0%,rgba(3,8,7,.26) 44%,rgba(3,8,7,.72) 100%),linear-gradient(0deg,rgba(3,8,7,.92) 0%,rgba(3,8,7,.08) 42%,rgba(3,8,7,.54) 100%)}
 .vignette::after{content:"";position:absolute;inset:0;opacity:.09;pointer-events:none;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.7) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
@@ -999,7 +1000,9 @@ function goSort(){
     return {id:i,type,x:22+Math.random()*54,y:22+Math.random()*38,caught:false};
   });
   state.missed=0;
-  setScene('sort'); updateSort();
+  updateSort();
+  if(three){state.roam.x=-1.1;state.roam.z=-2.55;state.roam.yaw=0;state.roam.pitch=0;setScene('roam',true);state.roam.sorting=true;syncSortProps();toast(lang==='zh'?'点击分拣台上的异物，清理完再去打包机':'Tap the contaminants, then head to the baler','good')}
+  else setScene('sort');
 }
 function updateSort(){
   if(!state.bale)return;
@@ -1051,6 +1054,7 @@ function sendBaler(){
   state.bale.missed=left; state.bale.defects+=left; state.defects+=left;
   state.cart={total:0,materials:{},colors:{}};
   state.machine={loaded:false,door:false,handInside:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false};
+  state.roam.x=5.25;state.roam.z=3.15;state.roam.yaw=0;state.roam.pitch=0;
   setScene('baler'); updateBaler();
   toast(left?lang==='zh'?`${left} 处遗留，品质扣分`:`${left} left, quality cut`:`${lang==='zh'?'干净批次':'Clean batch'}`,left?'bad':'good');
 }
@@ -1205,11 +1209,13 @@ function afterResult(goStack){
 function nextShiftCycle(){
   if(state.finished)return;
   state.bale=null;state.machine={loaded:false,door:false,handInside:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false};
+  state.roam.x=-6.8;state.roam.z=5;state.roam.yaw=0;state.roam.pitch=0;
   setScene('roam');updateFloor();
   if(state.qualified>=TARGET_BALES){state.running=false;setTimeout(finishShift,900)}
 }
 function unsoldBales(){return state.acceptedBales.filter(b=>!b.sold)}
 function goPallet(){
+  state.roam.x=-5.4;state.roam.z=-4.25;state.roam.yaw=0;state.roam.pitch=0;
   const n=state.acceptedBales.length;
   els.palletTitle.textContent=`#${String(n).padStart(2,'0')} ${lang==='zh'?'包上垛':'stacked'}`;
   els.palletMeta.textContent=`${state.acceptedBales[n-1].weight}kg · ${state.acceptedBales[n-1].grade||''}`;
@@ -1222,6 +1228,7 @@ function goPallet(){
 }
 function calcBalePrice(b){let p=b.weight*PRICE_PER_KG; if(b.grade==='A')p*=1.2; else if(b.grade==='B')p*=1.1; else p*=.9; return Math.round(p)}
 function goTruck(){
+  state.roam.x=5.95;state.roam.z=-3.35;state.roam.yaw=-Math.PI/2;state.roam.pitch=0;
   const t=state.truck;
   t.arrived=true;t.loaded=0;t.slotIds=[];t.groundIds=state.acceptedBales.map((b,i)=>!b.sold?i:-1).filter(i=>i>=0);
   t.forklift=FORKLIFT_USES;t.secured=false;t.timer=TRUCK_SECONDS;t.loadedBales=[];t.revenue=0;
@@ -1522,6 +1529,7 @@ function initThree(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x171d1b);scene.fog=new THREE.Fog(0x171d1b,17,38);
   const camera=new THREE.PerspectiveCamera(72,1,.1,90);camera.rotation.order='YXZ';
   const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+  document.body.classList.add('three-world');
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));
   if('outputColorSpace' in renderer && THREE.SRGBColorSpace) renderer.outputColorSpace=THREE.SRGBColorSpace;

@@ -1489,6 +1489,7 @@ function initThree(){
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x171d1b);scene.fog=new THREE.Fog(0x171d1b,17,38);
   const camera=new THREE.PerspectiveCamera(72,1,.1,90);camera.rotation.order='YXZ';
   const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));
   if('outputColorSpace' in renderer && THREE.SRGBColorSpace) renderer.outputColorSpace=THREE.SRGBColorSpace;
   else if('outputEncoding' in renderer && THREE.sRGBEncoding) renderer.outputEncoding=THREE.sRGBEncoding;
@@ -1513,7 +1514,7 @@ function initThree(){
   three.addBox=addBox;three.sortRollers=[];
 
   scene.add(new THREE.HemisphereLight(0xc8d5ce,0x3b3025,1.05));
-  const key=new THREE.DirectionalLight(0xffe4bd,2.0);key.position.set(-7,13,8);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);
+  const key=new THREE.DirectionalLight(0xffe4bd,2.0);key.position.set(-7,13,8);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-15;key.shadow.camera.right=15;key.shadow.camera.top=15;key.shadow.camera.bottom=-15;key.shadow.camera.near=.5;key.shadow.camera.far=35;key.shadow.bias=-.00015;scene.add(key);
   const fill=new THREE.DirectionalLight(0x9bb6c2,.65);fill.position.set(9,7,-8);scene.add(fill);
 
   // Concrete floor: full 3D slab, expansion joints and painted work lanes.

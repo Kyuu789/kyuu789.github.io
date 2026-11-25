@@ -1446,9 +1446,33 @@ function box(w,h,d,color,x,y,z,rough=.85){
   const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:rough,metalness:.08}));
   m.position.set(x,y,z);three.scene.add(m);return m;
 }
-function cyl(rt,rb,h,color,x,y,z){
+function cyl(rt,rb,h,color,x,y,z,rotZ=0){
   const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,18),new THREE.MeshStandardMaterial({color,roughness:.95}));
-  m.position.set(x,y,z);three.scene.add(m);return m;
+  m.position.set(x,y,z);m.rotation.z=rotZ;three.scene.add(m);return m;
+}
+const texLoader=new THREE.TextureLoader();
+function getTex(file){
+  if(!three.tex[file]){const t=texLoader.load('assets/'+file);t.encoding=THREE.sRGBEncoding;three.tex[file]=t}
+  return three.tex[file];
+}
+function texBox(w,h,d,file,x,y,z,ry=0,rough=.82){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({map:getTex(file),roughness:rough}));
+  m.position.set(x,y,z);m.rotation.y=ry;three.scene.add(m);return m;
+}
+function texPlane(w,h,file,x,y,z,ry=0,rx=0,op=1){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:getTex(file),roughness:.85,transparent:op<1,opacity:op}));
+  m.position.set(x,y,z);m.rotation.set(rx,ry,0);three.scene.add(m);return m;
+}
+function blob(r,file,x,y,z,sx=1,sy=.72,sz=1){
+  const m=new THREE.Mesh(new THREE.SphereGeometry(r,18,12),new THREE.MeshStandardMaterial({map:getTex(file),roughness:.96}));
+  m.position.set(x,y,z);m.scale.set(sx,sy,sz);three.scene.add(m);return m;
+}
+function makeLabel(text,x,z,y=2.55){
+  const c=document.createElement('canvas');c.width=256;c.height=72;const g=c.getContext('2d');
+  g.fillStyle='rgba(8,16,14,.78)';g.fillRect(18,12,220,48);g.strokeStyle='rgba(230,174,82,.7)';g.strokeRect(18,12,220,48);
+  g.fillStyle='#f3cc82';g.font='bold 28px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(text,128,37);
+  const t=new THREE.CanvasTexture(c);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true}));
+  sp.position.set(x,y,z);sp.scale.set(1.7,.48,1);three.scene.add(sp);return sp;
 }
 function initThree(){
   if(typeof THREE==='undefined'||three)return;
@@ -1457,24 +1481,33 @@ function initThree(){
   const camera=new THREE.PerspectiveCamera(70,1,0.1,60);camera.rotation.order='YXZ';
   const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'low-power'});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
-  three={scene,camera,renderer};
-  scene.add(new THREE.AmbientLight(0x9fb7a6,.72));
+  three={scene,camera,renderer,tex:{}};
+  scene.add(new THREE.AmbientLight(0x9fb7a6,.62));
   const sun=new THREE.DirectionalLight(0xffe2b0,.85);sun.position.set(4,9,3);scene.add(sun);
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(24,18),new THREE.MeshStandardMaterial({color:0x273029,roughness:.94}));
+  const floorTex=getTex('floor.jpg');floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;floorTex.repeat.set(4,3);
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(24,18),new THREE.MeshStandardMaterial({map:floorTex,roughness:.94}));
   floor.rotation.x=-Math.PI/2;scene.add(floor);
-  box(24,3,.25,0x17201d,0,1.5,-9);box(.25,3,18,0x17201d,-12,1.5,0);box(.25,3,18,0x17201d,12,1.5,0);box(24,3,.25,0x17201d,0,1.5,9);
+  texPlane(24,3.1,'warehouse.jpg',0,1.55,-8.92);
+  texPlane(18,3.1,'sort-facility.jpg',-11.92,1.55,0,Math.PI/2);
+  texPlane(18,3.1,'baler.jpg',11.92,1.55,0,-Math.PI/2);
+  [[-6,3],[-1,-4],[5,1],[-5,-6],[6,-6]].forEach(([x,z])=>{const p=new THREE.PointLight(0xffd9a0,.42,7);p.position.set(x,2.45,z);scene.add(p)});
   // 收毛料堆
-  cyl(1.1,1.35,.8,0xd8d3c4,-6.6,.4,3);cyl(.9,1.1,.7,0x8b8f8a,-5.5,.35,3.2);cyl(.75,.9,.62,0x3f4440,-6,.31,2.2);
+  blob(1.15,'pile-white.jpg',-6.8,.48,3.1,1.35,.72,1.05);blob(.92,'pile-mixed.jpg',-5.6,.42,3.35,1.1,.7,1);blob(.78,'pile-dark.jpg',-6.1,.36,2.25,1,.68,.9);blob(.62,'pile-white.jpg',-5.15,.32,2.55,1,.65,.9);
   // 分拣台
-  box(3.2,.18,1.4,0x4a3b2c,-1,.86,-4);box(3.2,.7,1.2,0x2d261f,-1,.38,-4);
+  box(3.4,.16,1.5,0x3a332c,-1,.88,-4);box(3.2,.72,1.2,0x2d261f,-1,.38,-4);
+  const conv=new THREE.Mesh(new THREE.PlaneGeometry(3.2,1.3),new THREE.MeshStandardMaterial({map:getTex('sort-conveyor.jpg'),roughness:.9}));conv.rotation.x=-Math.PI/2;conv.position.set(-1,.97,-4);three.scene.add(conv);
+  texPlane(3.4,1.15,'sort-table.jpg',-1,1.45,-4.72);
   // 打包机
-  box(2.4,2.4,1.6,0x34413a,5,1.2,1);box(1.8,.5,1.2,0x6b5a35,5,2.15,1);box(1.2,1.1,.2,0x151b19,5,.9,1.82);
+  box(2.6,2.5,1.7,0x34413a,5,1.25,1);texPlane(2.2,2.1,'baler.jpg',5,1.3,1.87);texPlane(1.3,1.2,'bale-result.jpg',5,.95,1.89);box(1.8,.45,1.2,0x6b5a35,5,2.18,1);texPlane(.85,.62,'control-panel.jpg',3.62,1.25,1.2,-Math.PI/2);texPlane(.6,.6,'gauge.jpg',3.62,.72,1.2,-Math.PI/2);
   // 包垛
-  box(1.5,.75,1.1,0x9a8f76,-5,.38,-6);box(1.4,.7,1.0,0x80765f,-5,.12,-5.2);box(1.3,.7,1.0,0xaaa08a,-4.2,1.1,-6);
+  box(2.2,.25,1.4,0x5a4632,-5,.13,-6);box(1.5,.7,1.1,0x9a8f76,-5,.62,-6);texPlane(1.35,.58,'bale-result.jpg',-5,.62,-5.43);box(1.4,.65,1.0,0x80765f,-5,.18,-5.2);texPlane(1.25,.52,'pallet-rows.jpg',-5,.18,-4.68);box(1.3,.65,1.0,0xaaa08a,-4.2,1.08,-6);texPlane(1.15,.52,'bale-tie.jpg',-4.2,1.08,-5.43);
   // 货车
-  box(1.8,1.5,1.6,0x8d2f28,7.2,.75,-6.4);box(2.6,1.1,2.8,0x59636a,5.4,.55,-5.2);
-  // 老板低模
-  cyl(.28,.34,1.25,0x2b3130,4.2,.85,2.2);const head=new THREE.Mesh(new THREE.SphereGeometry(.26,16,12),new THREE.MeshStandardMaterial({color:0x8a6a55,roughness:.8}));head.position.set(4.2,1.72,2.2);scene.add(head);
+  box(2.8,.35,3.1,0x252b2d,5.5,.35,-5.4);box(2.6,.9,2.8,0x59636a,5.5,.85,-5.5);texPlane(2.4,.8,'warehouse.jpg',5.5,.9,-4.05);box(1.8,1.55,1.7,0x8d2f28,7.3,.95,-6.5);texPlane(1.2,.7,'control-panel.jpg',7.3,1.35,-5.62);
+  cyl(.34,.34,.25,0x111313,6.2,.34,-4.45,Math.PI/2);cyl(.34,.34,.25,0x111313,6.2,.34,-6.55,Math.PI/2);cyl(.34,.34,.25,0x111313,8.2,.34,-4.45,Math.PI/2);cyl(.34,.34,.25,0x111313,8.2,.34,-6.55,Math.PI/2);
+  // 老板和工人立牌
+  texPlane(.85,1.9,'boss.jpg',4.2,1.55,2.2,-.35);texPlane(.8,1.8,'worker.jpg',-7.6,1.5,1.8,.55);
+  // 工位标识
+  makeLabel(t('roamFloor'),-6,3,2.65);makeLabel(t('roamSort'),-1,-4,2.55);makeLabel(t('roamBaler'),5,1,2.85);makeLabel(t('roamPallet'),-5,-6,2.55);makeLabel(t('roamTruck'),6,-6,2.65);
   resizeThree();bindRoamControls();requestAnimationFrame(tickThree);
 }
 function resizeThree(){

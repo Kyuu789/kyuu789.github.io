@@ -1,24 +1,131 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>回家五次换乘</title><style>
-*{box-sizing:border-box}body{margin:0;background:#101815;color:#f8f5ed;font:16px system-ui,"Microsoft Yahei",sans-serif}.wrap{max-width:780px;margin:auto;min-height:100vh;padding:14px;background:#19251f}.head,.stats{display:flex;justify-content:space-between;gap:8px;align-items:center}.head small{color:#f5c35c}.stats{margin:10px 0}.stats span{background:#2b3c34;padding:8px;border-radius:10px;font-size:13px}.scene{height:210px;background-size:cover;background-position:center;border-radius:14px;position:relative}.scene:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#101815d9,transparent 70%);border-radius:14px}.label{position:absolute;z-index:1;bottom:12px;left:14px;font-weight:bold;text-shadow:0 2px 4px black}.panel{margin-top:12px;background:#24362e;border-radius:14px;padding:16px;min-height:210px}.panel h2{margin:0 0 8px;color:#f5c35c;font-size:20px}.panel p{color:#d0d8d1;margin:8px 0}.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}.choices button,.action{background:#35483e;color:#fff;border:1px solid #ffffff22;border-radius:12px;padding:14px;font-size:16px;font-weight:700;cursor:pointer}.choices button:hover,.action:hover{background:#4b6556}.meter{height:9px;background:#ffffff22;border-radius:9px;margin:14px 0;overflow:hidden}.meter i{display:block;height:100%;width:100%;background:#f5c35c;transition:width .2s}.start{background:#eebc51!important;color:#17231d!important}.feedback{color:#ffd56e;min-height:22px}.scene-button{position:absolute;z-index:2;padding:8px 12px;border:0;border-radius:30px;background:#ffd36c;color:#152019;font-weight:bold;box-shadow:0 3px 16px #0008}.hide{display:none}.foot{color:#9ba99f;font-size:11px;margin:12px 2px}
-</style></head><body><div class="wrap"><header class="head"><b>回家五次换乘</b><small id="progress">第 1 / 5 程</small></header><div class="stats"><span>时间 <b id="clock">07:20</b></span><span>体重 <b id="weight">正常</b></span><span>零食 <b id="food">0</b></span></div><div class="scene" id="scene"><span class="label" id="place"></span></div><section class="panel"><h2 id="title"></h2><p id="desc"></p><div class="meter"><i id="meter"></i></div><div id="play"></div><div class="feedback" id="feedback"></div></section><p class="foot">照片来自 Wikimedia Commons；每张场景底部可打开对应来源。食物能补充心情，但会让后续行动更费力。</p></div><script>
-const stages=[
-{place:"苏州地铁 · 早高峰",clock:"07:20",img:"https://upload.wikimedia.org/wikipedia/commons/9/9c/Platform_of_Suzhou_North_Railway_Station_20220908.jpg",title:"穿过早高峰，找换乘通道",desc:"三条通道里有乘客和行李。连续躲开障碍，赶在倒计时结束前到站。",kind:1},
-{place:"苏州北站 · 高铁检票口",clock:"07:48",img:"https://upload.wikimedia.org/wikipedia/commons/9/9c/Platform_of_Suzhou_North_Railway_Station_20220908.jpg",title:"看清检票口，刷票进站",desc:"记住屏幕上显示的检票口号码，再从三个闸机里选对的。选错会浪费时间。",kind:2},
-{place:"邯郸东站 · 接驳车上客点",clock:"15:40",img:"https://upload.wikimedia.org/wikipedia/commons/6/6e/Handandong_Railway_Station_2018-05-30_192321.jpg",title:"认准去县城的车",desc:"几辆车陆续进站。看车头目的地，连续三次选中“县城”班车。",kind:3},
-{place:"县城 · 乡村摆渡车",clock:"18:10",img:"https://commons.wikimedia.org/wiki/Special:FilePath/Village%20road%20rural.jpg",title:"颠簸土路，稳住行李箱",desc:"车子左右摇晃。按提示反方向压住箱子，失衡太多次就会摔倒。",kind:4},
-{place:"村口 · 夜路",clock:"19:30",img:"https://commons.wikimedia.org/wiki/Special:FilePath/Village%20road%20rural.jpg",title:"天黑了，找到回家的路",desc:"院灯就在前面。点击照片里依次亮起的路标，走对五步就到家。",kind:5}];
-let idx=0,food=0,weight=0,done=0,tick=null,stageTimer=24,score=0,lane=1,obstacles=[],raf=0,gate=0,busHits=0,balance=0,need=0,steps=0;
-const $=x=>document.getElementById(x);
-function load(){clearInterval(tick);cancelAnimationFrame(raf);let s=stages[idx];$("progress").textContent="第 "+(idx+1)+" / 5 程";$("clock").textContent=s.clock;$("place").textContent=s.place;$("scene").style.backgroundImage="url('"+s.img+"')";$("title").textContent=s.title;$("desc").textContent=s.desc;$("feedback").textContent="";$("meter").style.width="100%";if(s.kind===1)subway();if(s.kind===2)ticket();if(s.kind===3)bus();if(s.kind===4)balanceGame();if(s.kind===5)night()}
-function advance(msg){clearInterval(tick);cancelAnimationFrame(raf);$("feedback").textContent=msg;setTimeout(()=>{idx++;if(idx===5)ending();else load()},850)}
-function fail(msg){$("feedback").textContent=msg+" 再试一次。";setTimeout(load,1000)}
-function buttons(arr){$("play").innerHTML='<div class="choices">'+arr.map((a,i)=>'<button onclick="choose('+i+')">'+a+'</button>').join("")+'</div>'}
-function subway(){stageTimer=22;lane=1;obstacles=[];buttons(["← 左","中间","右 →","吃煎饼 +1心情 / +体重"]);$("desc").textContent="地铁站厅人流里躲开乘客和行李。22 秒内撑过去；左右换道，食物会让速度变慢。";tick=setInterval(()=>{$("meter").style.width=(--stageTimer/22*100)+"%";if(stageTimer<=0)advance("你冲进站台，赶上了地铁。")},1000);let t=0;function frame(){if(idx!==0)return;t++;if(t%65===0){let lane0=Math.floor(Math.random()*3);obstacles.push({lane:lane0,top:0,food:Math.random()<.35})}let box=$("scene").getBoundingClientRect();let overlay=document.querySelectorAll(".scene-button");overlay.forEach(x=>x.remove());obstacles.forEach((o,j)=>{o.top+=.85+(weight*.1);if(o.top>60&&o.top<96&&o.lane===lane){if(o.food){food++;weight++;$("food").textContent=food;$("weight").textContent=weight>3?"沉重":"变重";o.top=101}else{done++;$("feedback").textContent="擦肩而过！";o.top=101;if(done>=3){fail("撞到乘客太多");return}}}if(o.top<100){let b=document.createElement("button");b.className="scene-button";b.textContent=o.food?"🥞":"🚶";b.style.left=(15+o.lane*32)+"%";b.style.top=o.top+"%";$("scene").appendChild(b)}});raf=requestAnimationFrame(frame)}frame()}
-function choose(i){if(stages[idx].kind===1){if(i===3){food++;weight++;$("food").textContent=food;$("weight").textContent="变重";return}lane=i;return}if(stages[idx].kind===2){if(i===gate){score++;gate++;if(gate===3)advance("车票核验成功，赶上检票。");else ticket()}else fail("闸机不对，车票没刷上");return}if(stages[idx].kind===3){if(i===1){busHits++;if(busHits===3)advance("三次都认对了县城接驳车。");else bus()}else fail("上错方向了");return}if(stages[idx].kind===4){balance+=i===need?1:-1;$("meter").style.width=Math.max(0,50+balance*10)+"%";need=1-need;if(balance>=5)advance("行李稳住了，摆渡车到县城。");if(balance< -3)fail("箱子翻倒，错过了这班车");return}if(stages[idx].kind===5){if(i===need){need++;$("feedback").textContent="路标 "+need+" / 5";if(need===5)advance("顺着灯光走到院门口。");else night()}else fail("走进岔路，回到村口");}}
-function ticket(){gate=Math.floor(Math.random()*3);$("desc").textContent="记住检票口号码："+(gate+1)+" 号。三秒后选闸机！";$("play").innerHTML="";let count=3;$("feedback").textContent="检票口 "+(gate+1)+" 号";let q=setInterval(()=>{if(--count===0){clearInterval(q);$("feedback").textContent="现在选检票口";buttons(["1 号闸机","2 号闸机","3 号闸机"])}},1000)}
-function bus(){let x=Math.floor(Math.random()*3);$("desc").textContent="接驳牌提示：县城方向。找出车牌写着“县城”的车。";buttons(["去邯郸市区","县城","去火车站"]);window.busCorrect=1}
-function balanceGame(){need=0;balance=0;let n=0;buttons(["向左压住行李","向右压住行李"]);$("desc").textContent="每秒看车身倾斜方向，按相反方向稳住行李。连续平衡 5 次。";tick=setInterval(()=>{need=Math.random()<.5?0:1;$("feedback").textContent=need===0?"车身向左倾！":"车身向右倾！";$("meter").style.width=(Math.max(5,50+balance*10))+"%"},1200)}
-function night(){need=(need+1)%3;let xs=["左边小路","中间灯下","右边田埂"];$("desc").textContent="沿着亮起的 "+xs[need]+" 走。选对方向，连续找到五个路标。";buttons(["← 左","直走","右 →"])}
-function ending(){$("title").textContent="到家了";$("place").textContent="邯郸村口 · 院灯亮着";$("desc").textContent="五段路，五种挑战。你终于推着行李箱走进家门。得分："+score+"，路上吃了 "+food+" 份小吃。";$("play").innerHTML='<button class="action start" onclick="location.reload()">再走一遍</button>';$("feedback").textContent="旅程完成"}
-load();
-</script></body></html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#153d37" />
+<title>回家五次换乘 · 第一程 苏州地铁</title>
+<link rel="stylesheet" href="style.css?v=3" />
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- 开始页 -->
+  <section class="screen start-screen" id="startScreen">
+    <header class="masthead">
+      <span class="kicker">河北女孩回家记 · 第一程</span>
+      <span class="stamp">苏州 → 邯郸</span>
+    </header>
+
+    <div class="hero-block">
+      <div class="burst" aria-hidden="true"></div>
+      <h1>回家<br /><em>五次换乘</em></h1>
+      <p class="lede">早上 7:20，距高铁发车还有 35 分钟。<br />先挤上这班地铁，才赶得上回家的车。</p>
+      <img class="cover-hero" src="assets/hero/stand-1.webp" alt="河北女孩拎着行李箱准备出发" />
+      <div class="sfx-badge">河北室友<br />生存图鉴</div>
+    </div>
+
+    <div class="route-card">
+      <div class="route-line" aria-label="五次换乘路线">
+        <div class="route-stop active"><img src="assets/icons/metro.webp" alt="" /><b>地铁</b><span>苏州</span></div>
+        <div class="route-stop"><img src="assets/icons/hsr.webp" alt="" /><b>高铁</b><span>苏州北</span></div>
+        <div class="route-stop"><img src="assets/icons/bus.webp" alt="" /><b>接驳车</b><span>邯郸东</span></div>
+        <div class="route-stop"><img src="assets/icons/van.webp" alt="" /><b>摆渡车</b><span>县城</span></div>
+        <div class="route-stop"><img src="assets/icons/walk.webp" alt="" /><b>步行</b><span>村口</span></div>
+      </div>
+    </div>
+
+    <div class="rules-card">
+      <p><b>玩法</b> 三个通道来回躲人，别撞上赶路的乘客。</p>
+      <p><b>操作</b> 点屏幕左/中/右变道；电脑用 ← ↑ → 或 1 2 3。</p>
+      <p><b>目标</b> 撑过 30 秒，赶在车门关闭前冲进苏州北站。</p>
+      <p><b>管住嘴</b> 路上全是吃的，吃一口加分，但会长胖、越跑越慢，吃撑了直接走不动；标着“抢来的”分更高。</p>
+      <div class="food-strip" aria-label="路上会出现的食物">
+        <span>路上能捡</span>
+        <img src="assets/icons/jianbing.webp" alt="煎饼果子" />
+        <img src="assets/icons/huoshao.webp" alt="驴肉火烧" />
+        <img src="assets/icons/milktea.webp" alt="奶茶" />
+        <img src="assets/icons/noodles.webp" alt="泡面" />
+        <img src="assets/icons/tanghulu.webp" alt="糖葫芦" />
+      </div>
+    </div>
+
+    <button class="primary-btn" id="startBtn">出发赶地铁</button>
+    <p class="best-line" id="bestLine"></p>
+  </section>
+
+  <!-- 游戏页 -->
+  <section class="screen game-screen hidden" id="gameScreen">
+    <div class="game-top">
+      <div class="stage-pill">
+        <img src="assets/icons/metro.webp" alt="" />
+        <div><strong>苏州地铁</strong><span>赶往苏州北站</span></div>
+      </div>
+      <button class="sound-btn" id="soundBtn" aria-label="声音开关">🔊</button>
+    </div>
+
+    <div class="progress-row">
+      <span>距发车</span>
+      <div class="progress-track"><i id="progressFill"></i></div>
+      <b id="timeLeft">30s</b>
+    </div>
+
+    <div class="fat-row">
+      <span>体重</span>
+      <div class="fat-track"><i id="fatFill"></i></div>
+      <b id="fatText">正常</b>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="gameCanvas" aria-label="地铁赶车游戏画面"></canvas>
+      <div class="heart-row" id="heartRow" aria-label="体力">
+        <span>♥</span><span>♥</span><span>♥</span>
+      </div>
+      <div class="ticket-count" id="foodCount">🍜 0</div>
+      <div class="hit-flash" id="hitFlash"></div>
+      <div class="lane-hint" id="laneHint">点两侧变道 · 别撞人</div>
+    </div>
+
+    <div class="lane-buttons" aria-label="变道按钮">
+      <button data-lane="0">← 左</button>
+      <button data-lane="1">中</button>
+      <button data-lane="2">右 →</button>
+    </div>
+    <p class="key-tip">电脑端：← ↑ → 或 1 2 3</p>
+  </section>
+
+  <!-- 结算页 -->
+  <section class="screen end-screen hidden" id="endScreen">
+    <div class="end-card">
+      <span class="end-tag" id="endTag">第一程 · 地铁</span>
+      <h2 id="endTitle">赶上了！</h2>
+      <img class="end-hero" id="endHero" src="assets/hero/stand-5.webp" alt="" />
+      <p class="end-text" id="endText">车门在身后合上，下一站苏州北。</p>
+
+      <div class="stars" id="starRow" aria-label="本程星级">★★★</div>
+
+      <div class="end-stats">
+        <div><span>吃掉</span><b id="statFood">0</b></div>
+        <div><span>体重</span><b id="statFat">0%</b></div>
+        <div><span>体力</span><b id="statHearts">3</b></div>
+      </div>
+
+      <div class="route-card compact">
+        <div class="route-line">
+          <div class="route-stop active" id="endStop1"><img src="assets/icons/metro.webp" alt="" /><b>地铁</b><span>完成</span></div>
+          <div class="route-stop"><img src="assets/icons/hsr.webp" alt="" /><b>高铁</b><span>下一程</span></div>
+          <div class="route-stop"><img src="assets/icons/bus.webp" alt="" /><b>接驳车</b><span>邯郸东</span></div>
+          <div class="route-stop"><img src="assets/icons/van.webp" alt="" /><b>摆渡车</b><span>县城</span></div>
+          <div class="route-stop"><img src="assets/icons/walk.webp" alt="" /><b>步行</b><span>村口</span></div>
+        </div>
+      </div>
+
+      <button class="primary-btn" id="againBtn">再跑一次</button>
+      <button class="ghost-btn" id="nextBtn" disabled>下一程 · 高铁</button>
+    </div>
+  </section>
+
+</div>
+<script src="game.js?v=4"></script>
+</body>
+</html>

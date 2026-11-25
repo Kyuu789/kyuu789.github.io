@@ -541,17 +541,3 @@ h1 em{
   h1{font-size:44px}
   .rules-card p{font-size:11px}
 }
-
-/* 动态旅途氛围：角色、站台与车窗保持轻微运动 */
-.cover-hero,.end-hero{animation:hero-bob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 18px #1236)}
-.canvas-wrap{position:relative;overflow:hidden;isolation:isolate}
-.canvas-wrap:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(110deg,transparent 35%,#ffffff18 48%,transparent 60%);background-size:220% 100%;animation:window-glint 5s linear infinite}
-.game-screen .stage-pill img{animation:icon-sway 1.8s ease-in-out infinite}
-.game-screen .progress-fill{transition:width .4s linear}
-.lane-hint{animation:hint-pulse 1.6s ease-in-out infinite}
-.primary-btn{transition:transform .16s,filter .16s}.primary-btn:active{transform:scale(.96);filter:brightness(.94)}
-@keyframes hero-bob{0%,100%{transform:translateY(0) rotate(-.5deg)}50%{transform:translateY(-7px) rotate(.5deg)}}
-@keyframes window-glint{to{background-position:-220% 0}}
-@keyframes icon-sway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
-@keyframes hint-pulse{0%,100%{opacity:.68}50%{opacity:1}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}

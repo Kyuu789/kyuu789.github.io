@@ -214,8 +214,13 @@
   font-weight:900;
   color:#ffcf68;
   line-height:1;
+  transition:color .15s;
 }
-.gate-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}
+.ticket-gate.memo{color:#8aa79c;letter-spacing:.08em}
+
+.gate-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+.gate-grid-6 .gate-btn{padding:9px 5px 8px}
+.gate-grid-6 .gate-btn strong{font-size:21px}
 .gate-btn{
   padding:12px 6px 10px;
   border:2px solid rgba(21,42,37,.25);
@@ -261,6 +266,38 @@
 .bus-card.right{border-color:#2f8a62;background:#dff2e5}
 .bus-card.wrong{border-color:#c94b41;background:#ffe1dd;animation:shake .3s}
 .bus-card:active{transform:scale(.97)}
+
+/* 拼车砍价 */
+.haggle-wrap{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.driver-line{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border:2px solid rgba(21,42,37,.22);
+  border-radius:12px;background:rgba(255,255,255,.52);
+}
+.plate{
+  flex:0 0 auto;padding:3px 6px;border-radius:5px;
+  border:1px solid rgba(21,42,37,.4);background:#2b6b57;color:#fff;
+  font-size:9px;font-weight:900;letter-spacing:.05em;
+}
+.haggle-van{width:82px;height:auto;flex:0 0 auto;filter:drop-shadow(0 4px 6px #0003)}
+.quote-box{margin-left:auto;text-align:right}
+.quote-box small{display:block;font-size:8px;color:#8b7457}
+.quote-box b{display:block;font-size:25px;line-height:1;color:#b5652c}
+.quote-box b span{font-size:31px;color:#d9711e}
+.quote-box.pop b{animation:pricePop .22s ease}
+@keyframes pricePop{0%{transform:scale(.82)}100%{transform:scale(1)}}
+.patience-row{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:900;color:#6c5a3f}
+.patience-dots{display:flex;gap:5px}
+.patience-dots i{width:9px;height:9px;border-radius:50%;background:#3f9e71;box-shadow:0 0 0 1px rgba(21,42,37,.2)}
+.haggle-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.haggle-btns button{
+  padding:12px 4px;border:2px solid rgba(21,42,37,.28);border-radius:12px;
+  font-size:13px;font-weight:900;color:var(--ink);cursor:pointer;
+}
+#cutPrice{background:rgba(255,255,255,.66)}
+#dealRide{background:#f6b44d;border-color:#c77c22}
+.haggle-btns button:active{transform:scale(.97)}
+.haggle-btns button:disabled{opacity:.55}
 
 /* 山路平衡 */
 .balance-wrap{display:flex;flex-direction:column;gap:8px;margin-top:4px}

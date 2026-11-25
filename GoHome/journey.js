@@ -12,23 +12,23 @@
       endBg: "assets/scenes/hsr-interior.webp",
       tag: "第二程 · 高铁检票 · 完成",
       endTitle: "检票进站了",
-      endText: "闸机“嘀”了一声，你拖着箱子冲进站台。车厢里已经有人在放行李了。",
-      next: "下一程 · 接驳车",
+      endText: "连刷五道闸机，票面记得住、位置也跟得上。你拖着箱子冲进站台，车厢里已经有人在放行李了。",
+      next: "下一程 · 拼车",
       failText: "连着排错闸机，车票刷不过去。广播已经在催这班车了。"
     },
     {
       id: "bus",
-      name: "第三程 · 邯郸东认车",
-      route: "邯郸东站 → 汽车站",
+      name: "第三程 · 邯郸东拼车",
+      route: "邯郸东站 → 县城",
       icon: "assets/icons/bus.webp",
       bg: "assets/scenes/handan-station.webp",
       bgPos: "center 45%",
       endBg: "assets/scenes/handan-station.webp",
-      tag: "第三程 · 接驳车 · 完成",
-      endTitle: "挤上县城班车",
-      endText: "你认出那辆写着“县城”的车，把箱子塞上车门，车里全是年货和人。",
+      tag: "第三程 · 拼车砍价 · 完成",
+      endTitle: "30 块谈拢，挤上车",
+      endText: "司机嘟囔着“真会砍”，还是把你和箱子塞进了后座。车里一股暖风声。",
       next: "下一程 · 乡村摆渡车",
-      failText: "连着上错方向的车，越走越远。天黑前是到不了县城了。"
+      failText: "连着被宰、被绕路，司机一脚油门走了。天黑前是到不了县城了。"
     },
     {
       id: "van",
@@ -267,23 +267,48 @@
 
   /* ---------- 第二程：高铁检票 ---------- */
   function stageHSR() {
-    if (state.round >= 3) return winLeg();
-    const labels = ["16A", "17A", "18A"];
-    const target = Math.floor(Math.random() * 3);
-    setMission("第二程 · 高铁检票", "票面 " + labels[target] + "，找对闸机", "看票面上的检票口号，再选对应的闸机。排错队会耽误时间。", "第 " + (state.round + 1) + " / 3 次");
+    const rounds = 5;
+    if (state.round >= rounds) return winLeg();
+    const labels = ["14A", "15A", "16A", "17A", "18A", "19A"];
+    const target = Math.floor(Math.random() * labels.length);
+    const seconds = state.round < 2 ? 4.4 : 3.8;
+    setMission(
+      "第二程 · 高铁检票",
+      "记住票面，找对闸机",
+      "票面只亮 1 秒就被手挡住，闸机还会换位。记住口号，再点正确的闸机。",
+      "第 " + (state.round + 1) + " / " + rounds + " 次"
+    );
     stageArea.innerHTML =
-      '<div class="ticket-stub"><div><small>G1571 · 苏州北 → 邯郸东</small><b>07 车 12A · 二等座</b></div><div class="ticket-gate">' + labels[target] + '</div></div>' +
-      '<div class="gate-grid">' +
+      '<div class="ticket-stub"><div><small>G1571 · 苏州北 → 邯郸东</small><b>07 车 12A · 二等座</b></div><div class="ticket-gate" id="ticketGate">' + labels[target] + '</div></div>' +
+      '<div class="gate-grid gate-grid-6">' +
       labels.map((x, i) => '<button class="gate-btn" data-i="' + i + '"><i></i><strong>' + x + '</strong><span>自动检票闸机</span></button>').join("") +
       '</div>';
-    feedback.textContent = "闸机都亮着绿灯，认票面上的口号。";
-    startTimer(LEG_SECONDS, () => {
+    feedback.textContent = "盯住票面，只有 1 秒。";
+    const hideTimer = setTimeout(() => {
+      const gate = document.getElementById("ticketGate");
+      if (!gate) return;
+      gate.textContent = "??";
+      gate.classList.add("memo");
+      feedback.textContent = "票面挡住了，靠刚才的记忆。";
+    }, 1000);
+    const shuffleTimer = setTimeout(() => {
+      const grid = stageArea.querySelector(".gate-grid");
+      if (!grid) return;
+      const order = [0, 1, 2, 3, 4, 5].sort(() => Math.random() - 0.5);
+      [...grid.children].forEach((el, i) => { el.style.order = order[i]; });
+      feedback.textContent = "前面的人一挤，闸机换位了。";
+    }, 1600);
+    startTimer(seconds, () => {
+      clearTimeout(hideTimer);
+      clearTimeout(shuffleTimer);
       [...stageArea.querySelectorAll(".gate-btn")].forEach(b => b.disabled = true);
       feedback.textContent = "超时了，队尾重新排。";
-      if (hit("排队超时，掉一格体力")) setTimeout(stageHSR, 650);
+      if (hit("犹豫太久，闸机口关了，掉一格体力")) setTimeout(stageHSR, 650);
     });
     [...stageArea.querySelectorAll(".gate-btn")].forEach(btn => {
       btn.addEventListener("click", () => {
+        clearTimeout(hideTimer);
+        clearTimeout(shuffleTimer);
         stopTimer();
         const picked = Number(btn.dataset.i);
         [...stageArea.querySelectorAll(".gate-btn")].forEach(b => b.disabled = true);
@@ -292,54 +317,95 @@
           sfxGood();
           feedback.textContent = "嘀——闸机开了，往站台走。";
           state.round += 1;
-          if (state.round >= 3) setTimeout(winLeg, 550);
+          if (state.round >= rounds) setTimeout(winLeg, 550);
           else setTimeout(stageHSR, 650);
         } else {
           btn.classList.add("wrong");
-          stageArea.querySelectorAll(".gate-btn")[target].classList.add("right");
-          if (hit("闸机不对，车票没刷上，掉一格体力")) setTimeout(stageHSR, 800);
+          const rightBtn = stageArea.querySelector('.gate-btn[data-i="' + target + '"]');
+          if (rightBtn) rightBtn.classList.add("right");
+          const gate = document.getElementById("ticketGate");
+          if (gate) { gate.textContent = labels[target]; gate.classList.remove("memo"); }
+          if (hit("排错队了，车票没刷上，掉一格体力")) setTimeout(stageHSR, 800);
         }
       });
     });
   }
 
-  /* ---------- 第三程：邯郸东认车 ---------- */
+  /* ---------- 第三程：邯郸东拼车砍价 ---------- */
   function stageBus() {
-    if (state.round >= 3) return winLeg();
-    const dests = ["邯郸市区", "县城", "火车站"];
-    const target = Math.floor(Math.random() * 3);
-    const order = [0, 1, 2].sort(() => Math.random() - 0.5);
-    setMission("第三程 · 邯郸东认车", "只上写着“县城”的那辆", "出站口几辆车同时在揽客，看车头目的地牌，别被拉走。", "第 " + (state.round + 1) + " / 3 辆");
+    const rounds = 3;
+    if (state.round >= rounds) return winLeg();
+    let price = 50 + 10 * Math.floor(Math.random() * 4);
+    let patience = 6;
+    const plate = "冀 D · " + (8700 + Math.floor(Math.random() * 180));
+    setMission(
+      "第三程 · 邯郸东拼车",
+      "砍到 30 块再上车",
+      "司机开价都虚高。每砍一次降 10 块、掉一格耐心；砍到 30 就成交，砍到 20 司机会翻脸。",
+      "第 " + (state.round + 1) + " / " + rounds + " 辆"
+    );
     stageArea.innerHTML =
-      '<div class="bus-row">' +
-      order.map((d, i) => {
-        const label = dests[d];
-        return '<button class="bus-card" data-d="' + d + '"><img src="assets/icons/bus.webp" alt="" /><div class="bus-sign">' + label + '</div><small>冀 D · ' + (8800 + d * 37) + '</small></button>';
-      }).join("") +
+      '<div class="haggle-wrap">' +
+      '<div class="driver-line"><div class="plate">' + plate + '</div><img class="haggle-van" src="assets/icons/van.webp" alt="" /><div class="quote-box"><small>司机开价</small><b><span id="hagglePrice">' + price + '</span> 元</b></div></div>' +
+      '<div class="patience-row"><span>司机耐心</span><div class="patience-dots" id="patienceDots">' + new Array(patience).fill("<i></i>").join("") + '</div></div>' +
+      '<div class="haggle-btns"><button id="cutPrice">砍 10 块</button><button id="dealRide">30 就上车</button></div>' +
       '</div>';
-    feedback.textContent = "车窗里全是人，司机在喊“县城、县城”。";
-    startTimer(4.2, () => {
-      [...stageArea.querySelectorAll(".bus-card")].forEach(c => c.disabled = true);
-      feedback.textContent = "车开走了，你还没认出来。";
-      if (hit("犹豫太久，车开走了，掉一格体力")) setTimeout(stageBus, 650);
+    feedback.textContent = "司机说“县城 " + price + "，少一分不走”。";
+    const cutBtn = $("cutPrice"), dealBtn = $("dealRide");
+    function paint() {
+      $("hagglePrice").textContent = price;
+      $("patienceDots").innerHTML = new Array(Math.max(patience, 0)).fill("<i></i>").join("");
+      const q = stageArea.querySelector(".quote-box");
+      q.classList.remove("pop"); void q.offsetWidth; q.classList.add("pop");
+    }
+    function lose(msg) {
+      stopTimer();
+      cutBtn.disabled = true;
+      dealBtn.disabled = true;
+      if (hit(msg)) setTimeout(stageBus, 800);
+    }
+    function next() {
+      state.round += 1;
+      if (state.round >= rounds) setTimeout(winLeg, 550);
+      else setTimeout(stageBus, 650);
+    }
+    startTimer(8, () => {
+      cutBtn.disabled = true;
+      dealBtn.disabled = true;
+      feedback.textContent = "你还在磨价，司机已经踩油门了。";
+      if (hit("等太久，司机开走了，掉一格体力")) setTimeout(stageBus, 650);
     });
-    [...stageArea.querySelectorAll(".bus-card")].forEach(card => {
-      card.addEventListener("click", () => {
-        stopTimer();
-        const picked = Number(card.dataset.d);
-        [...stageArea.querySelectorAll(".bus-card")].forEach(c => c.disabled = true);
-        if (picked === target) {
-          card.classList.add("right");
-          sfxGood();
-          feedback.textContent = "就是这辆，箱子先塞上车。";
-          state.round += 1;
-          if (state.round >= 3) setTimeout(winLeg, 550);
-          else setTimeout(stageBus, 650);
-        } else {
-          card.classList.add("wrong");
-          if (hit("上错方向了，掉一格体力")) setTimeout(stageBus, 800);
-        }
-      });
+    cutBtn.addEventListener("click", () => {
+      if (price <= 20) return;
+      price -= 10;
+      patience -= 1;
+      sfxGood();
+      paint();
+      if (price === 30) {
+        feedback.textContent = "30 了。别砍了，再砍就翻脸。";
+      } else if (price < 30) {
+        feedback.textContent = "砍到 20，司机觉得你找茬。";
+        lose("砍太狠，司机翻脸走了，掉一格体力");
+      } else if (patience <= 0) {
+        feedback.textContent = "司机没耐心了，伸手要关门。";
+        lose("把司机磨烦了，他直接走了，掉一格体力");
+      } else {
+        feedback.textContent = "又降 10 块，司机脸色沉了一点。";
+      }
+    });
+    dealBtn.addEventListener("click", () => {
+      stopTimer();
+      cutBtn.disabled = true;
+      dealBtn.disabled = true;
+      if (price === 30) {
+        sfxGood();
+        feedback.textContent = "30 成交，上车。";
+        next();
+      } else if (price > 30) {
+        lose("这个价还是被宰了，掉一格体力");
+      } else {
+        lose("20 块太离谱，司机不拉，掉一格体力");
+      }
     });
   }
 
@@ -455,7 +521,7 @@
     cancelStage();
     stopTimer();
     const l = leg();
-    failTag.textContent = l.id === "hsr" ? "第二程 · 高铁检票 · 失败" : l.id === "bus" ? "第三程 · 接驳车 · 失败" : l.id === "van" ? "第四程 · 山路摆渡 · 失败" : "第五程 · 夜路进村 · 失败";
+    failTag.textContent = l.id === "hsr" ? "第二程 · 高铁检票 · 失败" : l.id === "bus" ? "第三程 · 拼车砍价 · 失败" : l.id === "van" ? "第四程 · 山路摆渡 · 失败" : "第五程 · 夜路进村 · 失败";
     failTitle.textContent = "又被拦住了";
     failHero.src = "assets/hero/stand-3.webp";
     failText.textContent = message || l.failText;

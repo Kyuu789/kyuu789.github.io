@@ -327,10 +327,10 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
   .shift-track{flex:1;min-width:46px}
   .stage{overflow:hidden}.backdrop{filter:saturate(.82) contrast(1.02) brightness(.74)}
   .station{top:12px;left:12px}.station b{font-size:12px}.station span{font-size:12px}.floor-note{top:34px;left:12px;font-size:9px}
-  .pile-deck{left:12px;right:12px;bottom:118px;grid-template-columns:repeat(3,1fr);gap:6px}
-  .pile-card{width:auto;height:132px}.pile-card img{height:78px}.pile-card::after{height:78px}
+  .pile-deck{left:12px;right:12px;top:190px;bottom:178px;overflow-y:auto;grid-template-columns:repeat(3,1fr);gap:6px;align-content:start;padding-bottom:6px;scrollbar-width:thin;touch-action:pan-y}
+  .pile-card{width:auto;height:128px;flex-shrink:0}.pile-card img{height:74px}.pile-card::after{height:74px}
   .pile-caption{font-size:10px;left:7px;top:7px}.pile-card b{font-size:20px;left:7px;bottom:7px}.pile-plus{width:24px;height:24px;right:6px;bottom:6px;font-size:14px}
-  .cart-panel,.sort-panel{left:12px;right:12px;bottom:72px;width:auto;padding:10px 11px 11px}
+  .cart-panel,.sort-panel{left:12px;right:12px;bottom:62px;width:auto;padding:9px 11px 10px}
   .cart-head span{font-size:9px}.cart-head b{font-size:30px}.cart-meta{font-size:9px}
   .worker-figure{right:12px;width:180px;height:120px;bottom:78px;opacity:.28}
   .boss-panel{left:12px;right:12px;top:62px;bottom:auto;width:auto;gap:9px;padding:8px 9px}

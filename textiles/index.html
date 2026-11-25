@@ -75,7 +75,8 @@ body.before-start .view,body.before-start .hud,body.before-start .boss-panel,bod
 .roam-back{position:absolute;right:14px;top:14px;z-index:9;min-height:36px;padding:0 12px;border:1px solid rgba(230,174,82,.42);background:rgba(8,16,14,.82);color:var(--amber2);font-family:var(--mono);font-size:11px;letter-spacing:.08em;cursor:pointer}
 .view{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .28s ease,visibility .28s ease;overflow:hidden}
 .view.active{opacity:1;visibility:visible}
-.backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.76) contrast(1.06) brightness(.66);transform:scale(1.025)}
+.backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.76) contrast(1.06) brightness(.66);transform:scale(1.025);transition:opacity .2s}
+body.three-world .backdrop{opacity:0}
 .baler-bg{object-position:50% 35%}
 .vignette{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(3,8,7,.88) 0%,rgba(3,8,7,.26) 44%,rgba(3,8,7,.72) 100%),linear-gradient(0deg,rgba(3,8,7,.92) 0%,rgba(3,8,7,.08) 42%,rgba(3,8,7,.54) 100%)}
 .vignette::after{content:"";position:absolute;inset:0;opacity:.09;pointer-events:none;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.7) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
@@ -786,7 +787,7 @@ function persistSave(){const {recorded,...save}=state.career;try{localStorage.se
 
 const state = {
   workshop:'wool',quote:'',
-  roam:{active:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null},
+  roam:{active:false,sorting:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null},
   started:false,running:false,finished:false,scene:'floor',remaining:SHIFT_SECONDS,
   cart:{total:0,materials:{},colors:{}},sortItems:[],missed:0,caught:0,defects:0,
   bale:null,machine:{loaded:false,door:false,handInside:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false},
@@ -914,12 +915,17 @@ function setScene(name,instant=false){
   const old=views[state.scene], next=views[name];
   if(old)old.classList.remove('active');
   if(next)next.classList.add('active');
+  if(name!=='roam'){
+    state.roam.sorting=false;
+    if(three&&three.sortJunk)three.sortJunk.forEach(group=>{if(group)group.visible=false});
+  }
   state.scene=name;
   const hideIdle=name==='end';
   els.bossPanel.classList.toggle('hidden',hideIdle);
   els.idleBar.classList.toggle('hidden',hideIdle);
   state.roam.active=name==='roam';
-  els.roamControls.classList.toggle('hidden',!state.roam.active);
+  const interactive3D=['baler','truck'].includes(name);
+  els.roamControls.classList.toggle('hidden',!state.roam.active&&!interactive3D);
   els.roamPrompt.classList.toggle('hidden',!state.roam.active);
   const inStation=['floor','sort','baler','pallet','truck'].includes(name);
   els.roamBack.classList.toggle('hidden',!inStation||!state.running);
@@ -995,7 +1001,9 @@ function goSort(){
     return {id:i,type,x:22+Math.random()*54,y:22+Math.random()*38,caught:false};
   });
   state.missed=0;
-  setScene('sort'); updateSort();
+  updateSort();
+  if(three){state.roam.x=-1.1;state.roam.z=-2.55;state.roam.yaw=0;state.roam.pitch=0;setScene('roam',true);state.roam.sorting=true;syncSortProps();toast(lang==='zh'?'点击分拣台上的异物，清理完再去打包机':'Tap the contaminants, then head to the baler','good')}
+  else setScene('sort');
 }
 function updateSort(){
   if(!state.bale)return;
@@ -1008,9 +1016,38 @@ function updateSort(){
   els.sortLayer.innerHTML=state.sortItems.filter(i=>!i.caught).map(i=>`<button class="sort-item" data-id="${i.id}" style="left:${i.x}%;top:${i.y}%" aria-label="${labels[i.type]}">${contaminantSVG(i.type)}</button>`).join('');
   $$('.sort-item',els.sortLayer).forEach(b=>b.addEventListener('click',()=>pickContaminant(+b.dataset.id)));
 }
+function syncSortProps(){
+  if(!three||!three.sortJunk)return;
+  state.sortItems.forEach(item=>{
+    let group=three.sortJunk[item.id];
+    if(group&&group.userData.sortType!==item.type){three.scene.remove(group);group=null;three.sortJunk[item.id]=null}
+    if(!group){
+      group=new THREE.Group();group.userData.sortId=item.id;group.userData.sortType=item.type;
+      const add=(geometry,material,x,y,z,rx=0,ry=0,rz=0)=>{const mesh=new THREE.Mesh(geometry,material);mesh.position.set(x,y,z);mesh.rotation.set(rx,ry,rz);mesh.castShadow=true;group.add(mesh)};
+      if(item.type==='plastic'){
+        const film=new THREE.MeshStandardMaterial({color:0x6bb6b1,roughness:.28,metalness:.05,transparent:true,opacity:.72,side:THREE.DoubleSide});
+        add(new THREE.PlaneGeometry(.42,.3),film,0,.04,0,-Math.PI/2,0,.18);add(new THREE.PlaneGeometry(.28,.2),film,.06,.06,.03,-Math.PI/2,.2,-.24);
+      }else if(item.type==='metal'){
+        const metal=new THREE.MeshStandardMaterial({color:0x9ba6a1,roughness:.3,metalness:.85});
+        add(new THREE.TorusGeometry(.13,.035,8,18),metal,0,.05,0,-Math.PI/2,0,.25);add(new THREE.CylinderGeometry(.025,.025,.22,8),metal,.13,.05,.08,0,0,Math.PI/3);
+      }else if(item.type==='paper'){
+        const paper=new THREE.MeshStandardMaterial({color:0xc9b995,roughness:.95,side:THREE.DoubleSide});
+        add(new THREE.PlaneGeometry(.34,.24),paper,0,.035,0,-Math.PI/2,0,.12);
+      }else{
+        const oil=new THREE.MeshStandardMaterial({color:0x3d3024,roughness:.98});
+        add(new THREE.SphereGeometry(.13,10,8),oil,-.07,.035,0,0,0,0);add(new THREE.SphereGeometry(.1,10,8),oil,.06,.035,.04,0,0,0);add(new THREE.SphereGeometry(.07,8,6),oil,.02,.035,-.08,0,0,0);
+      }
+      three.scene.add(group);three.sortJunk[item.id]=group;
+    }
+    const x=-2.55+((item.x-22)/54)*2.9,z=-4.85+((item.y-22)/38)*.9;
+    group.position.set(x,1.24,z);group.visible=!!(state.roam.sorting&&!item.caught);
+  });
+  three.sortJunk.forEach((group,i)=>{if(group&&!state.sortItems.some(item=>item.id===i))group.visible=false});
+}
 function pickContaminant(id){
   const it=state.sortItems.find(x=>x.id===id); if(!it||it.caught)return;
-  it.caught=true; state.caught++; state.bale.caught++; AudioSys.tone('pick'); updateSort(); AudioSys.tone('good');
+  it.caught=true; state.caught++; state.bale.caught++; AudioSys.tone('pick'); updateSort();syncSortProps();AudioSys.tone('good');
+  if(state.sortItems.every(x=>x.caught)){state.roam.sorting=false;toast(lang==='zh'?'分拣台清理干净了，去打包机装料':'Sorting table cleared · take the batch to the baler','good');syncSortProps()}
 }
 function sendBaler(){
   if(!state.running||state.scene!=='sort')return;
@@ -1018,6 +1055,8 @@ function sendBaler(){
   state.bale.missed=left; state.bale.defects+=left; state.defects+=left;
   state.cart={total:0,materials:{},colors:{}};
   state.machine={loaded:false,door:false,handInside:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false};
+  if(three&&three.baleVisual){three.baleVisual.position.set(5.25,.88,1.15);three.baleMesh.scale.y=1;if(three.baleStraps)three.baleStraps.forEach(strap=>{strap.visible=false})}
+  state.roam.x=5.25;state.roam.z=3.15;state.roam.yaw=0;state.roam.pitch=0;
   setScene('baler'); updateBaler();
   toast(left?lang==='zh'?`${left} 处遗留，品质扣分`:`${left} left, quality cut`:`${lang==='zh'?'干净批次':'Clean batch'}`,left?'bad':'good');
 }
@@ -1036,10 +1075,10 @@ function updateBaler(){
   updateTieCount();
   const m=state.machine;
   els.feedBtn.disabled=m.loaded||m.pressing;
-  els.closeBtn.disabled=!m.loaded||m.door||m.pressing||m.stuck;
-  els.pressBtn.disabled=!m.door||m.pressed||m.pressing;
-  els.tieBtn.disabled=!m.pressed||m.tied>=WIRE_PER_BALE;
-  els.ejectBtn.disabled=m.tied<WIRE_PER_BALE||m.pressing||state.wireStock<WIRE_PER_BALE;
+  els.closeBtn.disabled=m.opened||!m.loaded||m.door||m.pressing||m.stuck;
+  els.pressBtn.disabled=m.opened||!m.door||m.pressed||m.pressing;
+  els.tieBtn.disabled=m.opened||!m.pressed||m.tied>=WIRE_PER_BALE;
+  els.ejectBtn.disabled=m.opened||m.tied<WIRE_PER_BALE||m.pressing||state.wireStock<WIRE_PER_BALE;
   els.feedBtn.classList.toggle('active',!m.loaded); els.closeBtn.classList.toggle('active',m.loaded&&!m.door);
   els.pressBtn.classList.toggle('active',m.door&&!m.pressed); els.tieBtn.classList.toggle('active',m.pressed&&m.tied<WIRE_PER_BALE); els.ejectBtn.classList.toggle('active',m.tied>=WIRE_PER_BALE);
   els.pressBtn.innerHTML=`<span>03</span><span>${m.needRepress?t('repress'):t('press')}</span>`;
@@ -1047,6 +1086,7 @@ function updateBaler(){
   else if(m.pressing){els.machineState.textContent=lang==='zh'?'压合中':'Pressing';els.consoleHint.textContent=lang==='zh'?'压头下行中，手离开压仓。':'Keep hands clear while the ram descends.'}
   else if(!m.loaded){els.machineState.textContent=lang==='zh'?'待料':'Idle';els.consoleHint.textContent=lang==='zh'?'先倒料，再关安全门。':'Load the chamber, then close the gate.'}
   else if(m.handInside){els.machineState.textContent=lang==='zh'?'手未退出':'Hand inside';els.consoleHint.textContent=lang==='zh'?'先抽手，再关安全门，防止夹手。':'Pull your hand out, then close the gate.'}
+  else if(m.opened){els.machineState.textContent=lang==='zh'?'已出包':'Ejected';els.consoleHint.textContent=lang==='zh'?'成品包已推出，准备码垛。':'Bale released · ready to stack.'}
   else if(!m.door){els.machineState.textContent=lang==='zh'?'门未锁':'Gate open';els.consoleHint.textContent=lang==='zh'?'关安全门，压头才会动作。':'Close the gate to press.'}
   else if(!m.pressed){
     if(m.needRepress){els.machineState.textContent=lang==='zh'?'压力不足':'Low pressure';els.consoleHint.textContent=lang==='zh'?'点补压，把压力补到 160 bar 以上。':'Press repress until pressure reaches 160 bar.'}
@@ -1078,7 +1118,7 @@ function resetTieBoard(){
   $$('.tie-node').forEach(n=>n.classList.remove('active','done','bad'));
   updateTieCount();
 }
-function openTie(){if(!state.machine.pressed)return;resetTieBoard();els.tieLayer.classList.remove('hidden');AudioSys.tone('clank')}
+function openTie(){if(!state.machine.pressed)return;resetTieBoard();if(three&&state.scene==='baler'&&three.tieNodeMeshes){state.machine.threeTieMode=true;Object.values(three.tieNodeMeshes).forEach(node=>{node.visible=true;node.scale.setScalar(1)});els.tieLayer.classList.add('hidden');toast(lang==='zh'?'在包体正面的绿点之间拖动，依次穿好五根包带':'Drag between the glowing points on the bale to route all five straps','good')}else els.tieLayer.classList.remove('hidden');AudioSys.tone('clank')}
 function findTieNode(el){return el&&el.closest?el.closest('.tie-node'):null}
 function eventPoint(e){return (e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0])||e}
 function nodeAtPoint(e){
@@ -1107,6 +1147,7 @@ function completeTiePair(i){
   if(state.machine.tied===WIRE_PER_BALE-1&&Math.random()<.28){state.machine.wireSnap=true;state.defects++;AudioSys.tone('snap');toast(lang==='zh'?'包带抽断，重穿一根':'Strap snapped · retie','bad')}
   if(state.machine.tied>=WIRE_PER_BALE){
     state.machine.tied=WIRE_PER_BALE;
+    state.machine.threeTieMode=false;if(three&&three.tieNodeMeshes)Object.values(three.tieNodeMeshes).forEach(node=>node.visible=false);
     setTimeout(()=>{els.tieLayer.classList.add('hidden');updateBaler();toast(lang==='zh'?'五根包带已打结':'Five straps secured','good')},700)
   }
 }
@@ -1130,7 +1171,7 @@ function onTieUp(e){
 }
 function eject(){
   if(state.machine.tied<WIRE_PER_BALE||state.machine.opened||state.wireStock<WIRE_PER_BALE)return;
-  state.machine.opened=true;state.wireStock-=WIRE_PER_BALE;AudioSys.tone('clank');updateBaler();
+  state.machine.opened=true;state.machine.door=false;state.wireStock-=WIRE_PER_BALE;AudioSys.tone('clank');updateBaler();
   setTimeout(()=>{if(!state.finished)showResult()},850);
 }
 
@@ -1172,11 +1213,13 @@ function afterResult(goStack){
 function nextShiftCycle(){
   if(state.finished)return;
   state.bale=null;state.machine={loaded:false,door:false,handInside:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false};
+  state.roam.x=-6.8;state.roam.z=5;state.roam.yaw=0;state.roam.pitch=0;
   setScene('roam');updateFloor();
   if(state.qualified>=TARGET_BALES){state.running=false;setTimeout(finishShift,900)}
 }
 function unsoldBales(){return state.acceptedBales.filter(b=>!b.sold)}
 function goPallet(){
+  state.roam.x=-5.4;state.roam.z=-4.25;state.roam.yaw=0;state.roam.pitch=0;
   const n=state.acceptedBales.length;
   els.palletTitle.textContent=`#${String(n).padStart(2,'0')} ${lang==='zh'?'包上垛':'stacked'}`;
   els.palletMeta.textContent=`${state.acceptedBales[n-1].weight}kg · ${state.acceptedBales[n-1].grade||''}`;
@@ -1189,6 +1232,7 @@ function goPallet(){
 }
 function calcBalePrice(b){let p=b.weight*PRICE_PER_KG; if(b.grade==='A')p*=1.2; else if(b.grade==='B')p*=1.1; else p*=.9; return Math.round(p)}
 function goTruck(){
+  state.roam.x=5.95;state.roam.z=-3.35;state.roam.yaw=-Math.PI/2;state.roam.pitch=0;
   const t=state.truck;
   t.arrived=true;t.loaded=0;t.slotIds=[];t.groundIds=state.acceptedBales.map((b,i)=>!b.sold?i:-1).filter(i=>i>=0);
   t.forklift=FORKLIFT_USES;t.secured=false;t.timer=TRUCK_SECONDS;t.loadedBales=[];t.revenue=0;
@@ -1364,7 +1408,7 @@ function resetState(){
   state.wage=0;state.caughtCount=0;state.tasksDone=0;state.tasksMissed=0;state.loadedKg=0;state.jamsCleared=0;state.strapsTied=0;
   state.bossCash=0;state.soldBales=0;state.soldKg=0;
   state.truck={arrived:false,loaded:0,slotIds:[],groundIds:[],forklift:FORKLIFT_USES,secured:false,timer:TRUCK_SECONDS,loadedBales:[],revenue:0};
-  state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0,x:4.2,z:2.2,wp:0};state.slap={open:false,dir:null,correct:null,timer:null,timeout:null,left:0};state.roam={active:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null};state.phoneOpen=false;state.wechatMsgs=[];state.quote='';state.career.recorded=false;
+  state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0,x:4.2,z:2.2,wp:0};state.slap={open:false,dir:null,correct:null,timer:null,timeout:null,left:0};state.roam={active:false,sorting:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null};state.phoneOpen=false;state.wechatMsgs=[];state.quote='';state.career.recorded=false;
   document.body.classList.remove('angry','shake');els.slapLayer.classList.add('hidden');
   els.phoneLayer.classList.add('hidden');
   els.roamControls.classList.add('hidden');els.roamPrompt.classList.add('hidden');els.roamBack.classList.add('hidden');
@@ -1439,14 +1483,15 @@ $$('[data-dodge]',els.slapLayer).forEach(btn=>btn.addEventListener('click',()=>d
 
 /* ===== 第一人称 3D 车间 ===== */
 const ROAM_SPOTS=[
-  {id:'floor',x:-6,z:3,key:'roamFloor',can:()=>state.running,run:()=>setScene('floor')},
-  {id:'sort',x:-1,z:-4,key:'roamSort',can:()=>state.running&&state.cart.total>=MIN_BALE,run:()=>{setScene('floor',true);goSort()}},
-  {id:'baler',x:5,z:1,key:'roamBaler',can:()=>state.running&&state.bale&&state.scene!=='baler',run:()=>{setScene('sort',true);sendBaler()}},
-  {id:'pallet',x:-5,z:-6,key:'roamPallet',can:()=>state.running&&state.acceptedBales.length>0,run:()=>goPallet()},
-  {id:'truck',x:6,z:-6,key:'roamTruck',can:()=>state.running&&unsoldBales().length>=TRUCK_ARRIVE,run:()=>goTruck()}
+  {id:'floor',x:-6.8,z:5.0,key:'roamFloor',can:()=>state.running,run:()=>setScene('floor')},
+  {id:'sort',x:-1.1,z:-2.55,key:'roamSort',can:()=>state.running&&!state.bale&&state.cart.total>=MIN_BALE&&!state.roam.sorting,run:()=>{setScene('floor',true);goSort()}},
+  {id:'baler',x:5.25,z:3.15,key:'roamBaler',can:()=>state.running&&state.bale&&state.scene!=='baler',run:()=>{setScene('sort',true);sendBaler()}},
+  {id:'pallet',x:-5.4,z:-4.25,key:'roamPallet',can:()=>state.running&&state.acceptedBales.length>0,run:()=>goPallet()},
+  {id:'truck',x:5.95,z:-3.35,key:'roamTruck',can:()=>state.running&&unsoldBales().length>=TRUCK_ARRIVE,run:()=>goTruck()}
 ];
 let three=null;
 const BOSS_WAYPOINTS=[{x:4.2,z:2.2},{x:1.2,z:3.2},{x:-3,z:1.4},{x:2,z:-2.4},{x:4.2,z:2.2}];
+const ROAM_BLOCKERS=[{x:-6.9,z:2.8,r:1.25},{x:-1.1,z:-4.4,r:1.55},{x:5.25,z:1.15,r:1.6},{x:-5.4,z:-6.1,r:1.3},{x:7.9,z:-3.35,r:1.55}];
 const roamKeys={};
 let lookPointer=null,lastLookX=0,lastLookY=0,joyPointer=null,lastJoyX=0,lastJoyY=0,lastFrame=performance.now();
 
@@ -1485,42 +1530,311 @@ function makeLabel(text,x,z,y=2.55){
 function initThree(){
   if(typeof THREE==='undefined'||three)return;
   const canvas=els.threeCanvas;
-  const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b1412);scene.fog=new THREE.Fog(0x0b1412,8,25);
-  const camera=new THREE.PerspectiveCamera(70,1,0.1,60);camera.rotation.order='YXZ';
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'low-power'});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
-  three={scene,camera,renderer,tex:{}};
-  scene.add(new THREE.AmbientLight(0x9fb7a6,.62));
-  const sun=new THREE.DirectionalLight(0xffe2b0,.85);sun.position.set(4,9,3);scene.add(sun);
-  const floorTex=getTex('floor.jpg');floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;floorTex.repeat.set(4,3);
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(24,18),new THREE.MeshStandardMaterial({map:floorTex,roughness:.94}));
-  floor.rotation.x=-Math.PI/2;scene.add(floor);
-  texPlane(24,3.1,'warehouse.jpg',0,1.55,-8.92);
-  texPlane(18,3.1,'sort-facility.jpg',-11.92,1.55,0,Math.PI/2);
-  texPlane(18,3.1,'baler.jpg',11.92,1.55,0,-Math.PI/2);
-  [[-6,3],[-1,-4],[5,1],[-5,-6],[6,-6]].forEach(([x,z])=>{const p=new THREE.PointLight(0xffd9a0,.42,7);p.position.set(x,2.45,z);scene.add(p)});
-  // 收毛料堆
-  blob(1.15,'pile-white.jpg',-6.8,.48,3.1,1.35,.72,1.05);blob(.92,'pile-mixed.jpg',-5.6,.42,3.35,1.1,.7,1);blob(.78,'pile-dark.jpg',-6.1,.36,2.25,1,.68,.9);blob(.62,'pile-white.jpg',-5.15,.32,2.55,1,.65,.9);
-  // 分拣台
-  box(3.4,.16,1.5,0x3a332c,-1,.88,-4);box(3.2,.72,1.2,0x2d261f,-1,.38,-4);
-  const conv=new THREE.Mesh(new THREE.PlaneGeometry(3.2,1.3),new THREE.MeshStandardMaterial({map:getTex('sort-conveyor.jpg'),roughness:.9}));conv.rotation.x=-Math.PI/2;conv.position.set(-1,.97,-4);three.scene.add(conv);
-  texPlane(3.4,1.15,'sort-table.jpg',-1,1.45,-4.72);
-  // 打包机
-  box(2.6,2.5,1.7,0x34413a,5,1.25,1);texPlane(2.2,2.1,'baler.jpg',5,1.3,1.87);texPlane(1.3,1.2,'bale-result.jpg',5,.95,1.89);box(1.8,.45,1.2,0x6b5a35,5,2.18,1);texPlane(.85,.62,'control-panel.jpg',3.62,1.25,1.2,-Math.PI/2);texPlane(.6,.6,'gauge.jpg',3.62,.72,1.2,-Math.PI/2);
-  // 包垛
-  box(2.2,.25,1.4,0x5a4632,-5,.13,-6);box(1.5,.7,1.1,0x9a8f76,-5,.62,-6);texPlane(1.35,.58,'bale-result.jpg',-5,.62,-5.43);box(1.4,.65,1.0,0x80765f,-5,.18,-5.2);texPlane(1.25,.52,'pallet-rows.jpg',-5,.18,-4.68);box(1.3,.65,1.0,0xaaa08a,-4.2,1.08,-6);texPlane(1.15,.52,'bale-tie.jpg',-4.2,1.08,-5.43);
-  // 货车
-  box(2.8,.35,3.1,0x252b2d,5.5,.35,-5.4);box(2.6,.9,2.8,0x59636a,5.5,.85,-5.5);texPlane(2.4,.8,'warehouse.jpg',5.5,.9,-4.05);box(1.8,1.55,1.7,0x8d2f28,7.3,.95,-6.5);texPlane(1.2,.7,'control-panel.jpg',7.3,1.35,-5.62);
-  cyl(.34,.34,.25,0x111313,6.2,.34,-4.45,Math.PI/2);cyl(.34,.34,.25,0x111313,6.2,.34,-6.55,Math.PI/2);cyl(.34,.34,.25,0x111313,8.2,.34,-4.45,Math.PI/2);cyl(.34,.34,.25,0x111313,8.2,.34,-6.55,Math.PI/2);
-  // 老板 3D NPC 和工人立牌
-  const bossGroup=new THREE.Group();
-  const bossBody=new THREE.Mesh(new THREE.CylinderGeometry(.28,.34,1.25,14),new THREE.MeshStandardMaterial({color:0x2b3130,roughness:.8}));bossBody.position.y=.85;bossGroup.add(bossBody);
-  const bossHead=new THREE.Mesh(new THREE.SphereGeometry(.26,16,12),new THREE.MeshStandardMaterial({color:0x8a6a55,roughness:.8}));bossHead.position.y=1.72;bossGroup.add(bossHead);
-  const bossFace=new THREE.Mesh(new THREE.PlaneGeometry(.42,.52),new THREE.MeshStandardMaterial({map:getTex('boss.jpg'),roughness:.8}));bossFace.position.set(0,1.72,.22);bossGroup.add(bossFace);
-  bossGroup.position.set(state.boss.x,0,state.boss.z);three.scene.add(bossGroup);three.boss=bossGroup;
-  texPlane(.8,1.8,'worker.jpg',-7.6,1.5,1.8,.55);
-  // 工位标识
-  makeLabel(t('roamFloor'),-6,3,2.65);makeLabel(t('roamSort'),-1,-4,2.55);makeLabel(t('roamBaler'),5,1,2.85);makeLabel(t('roamPallet'),-5,-6,2.55);makeLabel(t('roamTruck'),6,-6,2.65);
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0x171d1b);scene.fog=new THREE.Fog(0x171d1b,17,38);
+  const camera=new THREE.PerspectiveCamera(72,1,.1,90);camera.rotation.order='YXZ';
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+  document.body.classList.add('three-world');
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));
+  if('outputColorSpace' in renderer && THREE.SRGBColorSpace) renderer.outputColorSpace=THREE.SRGBColorSpace;
+  else if('outputEncoding' in renderer && THREE.sRGBEncoding) renderer.outputEncoding=THREE.sRGBEncoding;
+  if('toneMapping' in renderer && THREE.ACESFilmicToneMapping!==undefined) renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.05;
+  three={scene,camera,renderer,tex:{},animated:[],sortJunk:[]};
+  three.raycaster=new THREE.Raycaster();three.pointer=new THREE.Vector2();
+
+  const mat=(color,rough=.82,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
+  const makeSurfaceMap=(base,light,count=1400)=>{
+    const c=document.createElement('canvas');c.width=256;c.height=256;const g=c.getContext('2d');g.fillStyle=base;g.fillRect(0,0,256,256);
+    for(let i=0;i<count;i++){const v=Math.random()>.5?light:base;g.globalAlpha=.06+Math.random()*.16;g.fillStyle=v;const w=1+Math.random()*3;g.fillRect(Math.random()*256,Math.random()*256,w,w);}
+    g.globalAlpha=.12;g.strokeStyle=light;g.lineWidth=.6;for(let i=0;i<34;i++){const x=Math.random()*256,y=Math.random()*256;g.beginPath();g.moveTo(x,y);g.lineTo(x+4+Math.random()*18,y+Math.random()*2);g.stroke();}
+    g.globalAlpha=1;const tex=new THREE.CanvasTexture(c);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(5,4);tex.encoding=THREE.sRGBEncoding;return tex;
+  };
+  const concreteMap=makeSurfaceMap('#65645e','#b4b0a5',2200),steelMap=makeSurfaceMap('#505953','#b8bdb5',1600),woolMap=makeSurfaceMap('#9d9585','#e2d9c6',2600);
+  three.machineTargets=[];
+  const addMachineTarget=(action,label,x,y,z,color=0x79b88d)=>{
+    const mesh=new THREE.Mesh(new THREE.SphereGeometry(.145,16,12),new THREE.MeshStandardMaterial({color,roughness:.32,metalness:.18,emissive:color,emissiveIntensity:.12}));
+    mesh.position.set(x,y,z);mesh.castShadow=true;mesh.userData.machineAction=action;mesh.userData.machineLabel=label;scene.add(mesh);three.machineTargets.push(mesh);return mesh;
+  };
+  const addBox=(w,h,d,color,x,y,z,rough=.82,metal=0,parent=scene)=>{
+    const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,rough,metal));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
+  };
+  const addCylinder=(r1,r2,h,color,x,y,z,rotX=0,rotZ=0,segments=16,parent=scene)=>{
+    const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,segments),mat(color,.72,.35));m.position.set(x,y,z);m.rotation.set(rotX,0,rotZ);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
+  };
+  const addSphere=(r,color,x,y,z,sx=1,sy=1,sz=1,parent=scene)=>{
+    const m=new THREE.Mesh(new THREE.SphereGeometry(r,14,10),mat(color,.94));m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;parent.add(m);return m;
+  };
+  const addLine=(points,color,r=.035,parent=scene)=>{
+    const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(p[0],p[1],p[2])));
+    const m=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(24,points.length*5),r,8,false),mat(color,.58,.15));m.castShadow=true;parent.add(m);return m;
+  };
+  three.addBox=addBox;three.sortRollers=[];
+
+  scene.add(new THREE.HemisphereLight(0xc8d5ce,0x3b3025,1.05));
+  const key=new THREE.DirectionalLight(0xffe4bd,2.0);key.position.set(-7,13,8);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-15;key.shadow.camera.right=15;key.shadow.camera.top=15;key.shadow.camera.bottom=-15;key.shadow.camera.near=.5;key.shadow.camera.far=35;key.shadow.bias=-.00015;scene.add(key);
+  const fill=new THREE.DirectionalLight(0x9bb6c2,.65);fill.position.set(9,7,-8);scene.add(fill);
+
+  // Concrete floor: full 3D slab, expansion joints and painted work lanes.
+  const floorSlab=addBox(25,.32,20,0xffffff,0,-.18,0,.98);floorSlab.material.map=concreteMap;floorSlab.material.needsUpdate=true;
+  const floorGrid=mat(0x817d72,.98);
+  for(let x=-11;x<=11;x+=2){const line=addBox(.018,.006,19,0x4c4b46,x,-.012,0);line.castShadow=false}
+  for(let z=-9;z<=9;z+=2){const line=addBox(24,.006,.018,0x4c4b46,0,-.011,z);line.castShadow=false}
+  // Safety lanes and floor markings.
+  for(const x of [-9.7,-8.9,2.4,3.2]){const stripe=addBox(.075,.012,16,0xd3ad58,x,.002,0);stripe.castShadow=false}
+  for(let z=-8;z<=8;z+=1.2){const stripe=addBox(.48,.014,.055,0xd3ad58,-8.9,.008,z);stripe.castShadow=false}
+
+  // Actual warehouse shell: structural columns, wall panels, roof trusses and skylights.
+  for(const x of [-11.5,-7.5,-3.5,.5,4.5,8.5,11.5]){
+    addBox(.22,5.8,.22,0x555a56,x,2.75,-9.5,.75,.35);
+    addBox(.22,5.8,.22,0x555a56,x,2.75,9.5,.75,.35);
+    addBox(.22,5.8,.22,0x555a56,x,2.75,0,.75,.35);
+  }
+  addBox(24,.18,.22,0x4a514d,0,5.75,-9.5,.7,.45);
+  addBox(24,.18,.22,0x4a514d,0,5.75,9.5,.7,.45);
+  for(let z=-9;z<=9;z+=4){
+    addBox(24,.16,.16,0x59605b,0,5.35,z,.7,.4);
+    addBox(.16,.48,.16,0x59605b,-10,5.05,z,.7,.4);
+    addBox(.16,.48,.16,0x59605b,10,5.05,z,.7,.4);
+  }
+  addBox(.18,5.8,19,0x555a56,-11.8,2.8,0,.85,.2);
+  addBox(.18,5.8,19,0x555a56,11.8,2.8,0,.85,.2);
+  // Corrugated wall panels, modeled as geometry rather than photographic planes.
+  for(let y=.45;y<5.5;y+=.42){
+    addBox(.08,.035,18.8,0x69716b,-11.68,y,0,.9,.25);
+    addBox(.08,.035,18.8,0x69716b,11.68,y,0,.9,.25);
+    addBox(23.4,.035,.08,0x68716b,0,y,-9.38,.9,.25);
+  }
+  for(let z=-7;z<=7;z+=2.2){
+    addBox(.04,1.05,.85,0x273a3b,-11.61,3.45,z,.38,.55);
+    addBox(.04,1.05,.85,0x273a3b,11.61,3.45,z,.38,.55);
+  }
+  // Roof rafters and suspended industrial lights.
+  for(let z=-8;z<=8;z+=4){
+    addBox(23,.12,.14,0x424a45,0,5.55,z,.7,.4);
+    const lamp=addBox(1.55,.12,.42,0xe5d9b6,0,5.12,z,.35,.1);
+    const glow=new THREE.PointLight(0xffdca5,1.05,9);glow.position.set(0,4.85,z);scene.add(glow);
+  }
+
+  // Receiving area: loose fiber heaps built from dozens of individual tufts.
+  const fiberColors=[0xb8b1a0,0x8c887d,0x6d6a64,0xc7c0ad,0x9d988b];
+  const fiberMat=fiberColors.map(c=>mat(c,.99));
+  for(let i=0;i<145;i++){
+    const x=-8.1+Math.random()*2.35,z=1.5+Math.random()*2.5;
+    const r=.12+Math.random()*.24;
+    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),fiberMat[i%fiberMat.length]);
+    m.position.set(x,.18+Math.random()*.48,z);m.scale.set(1.35,.55,.9);m.rotation.set(Math.random(),Math.random()*3,Math.random());m.castShadow=true;scene.add(m);
+  }
+  // Sorting table, rollers, legs, reject bins and a conveyor.
+  addBox(3.8,.18,1.55,0x343a38,-1.1,1.02,-4.4,.55,.45);
+  addBox(3.55,.1,1.32,0x8a887c,-1.1,1.16,-4.4,.8,.1);
+  for(let x=-2.65;x<=.45;x+=.38){const roller=addCylinder(.075,.075,1.28,0x343a3a,x,1.28,-4.4,Math.PI/2,0,12);three.sortRollers.push(roller);}
+  for(const x of [-2.65,.45])for(const z of [-4.95,-3.85])addBox(.12,.92,.12,0x414744,x,.52,z,.7,.35);
+  for(const x of [-2.15,-1.1,-.05]){addBox(.66,.45,.7,0x38413d,x,.35,-6.15);addBox(.68,.05,.72,0x9b5b3e,x,.6,-6.15)}
+  addBox(3.2,.16,2.6,0x343a37,-1.1,.12,-7.7,.85,.3);
+  for(let x=-2.5;x<=.3;x+=.45){const roller=addCylinder(.07,.07,2.35,0x4a514e,x,.3,-7.7,Math.PI/2,0,12);three.sortRollers.push(roller);}
+
+  // Hydraulic baler: four structural columns, cross-beams, platen, hydraulic ram and access gate.
+  const bx=5.25,bz=1.15;
+  for(const x of [bx-1.25,bx+1.25])for(const z of [bz-.9,bz+.9]){
+    const column=addBox(.18,2.85,.18,0xffffff,x,1.47,z,.58,.65);column.material.map=steelMap;column.material.needsUpdate=true;
+    addBox(.27,.12,.27,0x8b8e82,x,.12,z,.55,.55);
+  }
+  addBox(2.75,.22,2.05,0x4d5751,bx,2.82,bz,.58,.55);
+  addBox(2.75,.2,2.05,0x4d5751,bx,.16,bz,.58,.55);
+  addBox(2.35,.16,.16,0x9a9b8f,bx,2.55,bz-.88,.42,.65);
+  addBox(2.35,.16,.16,0x9a9b8f,bx,2.55,bz+.88,.42,.65);
+  const platen=addBox(2.18,.22,1.55,0xffffff,bx,2.12,bz,.42,.7);platen.material.map=steelMap;platen.material.needsUpdate=true;three.pressPlaten=platen;three.animated.push(platen);
+  addCylinder(.24,.24,1.05,0xb6b9ad,bx,3.34,bz,0,0,20);
+  addCylinder(.34,.34,.2,0x555e59,bx,3.9,bz,0,0,20);
+  const pressRod=addCylinder(.095,.095,1,0xc3c8c1,bx,2.5,bz,0,0,16);three.pressRod=pressRod;
+  addBox(2.05,.08,1.42,0x242a27,bx,.35,bz,.96,.1);
+  // Hinged physical safety gate. It swings open only after the operator completes the cycle.
+  const gate=new THREE.Group();gate.position.set(bx-1.28,0,bz+1.02);scene.add(gate);three.machineGate=gate;
+  addBox(.075,1.9,.075,0xd1a13e,0,1.05,0,.6,.35,gate);
+  addBox(.075,1.9,.075,0xd1a13e,2.56,1.05,0,.6,.35,gate);
+  addBox(2.62,.075,.075,0xd1a13e,1.28,2.0,0,.55,.3,gate);
+  addBox(2.62,.075,.075,0xd1a13e,1.28,.12,0,.55,.3,gate);
+  for(let i=0;i<7;i++)addBox(.035,1.72,.035,0x7d8980,.2+i*.36,1.05,0,.7,.45,gate);
+  three.gateClosedY=0;three.gateOpenY=1.22;
+  addBox(.72,.82,.12,0x29312e,bx+1.48,1.05,bz-.25,.65,.4);
+  for(let i=0;i<3;i++)addBox(.48,.025,.015,0xe6b34d,bx+1.48,1.28+i*.18,bz-.175,.45,.3);
+  // Visible hydraulic hoses.
+  addLine([[bx+.5,3.65,bz],[bx+.85,3.45,bz+.25],[bx+.85,2.9,bz+.25],[bx+1.05,2.65,bz+.25]],0x252a29,.045);
+  addLine([[bx-.5,3.65,bz],[bx-.82,3.4,bz-.22],[bx-.82,2.9,bz-.22],[bx-1.05,2.65,bz-.22]],0x252a29,.045);
+  // Operator console with physical buttons and gauge.
+  addBox(.68,1.15,.48,0x38423e,bx-1.9,.83,bz-.65,.5,.5);
+  addBox(.58,.28,.035,0x17201e,bx-1.9,1.22,bz-.39,.35,.3);
+  addCylinder(.085,.085,.045,0x4caa76,bx-2.05,1.22,bz-.35,Math.PI/2,0,16);
+  addCylinder(.085,.085,.045,0xc64d3d,bx-1.8,1.22,bz-.35,Math.PI/2,0,16);
+  addCylinder(.17,.17,.045,0xd8d2bd,bx-1.9,1.58,bz-.35,Math.PI/2,0,24);
+  // Large, tactile controls on the operator-facing side of the console.
+  addMachineTarget('feed','LOAD',bx-2.12,1.2,bz-.25,0x4fbd83);
+  addMachineTarget('clear','CLEAR JAM',bx-1.9,1.2,bz-.25,0xd6a34e);
+  addMachineTarget('press','PRESS',bx-1.68,1.2,bz-.25,0xd45a48);
+  addMachineTarget('tie','TIE STRAPS',bx-2.12,.88,bz-.25,0x5d9fc4);
+  addMachineTarget('eject','EJECT',bx-1.68,.88,bz-.25,0xd5b95d);
+  addMachineTarget('gate','SAFETY GATE',bx,1.12,bz+1.48,0xe1b54d);
+
+  // Bale on the press bed: volumetric irregular fiber surface and five real strap loops.
+  const baleX=bx,baleY=.88,baleZ=bz;
+  const baleVisual=new THREE.Group();baleVisual.position.set(baleX,baleY,baleZ);scene.add(baleVisual);three.baleVisual=baleVisual;
+  const bale=addBox(1.62,.92,1.18,0xffffff,0,0,0,.99,.02,baleVisual);bale.material.map=woolMap;bale.material.needsUpdate=true;three.baleMesh=bale;
+  const baleFuzz=mat(0xb7ad98,.99);
+  for(let i=0;i<95;i++){
+    const x=-.78+Math.random()*1.56,y=-.44+Math.random()*.88,z=-.56+Math.random()*1.12;
+    const m=new THREE.Mesh(new THREE.IcosahedronGeometry(.035+Math.random()*.045,0),baleFuzz);m.position.set(x,y,z);m.scale.set(1.4,.7,1);baleVisual.add(m);
+  }
+  const strapMat=mat(0xdbc58a,.55,.15);three.baleStraps=[];three.tieNodeMeshes={};
+  const tieNodeMat=new THREE.MeshStandardMaterial({color:0x63e0bd,emissive:0x16a987,emissiveIntensity:.7,roughness:.25});
+  const tieNodeOrder=['t1','t2','t3','t4','t5','b1','b2','b3','b4','b5'];
+  tieNodeOrder.forEach((id,index)=>{const col=index%5,x=-.62+col*.31,y=index<5?.32:-.32;const node=new THREE.Mesh(new THREE.SphereGeometry(.075,14,10),tieNodeMat);node.position.set(x,y,.605);node.visible=false;node.userData.tieNode=id;node.userData.baseScale=1;baleVisual.add(node);three.tieNodeMeshes[id]=node});
+  for(let i=0;i<5;i++){
+    const x=-.62+i*.31;
+    const pts=[[x,.47,-.61],[x,.47,.61],[x,-.47,.61],[x,-.47,-.61],[x,.47,-.61]].map(p=>new THREE.Vector3(...p));
+    const curve=new THREE.CatmullRomCurve3(pts,true);
+    const strap=new THREE.Mesh(new THREE.TubeGeometry(curve,48,.027,8,true),strapMat);strap.castShadow=true;strap.visible=false;baleVisual.add(strap);three.baleStraps.push(strap);
+  }
+
+  // Pallet bay: actual timber runners and stacked bales.
+  const px=-5.4,pz=-6.1;
+  for(let z=-.62;z<=.62;z+=.62)addBox(2.25,.12,.16,0x765137,px,.16,pz+z,.9,.05);
+  for(let x=-.82;x<=.82;x+=.82)addBox(.16,.24,1.42,0x9a7049,px+x,.08,pz,.9,.02);
+  const baleColors=[0x9a927f,0x77776e,0xb0a68f,0x8b8170,0xa69b86,0x817b70];three.palletSlots=[];
+  for(let layer=0;layer<3;layer++)for(let col=0;col<2;col++){
+    const slot=new THREE.Group();slot.position.set(px,0,pz);slot.visible=false;scene.add(slot);
+    const cx=col===0?-.5:.5,cy=.53+layer*.64;
+    addBox(.98,.62,.9,baleColors[layer*2+col],cx,cy,0,.98,.01,slot);
+    for(let k=0;k<3;k++)addBox(.025,.65,.94,0xd7c28d,cx-.31+k*.31,cy,0,.55,.1,slot);
+    three.palletSlots.push(slot);
+  }
+
+  // Full-length 9.6 m box truck, separated cab, chassis, wheels and cargo bay.
+  const tx=7.9,tz=-3.35;
+  addBox(2.45,.28,9.6,0x303638,tx,.72,tz,.7,.55);
+  addBox(2.42,2.75,7.15,0xaeb4b2,tx,2.18,tz+.45,.72,.28);
+  addBox(2.48,.12,7.2,0x6b7471,tx,.93,tz+.45,.65,.55);
+  // Rear cargo opening and inner floor visible from the bay.
+  addBox(2.25,.08,6.95,0x5c5144,tx,1.02,tz+.45,.95,.08);
+  addBox(2.4,2.72,.12,0x7c8580,tx,2.16,tz-3.18,.75,.35);
+  addBox(2.4,2.72,.12,0x7c8580,tx,2.16,tz+4.08,.75,.35);
+  addBox(.12,2.72,7.2,0x858e89,tx-1.2,2.16,tz+.45,.75,.35);
+  addBox(.12,2.72,7.2,0x858e89,tx+1.2,2.16,tz+.45,.75,.35);
+  // Cab at the front end.
+  addBox(2.38,1.95,2.25,0x8b342b,tx,1.78,tz-5.7,.55,.28);
+  addBox(2.08,.92,.08,0x253b40,tx,2.23,tz-6.86,.24,.4);
+  addBox(.12,.12,.12,0xe8d6a2,tx-1.13,1.1,tz-6.65,.3,.1);
+  addBox(.12,.12,.12,0xe8d6a2,tx+1.13,1.1,tz-6.65,.3,.1);
+  for(const x of [tx-1.3,tx+1.3])for(const z of [tz-4.6,tz-2.2,tz+2.5]){
+    addCylinder(.48,.48,.25,0x171a1a,x,.48,z,Math.PI/2,0,24);
+    addCylinder(.24,.24,.26,0x9b9d98,x,.48,z,Math.PI/2,0,20);
+  }
+  // Six cargo slots appear only as bales are actually loaded during the shift.
+  const cargoColors=[0x9b927e,0x807d70,0xb3a78e,0x8c806f,0xa49b88,0x77766d];
+  three.truckCargoSlots=[];
+  for(let i=0;i<6;i++){
+    const cargoGroup=new THREE.Group();cargoGroup.position.set(tx,0,tz);cargoGroup.visible=false;scene.add(cargoGroup);
+    const col=i%2,row=Math.floor(i/2),cx=col===0?-.52:.52,cz=-2.1+row*2.1,cy=1.34;
+    addBox(.9,.55,1.18,cargoColors[i],cx,cy,cz,.98,.01,cargoGroup);
+    for(let k=0;k<3;k++)addBox(.024,.57,1.2,0xd8c58e,cx-.29+k*.29,cy,cz,.55,.08,cargoGroup);
+    three.truckCargoSlots.push(cargoGroup);
+  }
+  // A compact industrial forklift: counterweight, seat, overhead guard, mast and twin forks.
+  const forklift=new THREE.Group();forklift.position.set(5.15,0,-5.7);scene.add(forklift);three.forklift=forklift;three.forkliftBaseX=5.15;three.forkliftBaseZ=-5.7;three.forkliftPhase=2;three.lastForkliftCount=state.truck.forklift;
+  three.truckTargets=[];
+  const forkliftButton=new THREE.Mesh(new THREE.SphereGeometry(.16,16,12),new THREE.MeshStandardMaterial({color:0x6cc69a,emissive:0x1a8052,emissiveIntensity:.65}));forkliftButton.position.set(.68,1.52,.2);forkliftButton.userData.truckAction='forklift';forklift.add(forkliftButton);three.truckTargets.push(forkliftButton);
+  addBox(1.15,.34,1.38,0xd6a33e,0,.55,0,.58,.35,forklift);
+  addBox(.55,.48,.55,0x303936,-.18,.94,-.12,.65,.35,forklift);
+  addBox(.72,.07,.72,0x222a27,-.18,1.22,-.12,.6,.4,forklift);
+  for(const x of [-.48,.48])for(const z of [-.48,.48]){
+    addCylinder(.28,.28,.18,0x202321,x,.34,z,Math.PI/2,Math.PI/2,20,forklift);
+    addCylinder(.13,.13,.19,0x9da39c,x,.34,z,Math.PI/2,Math.PI/2,16,forklift);
+  }
+  for(const z of [-.42,.42])addBox(.08,1.65,.08,0x343c38,.68,1.05,z,.5,.5,forklift);
+  addBox(.1,.08,1.0,0x343c38,.68,1.88,0,.5,.5,forklift);
+  addBox(1.0,.07,.09,0xe2bb61,1.12,.25,-.29,.55,.4,forklift);
+  addBox(1.0,.07,.09,0xe2bb61,1.12,.25,.29,.55,.4,forklift);
+  three.truckGroundSlots=[];
+  for(let i=0;i<6;i++){
+    const group=new THREE.Group();group.visible=false;scene.add(group);
+    const x=i%2===0?5.35:6.25,z=-1.35-Math.floor(i/2)*.92;
+    group.position.set(x,0,z);group.userData.groundIndex=i;
+    addBox(.86,.52,.72,0x9b927f,0,.58,0,.98,.01,group);
+    for(let k=0;k<3;k++)addBox(.025,.54,.76,0xd8c58e,-.28+k*.28,.58,0,.55,.08,group);
+    three.truckGroundSlots.push(group);
+  }
+
+  // Human boss NPC: modeled torso, head, neck, arms and legs (no photo billboard).
+  const bossGroup=new THREE.Group();three.bossArms=[];three.bossLegs=[];
+  const skin=mat(0xb98261,.9),shirt=mat(0x303b37,.85),pants=mat(0x242a28,.9),shoe=mat(0x171b1a,.8);
+  const torso=new THREE.Mesh(new THREE.BoxGeometry(.62,.88,.34),shirt);torso.position.y=1.28;bossGroup.add(torso);
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.16,10),skin);neck.position.y=1.79;bossGroup.add(neck);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.24,18,14),skin);head.position.y=2.04;head.scale.set(.88,1.08,.9);bossGroup.add(head);
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(.245,16,8,0,Math.PI*2,0,Math.PI*.48),mat(0x292522,.95));hair.position.set(0,2.12,0);bossGroup.add(hair);
+  for(const side of [-1,1]){
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.68,10),shirt);arm.position.set(side*.39,1.28,0);arm.rotation.z=side*.12;bossGroup.add(arm);three.bossArms.push(arm);
+    const hand=new THREE.Mesh(new THREE.SphereGeometry(.105,10,8),skin);hand.position.set(side*.4,.94,.02);bossGroup.add(hand);
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.72,10),pants);leg.position.set(side*.17,.48,0);bossGroup.add(leg);three.bossLegs.push(leg);
+    const foot=new THREE.Mesh(new THREE.BoxGeometry(.22,.12,.38),shoe);foot.position.set(side*.17,.12,.08);bossGroup.add(foot);
+  }
+  bossGroup.position.set(state.boss.x,0,state.boss.z);scene.add(bossGroup);three.boss=bossGroup;
+  // Worker silhouettes are also 3D mannequins, not flat photo cutouts.
+  three.workers=[];
+  function makeWorker(x,z,shirtColor){
+    const g=new THREE.Group(),arms=[],legs=[];
+    const body=new THREE.Mesh(new THREE.BoxGeometry(.48,.78,.3),mat(shirtColor,.9));body.position.y=1.15;g.add(body);
+    const h=new THREE.Mesh(new THREE.SphereGeometry(.2,12,10),skin);h.position.y=1.72;g.add(h);
+    for(const side of [-1,1]){
+      const a=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.58,9),mat(shirtColor,.9));a.position.set(side*.3,1.2,0);a.rotation.z=side*.15;g.add(a);arms.push(a);
+      const l=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.58,9),pants);l.position.set(side*.13,.42,0);g.add(l);legs.push(l);
+    }
+    g.position.set(x,0,z);scene.add(g);three.workers.push({arms,legs,phase:Math.random()*Math.PI*2});return g;
+  }
+  makeWorker(-3.6, -3.1,0x49695d);makeWorker(-.2,-5.1,0x6b6252);makeWorker(2.6,3.5,0x56636b);
+
+  // Workstation signs and physical zone markers.
+  makeLabel(t('roamFloor'),-6.8,5.0,3.0);makeLabel(t('roamSort'),-1.1,-2.55,2.8);makeLabel(t('roamBaler'),5.25,3.15,3.25);makeLabel(t('roamPallet'),-5.4,-4.25,2.7);makeLabel(t('roamTruck'),5.95,-3.35,3.65);
+  // Painted zone plates on the floor.
+  for(const [x,z,c] of [[-6.8,5.0,0x8a754c],[-1.1,-2.55,0x55766b],[5.25,3.15,0x8b6b3d],[-5.4,-4.25,0x6b755e],[5.95,-3.35,0x6c7370]]){
+    const plate=addBox(2.2,.025,1.25,c,x,.025,z,.92,.05);plate.material.transparent=true;plate.material.opacity=.25;
+  }
+
+  canvas.addEventListener('pointerdown',e=>{
+    if(state.scene!=='baler'||!state.machine.threeTieMode||!three.tieNodeMeshes)return;
+    const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;three.raycaster.setFromCamera(three.pointer,camera);
+    const nodes=Object.values(three.tieNodeMeshes).filter(node=>node.visible),hits=three.raycaster.intersectObjects(nodes,false);
+    if(hits.length){state.machine.threeTieGesture=hits[0].object.userData.tieNode;hits[0].object.scale.setScalar(1.55);e.preventDefault();e.stopPropagation()}
+  });
+  window.addEventListener('pointerup',e=>{
+    if(state.scene!=='baler'||!state.machine.threeTieGesture)return;
+    const from=state.machine.threeTieGesture;state.machine.threeTieGesture=null;
+    const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;three.raycaster.setFromCamera(three.pointer,camera);
+    const nodes=Object.values(three.tieNodeMeshes).filter(node=>node.visible),hits=three.raycaster.intersectObjects(nodes,false);
+    Object.values(three.tieNodeMeshes).forEach(node=>node.scale.setScalar(1));
+    if(!hits.length)return;const to=hits[0].object.userData.tieNode;if(from===to)return;
+    const pair=pairFor(from,to);if(pair>=0)completeTiePair(pair);else{AudioSys.tone('bad');toast(lang==='zh'?'穿丝路径错误，再试一次':'Wrong strap route · try again','bad')}
+  });
+  canvas.addEventListener('click',e=>{
+    if(!state.roam.active&&state.scene!=='baler'&&state.scene!=='truck')return;
+    const rect=canvas.getBoundingClientRect();three.pointer.x=((e.clientX-rect.left)/rect.width)*2-1;three.pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    three.raycaster.setFromCamera(three.pointer,camera);
+    if(state.roam.sorting&&three.sortJunk&&Math.hypot(state.roam.x+1.1,state.roam.z+4.4)<=5.5){
+      const targets=three.sortJunk.filter(g=>g&&g.visible),hits=three.raycaster.intersectObjects(targets,true);
+      if(hits.length){let node=hits[0].object;while(node&&node.userData.sortId==null)node=node.parent;if(node)pickContaminant(node.userData.sortId)}
+      return;
+    }
+    if(state.scene==='baler'&&three.machineTargets){
+      const hits=three.raycaster.intersectObjects(three.machineTargets,false);
+      if(hits.length){const action=hits[0].object.userData.machineAction;
+        if(action==='feed')feed();else if(action==='clear')clearStuck();else if(action==='press')press();else if(action==='tie')openTie();else if(action==='eject')eject();else if(action==='gate')closeDoor();
+      }
+    }
+    if(state.scene==='truck'&&state.truck.arrived){
+      const ground=three.truckGroundSlots||[],hits=three.raycaster.intersectObjects(ground.filter(g=>g.visible),true);
+      if(hits.length){let node=hits[0].object;while(node&&node.userData.groundIndex==null)node=node.parent;if(node)loadBale(node.userData.groundIndex,false);return}
+      const controls=three.truckTargets||[],forkHits=three.raycaster.intersectObjects(controls,true);if(forkHits.length&&forkHits[0].object.userData.truckAction==='forklift')loadBale(0,true);
+    }
+  });
   resizeThree();bindRoamControls();requestAnimationFrame(tickThree);
 }
 function resizeThree(){
@@ -1545,6 +1859,9 @@ function updateBoss3D(dt){
     else{const sp=.75*dt;b.x+=dx/d*sp;b.z+=dz/d*sp;g.rotation.y=Math.atan2(dx,dz)}
   }
   g.position.set(b.x,0,b.z);
+  const gait=b.watching?0:Math.sin(performance.now()*.009)*.42;
+  if(three.bossArms)three.bossArms.forEach((arm,i)=>{arm.rotation.x=(i===0?1:-1)*gait*.75});
+  if(three.bossLegs)three.bossLegs.forEach((leg,i)=>{leg.rotation.x=(i===0?-1:1)*gait});
 }
 function updateRoamMovement(dt){
   const r=state.roam;let f=0,st=0;
@@ -1553,30 +1870,64 @@ function updateRoamMovement(dt){
   f-=r.joyY;st+=r.joyX;
   const len=Math.hypot(f,st);if(len>1){f/=len;st/=len}
   const speed=2.7,sin=Math.sin(r.yaw),cos=Math.cos(r.yaw);
-  r.x+=(-sin*f+cos*st)*speed*dt;r.z+=(-cos*f-sin*st)*speed*dt;
-  r.x=Math.max(-10.5,Math.min(10.5,r.x));r.z=Math.max(-7.5,Math.min(7.5,r.z));
+  const dx=(-sin*f+cos*st)*speed*dt,dz=(-cos*f-sin*st)*speed*dt;
+  const blocked=(x,z)=>ROAM_BLOCKERS.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+.28);
+  const nx=Math.max(-10.5,Math.min(10.5,r.x+dx)),nz=Math.max(-7.5,Math.min(7.5,r.z+dz));
+  if(!blocked(nx,r.z))r.x=nx;
+  if(!blocked(r.x,nz))r.z=nz;
 }
 function tickThree(){
   requestAnimationFrame(tickThree);if(!three)return;
   const now=performance.now(),dt=Math.min(.05,(now-lastFrame)/1000);lastFrame=now;
   const r=state.roam;
   if(!state.started)r.yaw+=dt*.12;
-  if(r.active){
+  if(r.active||state.scene==='baler'||state.scene==='truck'){
     updateRoamMovement(dt);
-    updateBoss3D(dt);
-    const spot=nearestSpot();r.nearest=spot;
-    if(spot){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=t(spot.key);els.interactBtn.disabled=!spot.can()}
-    else els.roamPrompt.classList.add('hidden');
+    if(r.active){
+      if(r.sorting)syncSortProps();
+      const near=nearestSpot(),spot=r.sorting&&near&&near.id==='sort'?null:near;r.nearest=spot;
+      if(r.sorting&&Math.hypot(r.x+1.1,r.z+4.4)<5.5){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=lang==='zh'?'点击台面异物 · 清理后去打包':'Tap contaminants · finish at the baler';els.interactBtn.textContent=lang==='zh'?'送去打包':'Send to baler';els.interactBtn.disabled=false}
+      else if(spot){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=t(spot.key);els.interactBtn.textContent=t('interact');els.interactBtn.disabled=!spot.can()}
+      else els.roamPrompt.classList.add('hidden');
+    }
   }
+  if(state.running)updateBoss3D(dt);
   three.camera.position.set(r.x,1.6,r.z);three.camera.rotation.y=r.yaw;three.camera.rotation.x=r.pitch;
+  if(three.pressPlaten){
+    const phase=state.machine&&state.machine.pressure?Math.min(1,state.machine.pressure/172):0;
+    const target=2.12-phase*.95;
+    three.pressPlaten.position.y+=(target-three.pressPlaten.position.y)*Math.min(1,dt*7);
+    if(three.pressRod){const bottom=three.pressPlaten.position.y+.11,top=2.815,length=Math.max(.08,top-bottom);three.pressRod.scale.y=length;three.pressRod.position.y=(top+bottom)/2;}
+  }
+  if(three.sortRollers)three.sortRollers.forEach(roller=>{roller.rotation.z+=dt*2.4;});
+  if(three.workers)three.workers.forEach(worker=>{worker.phase+=dt*.9;const sway=Math.sin(worker.phase)*.08;worker.arms.forEach((arm,i)=>{arm.rotation.x=(i===0?1:-1)*sway});worker.legs.forEach((leg,i)=>{leg.rotation.x=(i===0?-1:1)*sway*.65});});
+  if(three.palletSlots){const truck=state.truck||{};three.palletSlots.forEach((slot,i)=>{const bale=state.acceptedBales[i],onTruck=!!(truck.arrived&&truck.slotIds&&truck.slotIds.includes(i));slot.visible=!!(bale&&!bale.sold&&!onTruck)});}
+  if(three.truckCargoSlots){const truck=state.truck||{};three.truckCargoSlots.forEach((slot,i)=>{slot.visible=!!(truck.arrived&&i<truck.loaded)});}
+  if(three.truckGroundSlots){const truck=state.truck||{};three.truckGroundSlots.forEach((slot,i)=>{slot.visible=!!(truck.arrived&&i<truck.groundIds.length);slot.userData.groundIndex=i;});}
+  if(three.forklift){const count=state.truck?state.truck.forklift:three.lastForkliftCount;if(count<three.lastForkliftCount)three.forkliftPhase=0;three.lastForkliftCount=count;if(three.forkliftPhase<1.2){three.forkliftPhase+=dt;const p=Math.min(1,three.forkliftPhase/1.2);three.forklift.position.x=three.forkliftBaseX+.9*Math.sin(p*Math.PI);three.forklift.position.z=three.forkliftBaseZ+1.5*p;}else{three.forklift.position.x=three.forkliftBaseX;three.forklift.position.z=three.forkliftBaseZ;}}
+  if(three.machineGate){
+    const target=state.machine&&state.machine.door?three.gateClosedY:three.gateOpenY;
+    three.machineGate.rotation.y+=(target-three.machineGate.rotation.y)*Math.min(1,dt*5);
+  }
+  if(three.baleVisual){
+    const m=state.machine||{},visible=!!(state.bale&&m.loaded);
+    if(three.tieNodeMeshes){const show=!!(m.threeTieMode&&visible);Object.values(three.tieNodeMeshes).forEach(node=>{node.visible=show})}
+    three.baleVisual.visible=visible;
+    const ejectZ=m.opened?2.75:1.15;three.baleVisual.position.z+=(ejectZ-three.baleVisual.position.z)*Math.min(1,dt*3);
+    const compact=1-.28*Math.min(1,(m.pressure||0)/172);
+    three.baleMesh.scale.y+=(compact-three.baleMesh.scale.y)*Math.min(1,dt*4);
+    const baleCenter=.42+.46*compact;three.baleVisual.position.y+=(baleCenter-three.baleVisual.position.y)*Math.min(1,dt*4);
+    const tied=Math.max(0,Math.min(5,m.tied||0));
+    if(three.baleStraps)three.baleStraps.forEach((strap,i)=>{strap.visible=visible&&i<tied});
+  }
   three.renderer.render(three.scene,three.camera);
 }
 function bindRoamControls(){
-  window.addEventListener('keydown',e=>{roamKeys[e.key.toLowerCase()]=true});
+  window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();roamKeys[k]=true;if(k==='e'&&state.roam.active){e.preventDefault();els.interactBtn.click()}else if(k==='e'&&state.scene==='baler'){e.preventDefault();press()}});
   window.addEventListener('keyup',e=>{roamKeys[e.key.toLowerCase()]=false});
   window.addEventListener('resize',resizeThree);
   els.stage.addEventListener('pointerdown',e=>{
-    if(!state.roam.active||e.target.closest('button,.view,.roam-controls,.hud,.boss-panel'))return;
+    if((!state.roam.active&&state.scene!=='baler'&&state.scene!=='truck')||e.target.closest('button,.view,.roam-controls,.hud,.boss-panel'))return;
     lookPointer=e.pointerId;lastLookX=e.clientX;lastLookY=e.clientY;
   });
   window.addEventListener('pointermove',e=>{
@@ -1595,7 +1946,7 @@ function bindRoamControls(){
   const endPointer=e=>{if(lookPointer===e.pointerId)lookPointer=null;if(joyPointer===e.pointerId){joyPointer=null;state.roam.joyX=0;state.roam.joyY=0;els.joyKnob.style.transform='translate(-50%,-50%)'}};
   window.addEventListener('pointerup',endPointer);window.addEventListener('pointercancel',endPointer);
   els.joyBase.addEventListener('pointerdown',e=>{joyPointer=e.pointerId;e.preventDefault()});
-  els.interactBtn.addEventListener('click',()=>{const s=state.roam.nearest;if(s&&s.can())s.run()});
+  els.interactBtn.addEventListener('click',()=>{const s=state.roam.nearest;if(state.roam.sorting&&(!s||s.id==='sort')){setScene('sort',true);sendBaler();return}if(s&&s.can())s.run()});
   els.roamBack.addEventListener('click',enterRoam);
 }
 

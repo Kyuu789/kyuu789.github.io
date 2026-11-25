@@ -1583,12 +1583,12 @@ function makeLabel(text,x,z,y=2.55){
 function initThree(){
   if(typeof THREE==='undefined'||three)return;
   const canvas=els.threeCanvas;
-  const scene=new THREE.Scene();scene.background=new THREE.Color(0x171d1b);scene.fog=new THREE.Fog(0x171d1b,17,38);
-  const camera=new THREE.PerspectiveCamera(72,1,.1,90);camera.rotation.order='YXZ';
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0x202824);scene.fog=new THREE.Fog(0x202824,42,108);
+  const camera=new THREE.PerspectiveCamera(68,1,.1,160);camera.rotation.order='YXZ';
   const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
   document.body.classList.add('three-world');
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.45));
   if('outputColorSpace' in renderer && THREE.SRGBColorSpace) renderer.outputColorSpace=THREE.SRGBColorSpace;
   else if('outputEncoding' in renderer && THREE.sRGBEncoding) renderer.outputEncoding=THREE.sRGBEncoding;
   if('toneMapping' in renderer && THREE.ACESFilmicToneMapping!==undefined) renderer.toneMapping=THREE.ACESFilmicToneMapping;
@@ -1624,9 +1624,9 @@ function initThree(){
   };
   three.addBox=addBox;three.sortRollers=[];
 
-  scene.add(new THREE.HemisphereLight(0xc8d5ce,0x3b3025,1.05));
-  const key=new THREE.DirectionalLight(0xffe4bd,2.0);key.position.set(-7,13,8);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-15;key.shadow.camera.right=15;key.shadow.camera.top=15;key.shadow.camera.bottom=-15;key.shadow.camera.near=.5;key.shadow.camera.far=35;key.shadow.bias=-.00015;scene.add(key);
-  const fill=new THREE.DirectionalLight(0x9bb6c2,.65);fill.position.set(9,7,-8);scene.add(fill);
+  scene.add(new THREE.HemisphereLight(0xd9e5df,0x3b3025,1.22));
+  const key=new THREE.DirectionalLight(0xffe4bd,2.0);key.position.set(-7,13,8);key.castShadow=true;key.shadow.mapSize.set(1536,1536);key.shadow.camera.left=-26;key.shadow.camera.right=26;key.shadow.camera.top=24;key.shadow.camera.bottom=-24;key.shadow.camera.near=.5;key.shadow.camera.far=65;key.shadow.bias=-.00015;scene.add(key);
+  const fill=new THREE.DirectionalLight(0xb7c9cf,.82);fill.position.set(9,7,-8);scene.add(fill);
 
   // Scale reference: 1 scene unit = 2 real metres; 25 x 20 units represents 40 x 50 m = 2,000 m².
   three.worldScaleMeters=2;
@@ -1704,6 +1704,82 @@ function initThree(){
     addBox(.08,.12,2.7,0x414b46,11.45,4.25,z,.6,.5);
     addBox(.22,.68,.18,0xb94838,11.28,.55,z,.48,.18);
     addBox(.26,.08,.2,0xe2d7bc,11.28,.91,z,.48,.08);
+  }
+
+  // Architectural polish: roof purlins, crane runway, extraction ducting and service gantries.
+  // All details are real meshes with depth and cast shadows, not flat decorative images.
+  for(let x=-11;x<=11;x+=1.15){
+    const rib=addBox(.035,.07,19.2,0x59635d,x,5.91,0,.72,.42);
+    rib.castShadow=false;
+  }
+  addBox(.34,.28,19.2,0x424b46,0,5.93,0,.62,.52);
+  // Overhead maintenance rails and a compact chain hoist.
+  for(const x of [-6.2,6.2]){
+    addBox(.22,.3,18.2,0x48524c,x,4.92,0,.58,.62);
+    addBox(.42,.09,18.2,0x7e8981,x,5.12,0,.48,.62);
+    for(let z=-8;z<=8;z+=2.7)addBox(.48,.1,.18,0x9ca49b,x,4.72,z,.45,.58);
+  }
+  const hoist=new THREE.Group();hoist.position.set(-6.2,4.7,-2.2);scene.add(hoist);
+  addBox(.72,.42,.68,0xd4a33e,0,.05,0,.5,.38,hoist);
+  addCylinder(.12,.12,.28,0x252b28,0,-.28,0,0,0,16,hoist);
+  addLine([[0,-.42,0],[0,-1.45,0],[.12,-1.7,0]],0x333a36,.025,hoist);
+  addCylinder(.12,.12,.22,0x8c9690,.12,-1.72,0,Math.PI/2,0,16,hoist);
+  // Ventilation trunk and exhaust drops.
+  addCylinder(.34,.34,18.5,0x78827b,0,4.55,0,Math.PI/2,0,24);
+  for(const z of [-7,-3,1,5,8]){
+    addCylinder(.17,.22,.72,0x65716a,0,4.1,z,0,0,18);
+    addCylinder(.26,.26,.08,0x303a35,0,3.72,z,0,0,18);
+    for(let k=0;k<5;k++)addBox(.42,.025,.025,0x8d9890,0,3.72,z-.17+k*.085,.5,.4);
+  }
+  // High-bay light housings with protective cages and warm spill.
+  for(const x of [-8,-4,4,8])for(const z of [-6,2,7]){
+    addBox(.9,.12,.62,0x343d38,x,5.02,z,.38,.48);
+    for(const side of [-1,1])addBox(.035,.28,.035,0xb5bdb4,x+side*.43,4.88,z,.4,.45);
+    const lampGlow=new THREE.PointLight(0xffe1ad,.42,7);lampGlow.position.set(x,4.78,z);scene.add(lampGlow);
+  }
+  // Wall-mounted cable trays, conduit elbows and numbered safety bollards.
+  for(const z of [-8,-4,0,4,8]){
+    addBox(.12,.12,3.5,0x343e39,-11.42,4.55,z,.5,.5);
+    addBox(.12,.12,3.5,0x343e39,11.42,4.55,z,.5,.5);
+    for(const x of [-10.8,10.8]){
+      addBox(.3,.72,.3,0xd4a43e,x,.38,z,.48,.3);
+      for(let stripe=0;stripe<3;stripe++)addBox(.31,.08,.31,0x252b28,x,.2+stripe*.19,z,.45,.2);
+    }
+  }
+  // More convincing sorting line: side guards, belt lip, motor housings and reject chutes.
+  for(const side of [-1,1]){
+    addBox(3.72,.14,.09,0x3d4842,-1.1,1.31,-4.4,.48,.55);
+    addBox(.12,.26,1.52,0x59645e,-1.1+side*1.84,1.27,-4.4,.55,.5);
+  }
+  for(const x of [-2.35,-1.1,.15]){
+    addBox(.12,.42,.12,0x59645e,x,.72,-4.4,.55,.45);
+    addCylinder(.11,.11,.18,0x262d29,x,.28,-4.4,Math.PI/2,0,16);
+  }
+  // Reject chutes have distinct steel lips and deep collection bins.
+  for(const x of [-2.15,-1.1,-.05]){
+    addBox(.72,.08,.9,0x626c65,x,.68,-6.15,.62,.45);
+    addBox(.74,.65,.06,0x424b46,x,.34,-6.56,.72,.38);
+    addBox(.06,.65,.82,0x424b46,x-.36,.34,-6.15,.72,.38);
+    addBox(.06,.65,.82,0x424b46,x+.36,.34,-6.15,.72,.38);
+  }
+  // Baler finishing details: bolt heads, hazard stripes, pressure gauge and machine identity plate.
+  for(const x of [bx-1.25,bx+1.25])for(const z of [bz-.9,bz+.9]){
+    for(const y of [.35,1.05,1.78,2.55]){
+      addCylinder(.045,.045,.035,0xc3c8bd,x,y,z,Math.PI/2,0,12);
+    }
+  }
+  for(let i=0;i<9;i++){
+    const stripe=addBox(.14,.018,.07,i%2===0?0xe4b74d:0x202724,bx-1.02+i*.25,.055,bz+.94,.55,.18);
+    stripe.rotation.y=.08;
+  }
+  const gaugeRing=new THREE.Mesh(new THREE.TorusGeometry(.19,.035,10,28),mat(0xc0c8bd,.35,.65));
+  gaugeRing.position.set(bx-1.9,1.58,bz-.29);gaugeRing.rotation.x=Math.PI/2;scene.add(gaugeRing);
+  addLine([[bx-1.9,1.58,bz-.27],[bx-1.82,1.68,bz-.25]],0xc94e40,.018);
+  makeLabel('HYDRAULIC PRESS  /  160 T',bx,3.18,bz+1.02).scale.set(2.35,.48,1);
+  // Floor drainage channels and expansion-joint covers make the large slab read as a working site.
+  for(const z of [-8.6,0,8.6]){
+    addBox(22,.018,.11,0x3c4540,0,.012,z,.9,.22);
+    for(let x=-10.5;x<=10.5;x+=.42)addBox(.025,.02,.075,0x858b82,x,.026,z,.72,.28);
   }
 
   // Receiving area: loose fiber heaps built from dozens of individual tufts.

@@ -1034,7 +1034,7 @@ function goSort(){
   });
   state.missed=0;
   updateSort();
-  if(three){state.roam.x=-1.1;state.roam.z=-2.55;state.roam.yaw=0;state.roam.pitch=0;setScene('roam',true);state.roam.sorting=true;syncSortProps();toast(lang==='zh'?'点击分拣台上的异物，清理完再去打包机':'Tap the contaminants, then head to the baler','good')}
+  if(three){state.roam.x=-1.1;state.roam.z=-2.55;state.roam.yaw=0;state.roam.pitch=-.16;setScene('roam',true);state.roam.sorting=true;syncSortProps();toast(lang==='zh'?'镜头已对准分拣台：直接点台面上的异物，清理完点“送去打包”':'View aimed at sorting table: tap a contaminant, then Send to baler','good')}
   else setScene('sort');
 }
 function updateSort(){
@@ -1069,6 +1069,10 @@ function syncSortProps(){
         const oil=new THREE.MeshStandardMaterial({color:0x3d3024,roughness:.98});
         add(new THREE.SphereGeometry(.13,10,8),oil,-.07,.035,0,0,0,0);add(new THREE.SphereGeometry(.1,10,8),oil,.06,.035,.04,0,0,0);add(new THREE.SphereGeometry(.07,8,6),oil,.02,.035,-.08,0,0,0);
       }
+      // Generous invisible touch target around each small contaminant.
+      const hitMaterial=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false,colorWrite:false});
+      const hitTarget=new THREE.Mesh(new THREE.SphereGeometry(.38,12,10),hitMaterial);
+      hitTarget.position.set(0,.10,0);hitTarget.userData.sortHitTarget=true;group.add(hitTarget);
       three.scene.add(group);three.sortJunk[item.id]=group;
     }
     const x=-2.55+((item.x-22)/54)*2.9,z=-4.85+((item.y-22)/38)*.9;
@@ -1892,6 +1896,7 @@ function initThree(){
     if(state.roam.sorting&&three.sortJunk&&Math.hypot(state.roam.x+1.1,state.roam.z+4.4)<=5.5){
       const targets=three.sortJunk.filter(g=>g&&g.visible),hits=three.raycaster.intersectObjects(targets,true);
       if(hits.length){let node=hits[0].object;while(node&&node.userData.sortId==null)node=node.parent;if(node)pickContaminant(node.userData.sortId)}
+      else toast(lang==='zh'?'没点中异物：靠近台面后点发光的杂物':'Aim at a glowing contaminant and tap again','bad');
       return;
     }
     if(state.scene==='baler'&&three.machineTargets){

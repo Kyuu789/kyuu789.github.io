@@ -472,7 +472,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
     </section>
 
     <section class="view" id="balerView">
-      <img class="backdrop baler-bg" src="assets/baler.jpg" alt="hydraulic baler">
+      <img class="backdrop baler-bg" id="balerBg" src="assets/baler.jpg" alt="workshop machine">
       <div class="vignette"></div>
       <div class="station"><b>03</b><span id="stationBaler" data-i18n="stationBaler">液压打包</span><small>HYDRAULIC BALER</small></div>
       <div class="machine-readout">
@@ -676,14 +676,18 @@ const MATERIALS = {
 const SHIFT_SECONDS=300, TARGET_BALES=6, MIN_BALE=150, MAX_BALE=190, UNIT_KG=15, WIRE_PER_BALE=5, CART_CAP=200;
 const TRUCK_CAP=6, TRUCK_ARRIVE=4, TRUCK_SECONDS=45, FORKLIFT_USES=2, PRICE_PER_KG=1.2;
 const WORKSHOPS=[
-  {id:'wool',zh:'废毛打包车间',en:'Wool Bale Shop',machineZh:'液压打包机',machineEn:'Hydraulic Baler',img:'pile-white.jpg',pool:['whiteA','grayB','darkB'],descZh:'精回丝为主 · 重量稳',descEn:'Clean yarn · steady weight'},
-  {id:'rag',zh:'碎布开松车间',en:'Rag Opening Shop',machineZh:'开松机',machineEn:'Rag opener',img:'sort-table.jpg',pool:['ragB','oldC','mixedC'],descZh:'碎布多 · 异物多 · 奖金高',descEn:'Rags & junk · higher bonus'},
-  {id:'cotton',zh:'杂棉回收车间',en:'Cotton Recovery Shop',machineZh:'梳棉机',machineEn:'Carding machine',img:'pile-mixed.jpg',pool:['grayB','mixedC','whiteA'],descZh:'杂棉轻 · 容易混色',descEn:'Light cotton · easy color mix'}
+  {id:'wool',zh:'废毛打包车间',en:'Wool Bale Shop',machineZh:'液压打包机',machineEn:'Hydraulic Baler',img:'pile-white.jpg',machineImg:'baler.jpg',pool:['whiteA','grayB','darkB'],imgMap:{},descZh:'精回丝为主 · 重量稳',descEn:'Clean yarn · steady weight'},
+  {id:'rag',zh:'碎布开松车间',en:'Rag Opening Shop',machineZh:'开松机',machineEn:'Rag opener',img:'sort-table.jpg',machineImg:'sort-facility.jpg',pool:['ragB','oldC','mixedC'],imgMap:{ragB:'sort-table.jpg',oldC:'sort-facility.jpg',mixedC:'pile-mixed.jpg'},descZh:'碎布多 · 异物多 · 奖金高',descEn:'Rags & junk · higher bonus'},
+  {id:'cotton',zh:'杂棉回收车间',en:'Cotton Recovery Shop',machineZh:'梳棉机',machineEn:'Carding machine',img:'pile-mixed.jpg',machineImg:'machine-carding.jpg',pool:['grayB','mixedC','whiteA'],imgMap:{whiteA:'pile-white.jpg',grayB:'warehouse.jpg',mixedC:'pile-mixed.jpg'},descZh:'杂棉轻 · 容易混色',descEn:'Light cotton · easy color mix'}
 ];
+const WS_LABELS={
+  rag:{ragB:{zh:'碎布条 B',en:'Rag strip B',sZh:'碎布条',sEn:'Rag strip'},oldC:{zh:'旧布头 C',en:'Cut cloth C',sZh:'旧布头',sEn:'Cut cloth'},mixedC:{zh:'杂布碎 C',en:'Mixed rag C',sZh:'杂布碎',sEn:'Mixed rag'}},
+  cotton:{whiteA:{zh:'净杂棉 A',en:'Clean cotton A',sZh:'净杂棉',sEn:'Clean cotton'},grayB:{zh:'短杂棉 B',en:'Short cotton B',sZh:'短杂棉',sEn:'Short cotton'},mixedC:{zh:'地脚杂棉 C',en:'Sweep cotton C',sZh:'地脚棉',sEn:'Sweep cotton'}}
+};
 const BOSS_QUOTES={zh:['快点塞！车在外面等着！','别磨蹭，这批货今晚要走！','手放稳，杂物别往车里塞！','包压紧一点，散包自己赔！','上垛利索点，司机不等人！','看好称，重量不够不要出包！'],en:['Hurry up loading! The truck is waiting!','No slacking, this lot leaves tonight!','Keep your hands steady, junk stays out!','Press tight, pay for loose bales!','Stack fast, the driver won\'t wait!','Watch the scale, no light bales out!']};
 const TIE_NODES={t1:{x:15,y:34},t2:{x:30,y:34},t3:{x:50,y:34},t4:{x:70,y:34},t5:{x:85,y:34},b1:{x:15,y:72},b2:{x:30,y:72},b3:{x:50,y:72},b4:{x:70,y:72},b5:{x:85,y:72}};
 const TIE_PAIRS=[['t1','b2'],['t2','b1'],['t3','b3'],['t4','b5'],['t5','b4']];
-const BOOT_ASSETS=['floor.jpg','pile-white.jpg','pile-dark.jpg','pile-mixed.jpg','baler.jpg','bale-tie.jpg','bale-result.jpg','warehouse.jpg','sort-table.jpg','sort-conveyor.jpg','sort-facility.jpg','pallet-rows.jpg','pallet-round.jpg','control-panel.jpg','gauge.jpg','worker.jpg','boss.jpg','douyin-cover.jpg','break.jpg'];
+const BOOT_ASSETS=['floor.jpg','pile-white.jpg','pile-dark.jpg','pile-mixed.jpg','baler.jpg','bale-tie.jpg','bale-result.jpg','warehouse.jpg','sort-table.jpg','sort-conveyor.jpg','sort-facility.jpg','pallet-rows.jpg','pallet-round.jpg','control-panel.jpg','gauge.jpg','machine-carding.jpg','worker.jpg','boss.jpg','douyin-cover.jpg','break.jpg'];
 const TASK_TYPES=[
   {id:'bales',key:'taskBales',target:2,progress:()=>state.qualified},
   {id:'sort',key:'taskSort',target:8,progress:()=>state.caught},
@@ -725,7 +729,7 @@ const els={
   palletTitle:$('#palletTitle'),palletMeta:$('#palletMeta'),palletRow:$('#palletRow'),
   truckView:$('#truckView'),truckSlots:$('#truckSlots'),truckGround:$('#truckGround'),truckTimer:$('#truckTimer'),truckLoaded:$('#truckLoaded'),truckRevenue:$('#truckRevenue'),forkliftBtn:$('#forkliftBtn'),forkliftCount:$('#forkliftCount'),secureBtn:$('#secureBtn'),departBtn:$('#departBtn'),
   endKicker:$('#endKicker'),endQualified:$('#endQualified'),endOutput:$('#endOutput'),endAvg:$('#endAvg'),endRejects:$('#endRejects'),endCaught:$('#endCaught'),endDefects:$('#endDefects'),endSafety:$('#endSafety'),endGrade:$('#endGrade'),endTitle:$('#endTitle'),endTags:$('#endTags'),endBossCash:$('#endBossCash'),endSoldKg:$('#endSoldKg'),againBtn:$('#againBtn'),
-  wage:$('#wage'),stationBaler:$('#stationBaler'),bossPanel:$('#bossPanel'),bossState:$('#bossState'),bossTask:$('#bossTask'),bossTaskFill:$('#bossTaskFill'),bossTaskTime:$('#bossTaskTime'),bossTaskProg:$('#bossTaskProg'),bossCashLine:$('#bossCashLine'),bossQuote:$('#bossQuote'),idleBar:$('.idle-bar'),
+  wage:$('#wage'),stationBaler:$('#stationBaler'),balerBg:$('#balerBg'),bossPanel:$('#bossPanel'),bossState:$('#bossState'),bossTask:$('#bossTask'),bossTaskFill:$('#bossTaskFill'),bossTaskTime:$('#bossTaskTime'),bossTaskProg:$('#bossTaskProg'),bossCashLine:$('#bossCashLine'),bossQuote:$('#bossQuote'),idleBar:$('.idle-bar'),
   waterBtn:$('#waterBtn'),snackBtn:$('#snackBtn'),phoneBtn:$('#phoneBtn'),phoneLayer:$('#phoneLayer'),phoneScreen:$('#phoneScreen'),phoneClose:$('#phoneClose'),
   endWage:$('#endWage'),endCaughtBoss:$('#endCaughtBoss'),endTasks:$('#endTasks'),bootFill:$('#bootFill'),bootPct:$('#bootPct'),
   fade:$('#fade'),toast:$('#toast'),startModal:$('#startModal'),startBtn:$('#startBtn'),langBtn:$('#langBtn'),musicBtn:$('#musicBtn'),sfxBtn:$('#sfxBtn')
@@ -807,10 +811,11 @@ function applyI18n(){
   renderWorkshops(); buildDeck(); updateFloor(); updateBaler(); updateHud();
 }
 function matLabel(k,short=false){const m=MATERIALS[k];return short?(lang==='zh'?m.shortZh:m.shortEn):(lang==='zh'?m.zh:m.en)}
+function wsMatLabel(k,short=false){const l=WS_LABELS[activeWorkshop().id]?.[k];if(!l)return matLabel(k,short);return short?(lang==='zh'?l.sZh:l.sEn):(lang==='zh'?l.zh:l.en)}
 function activeWorkshop(){return WORKSHOPS.find(w=>w.id===state.workshop)||WORKSHOPS[0]}
 function renderWorkshops(){
   const grid=$('#workshopGrid'); if(!grid)return;
-  grid.innerHTML=WORKSHOPS.map(w=>`<button class="workshop-card ${state.workshop===w.id?'active':''}" data-ws="${w.id}"><img class="ws-img" src="assets/${w.img}" alt=""><span><b>${lang==='zh'?w.zh:w.en}</b><i>${lang==='zh'?w.machineZh:w.machineEn}</i><small>${lang==='zh'?w.descZh:w.descEn}</small></span></button>`).join('');
+  grid.innerHTML=WORKSHOPS.map(w=>`<button class="workshop-card ${state.workshop===w.id?'active':''}" data-ws="${w.id}"><img class="ws-img" src="assets/${w.machineImg}" alt="${lang==='zh'?w.machineZh:w.machineEn}"><span><b>${lang==='zh'?w.zh:w.en}</b><i>${lang==='zh'?w.machineZh:w.machineEn}</i><small>${lang==='zh'?w.descZh:w.descEn}</small></span></button>`).join('');
   grid.onclick=e=>{const c=e.target.closest('[data-ws]');if(c){state.workshop=c.dataset.ws;renderWorkshops();buildDeck();AudioSys.tone('pick')}};
 }
 function toast(msg,kind=''){els.toast.textContent=msg;els.toast.className='toast show '+kind;clearTimeout(toast._t);toast._t=setTimeout(()=>{els.toast.className='toast '+kind},1700)}
@@ -836,12 +841,12 @@ function setScene(name,instant=false){
 function junkLabel(type){const labels={plastic:lang==='zh'?'塑料膜':'Plastic',metal:lang==='zh'?'金属钩':'Metal',paper:lang==='zh'?'纸片':'Paper',oil:lang==='zh'?'油污毛':'Oiled'};return labels[type]||type}
 function buildDeck(){
   const deck=$('#pileDeck');
-  const pool=activeWorkshop().pool;
-  const mats=Object.entries(MATERIALS).filter(([k])=>pool.includes(k)).map(([k,m])=>`
+  const ws=activeWorkshop();
+  const mats=Object.entries(MATERIALS).filter(([k])=>ws.pool.includes(k)).map(([k,m])=>`
     <button class="pile-card" data-mat="${k}">
-      <img src="assets/${m.img}" alt="${m.en}">
+      <img src="assets/${ws.imgMap[k]||m.img}" alt="${wsMatLabel(k)}">
       <span class="grade">${m.grade}</span>
-      <span class="pile-caption">${matLabel(k)}<i>${matLabel(k,true)}</i></span>
+      <span class="pile-caption">${wsMatLabel(k)}<i>${wsMatLabel(k,true)}</i></span>
       <b>${UNIT_KG}<small>kg</small></b><span class="pile-plus">+</span>
     </button>`).join('');
   const junkTypes=['plastic','metal','paper','oil'];
@@ -859,7 +864,7 @@ function updateFloor(){
   const total=state.cart.total, keys=Object.keys(state.cart.materials).filter(k=>state.cart.materials[k]>0);
   els.cartWeight.innerHTML=`${total}<small>kg</small>`; els.cartFill.style.width=Math.min(100,total/CART_CAP*100)+'%';
   let batch=t('emptyBatch');
-  if(keys.length){batch=keys.length>1?t('mixColor'):matLabel(keys[0])}
+  if(keys.length){batch=keys.length>1?t('mixColor'):wsMatLabel(keys[0])}
   els.cartBatch.textContent=batch; els.cartBatch.className=(keys.length>1||total>MAX_BALE)?'warn':'';
   els.cartForeign.textContent=t('foreign0'); els.cartPanel.classList.toggle('is-warn',keys.length>1||total>MAX_BALE);
   els.toSort.disabled=total<MIN_BALE||!state.running;
@@ -870,7 +875,7 @@ function addPile(k,card){
   if(state.cart.total>=CART_CAP){toast(lang==='zh'?'车满了，先去分拣':'Cart full, sort first','bad');return}
   if(card){card.classList.add('stuffing');setTimeout(()=>card.classList.remove('stuffing'),340)}
   state.cart.total+=UNIT_KG; state.loadedKg+=UNIT_KG; state.cart.materials[k]=(state.cart.materials[k]||0)+1; state.cart.colors[MATERIALS[k].color]=(state.cart.colors[MATERIALS[k].color]||0)+1;
-  AudioSys.tone('bag'); updateFloor(); toast(`+${UNIT_KG}kg ${matLabel(k)}`);
+  AudioSys.tone('bag'); updateFloor(); toast(`+${UNIT_KG}kg ${wsMatLabel(k)}`);
 }
 function rejectJunk(type,card){
   if(!state.running||state.scene!=='floor')return;
@@ -931,7 +936,7 @@ function updateTieCount(){els.tieCount.textContent=`${state.machine.tied}/${WIRE
 function updateBaler(){
   const b=state.bale; if(!b)return;
   els.baleMass.innerHTML=`${b.weight}<small>kg</small>`;
-  const first=Object.keys(b.materials)[0]; els.baleBatch.textContent=b.mixed?t('mixColor'):matLabel(first);
+  const first=Object.keys(b.materials)[0]; els.baleBatch.textContent=b.mixed?t('mixColor'):wsMatLabel(first);
   els.doorState.textContent=state.machine.door?(lang==='zh'?'锁':'Locked'):(lang==='zh'?'开':'Open');
   els.safetyLamp.classList.toggle('ok',state.machine.door);
   els.pressureVal.textContent=Math.round(state.machine.pressure); els.pressureFill.style.width=`${Math.min(100,state.machine.pressure/170*100)}%`;
@@ -1232,7 +1237,7 @@ function tick(){if(!state.running||state.finished)return;state.remaining--;bossC
 function startShift(){
   resetState();state.running=true;state.started=true;els.startModal.classList.add('hidden');els.toast.className='toast';
   state.quote=BOSS_QUOTES[lang][Math.floor(Math.random()*BOSS_QUOTES[lang].length)];
-  setScene('floor',true);els.stationBaler.textContent=lang==='zh'?activeWorkshop().machineZh:activeWorkshop().machineEn;updateFloor();updateHud();assignTask();clearInterval(timerId);timerId=setInterval(tick,1000);
+  setScene('floor',true);const ws=activeWorkshop();els.stationBaler.textContent=lang==='zh'?ws.machineZh:ws.machineEn;els.balerBg.src='assets/'+ws.machineImg;updateFloor();updateHud();assignTask();clearInterval(timerId);timerId=setInterval(tick,1000);
   AudioSys.ensure();AudioSys.startMusic();toast(lang==='zh'?'接班 · 先装满一车':'Start shift · load a cart');
 }
 function resetState(){

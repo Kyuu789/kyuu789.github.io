@@ -1739,7 +1739,9 @@ function initThree(){
     three.truckCargoSlots.push(cargoGroup);
   }
   // A compact industrial forklift: counterweight, seat, overhead guard, mast and twin forks.
-  const forklift=new THREE.Group();forklift.position.set(5.15,0,-5.7);scene.add(forklift);three.forklift=forklift;three.forkliftBaseX=5.15;three.forkliftPhase=2;three.lastForkliftCount=state.truck.forklift;
+  const forklift=new THREE.Group();forklift.position.set(5.15,0,-5.7);scene.add(forklift);three.forklift=forklift;three.forkliftBaseX=5.15;three.forkliftBaseZ=-5.7;three.forkliftPhase=2;three.lastForkliftCount=state.truck.forklift;
+  three.truckTargets=[];
+  const forkliftButton=new THREE.Mesh(new THREE.SphereGeometry(.16,16,12),new THREE.MeshStandardMaterial({color:0x6cc69a,emissive:0x1a8052,emissiveIntensity:.65}));forkliftButton.position.set(.68,1.52,.2);forkliftButton.userData.truckAction='forklift';forklift.add(forkliftButton);three.truckTargets.push(forkliftButton);
   addBox(1.15,.34,1.38,0xd6a33e,0,.55,0,.58,.35,forklift);
   addBox(.55,.48,.55,0x303936,-.18,.94,-.12,.65,.35,forklift);
   addBox(.72,.07,.72,0x222a27,-.18,1.22,-.12,.6,.4,forklift);
@@ -1751,6 +1753,15 @@ function initThree(){
   addBox(.1,.08,1.0,0x343c38,.68,1.88,0,.5,.5,forklift);
   addBox(1.0,.07,.09,0xe2bb61,1.12,.25,-.29,.55,.4,forklift);
   addBox(1.0,.07,.09,0xe2bb61,1.12,.25,.29,.55,.4,forklift);
+  three.truckGroundSlots=[];
+  for(let i=0;i<6;i++){
+    const group=new THREE.Group();group.visible=false;scene.add(group);
+    const x=i%2===0?5.35:6.25,z=-1.35-Math.floor(i/2)*.92;
+    group.position.set(x,0,z);group.userData.groundIndex=i;
+    addBox(.86,.52,.72,0x9b927f,0,.58,0,.98,.01,group);
+    for(let k=0;k<3;k++)addBox(.025,.54,.76,0xd8c58e,-.28+k*.28,.58,0,.55,.08,group);
+    three.truckGroundSlots.push(group);
+  }
 
   // Human boss NPC: modeled torso, head, neck, arms and legs (no photo billboard).
   const bossGroup=new THREE.Group();three.bossArms=[];three.bossLegs=[];
@@ -1816,6 +1827,11 @@ function initThree(){
       if(hits.length){const action=hits[0].object.userData.machineAction;
         if(action==='feed')feed();else if(action==='clear')clearStuck();else if(action==='press')press();else if(action==='tie')openTie();else if(action==='eject')eject();else if(action==='gate')closeDoor();
       }
+    }
+    if(state.scene==='truck'&&state.truck.arrived){
+      const ground=three.truckGroundSlots||[],hits=three.raycaster.intersectObjects(ground.filter(g=>g.visible),true);
+      if(hits.length){let node=hits[0].object;while(node&&node.userData.groundIndex==null)node=node.parent;if(node)loadBale(node.userData.groundIndex,false);return}
+      const controls=three.truckTargets||[],forkHits=three.raycaster.intersectObjects(controls,true);if(forkHits.length&&forkHits[0].object.userData.truckAction==='forklift')loadBale(0,true);
     }
   });
   resizeThree();bindRoamControls();requestAnimationFrame(tickThree);
@@ -1884,7 +1900,8 @@ function tickThree(){
   if(three.workers)three.workers.forEach(worker=>{worker.phase+=dt*.9;const sway=Math.sin(worker.phase)*.08;worker.arms.forEach((arm,i)=>{arm.rotation.x=(i===0?1:-1)*sway});worker.legs.forEach((leg,i)=>{leg.rotation.x=(i===0?-1:1)*sway*.65});});
   if(three.palletSlots){const truck=state.truck||{};three.palletSlots.forEach((slot,i)=>{const bale=state.acceptedBales[i],onTruck=!!(truck.arrived&&truck.slotIds&&truck.slotIds.includes(i));slot.visible=!!(bale&&!bale.sold&&!onTruck)});}
   if(three.truckCargoSlots){const truck=state.truck||{};three.truckCargoSlots.forEach((slot,i)=>{slot.visible=!!(truck.arrived&&i<truck.loaded)});}
-  if(three.forklift){const count=state.truck?state.truck.forklift:three.lastForkliftCount;if(count<three.lastForkliftCount)three.forkliftPhase=0;three.lastForkliftCount=count;if(three.forkliftPhase<1.2){three.forkliftPhase+=dt;three.forklift.position.x=three.forkliftBaseX+.9*Math.sin(Math.min(1,three.forkliftPhase/1.2)*Math.PI)}else three.forklift.position.x=three.forkliftBaseX;}
+  if(three.truckGroundSlots){const truck=state.truck||{};three.truckGroundSlots.forEach((slot,i)=>{slot.visible=!!(truck.arrived&&i<truck.groundIds.length);slot.userData.groundIndex=i;});}
+  if(three.forklift){const count=state.truck?state.truck.forklift:three.lastForkliftCount;if(count<three.lastForkliftCount)three.forkliftPhase=0;three.lastForkliftCount=count;if(three.forkliftPhase<1.2){three.forkliftPhase+=dt;const p=Math.min(1,three.forkliftPhase/1.2);three.forklift.position.x=three.forkliftBaseX+.9*Math.sin(p*Math.PI);three.forklift.position.z=three.forkliftBaseZ+1.5*p;}else{three.forklift.position.x=three.forkliftBaseX;three.forklift.position.z=three.forkliftBaseZ;}}
   if(three.machineGate){
     const target=state.machine&&state.machine.door?three.gateClosedY:three.gateOpenY;
     three.machineGate.rotation.y+=(target-three.machineGate.rotation.y)*Math.min(1,dt*5);

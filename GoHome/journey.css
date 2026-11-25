@@ -187,6 +187,12 @@
 .mission-card h2{margin:6px 0 3px;font-size:22px;line-height:1.25;letter-spacing:-.02em}
 .mission-card p{margin:0 0 8px;font-size:11px;line-height:1.6;color:#617168}
 .stage-area{min-height:150px}
+.loading-scene{
+  display:flex;align-items:center;justify-content:center;
+  min-height:140px;border:2px dashed rgba(21,42,37,.2);
+  border-radius:12px;font-size:12px;font-weight:800;color:#7a6a4e;
+  background:rgba(255,255,255,.38);
+}
 .feedback{margin-top:8px;font-size:11px;font-weight:800;color:#8d6b3c;min-height:18px}
 
 /* 检票 */

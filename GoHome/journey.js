@@ -133,6 +133,25 @@
 
   function leg() { return LEGS[state.leg]; }
 
+  const sceneImages = {};
+  function getScene(src) {
+    if (!sceneImages[src]) {
+      const img = new Image();
+      img.src = src;
+      sceneImages[src] = img;
+    }
+    return sceneImages[src];
+  }
+  function whenSceneReady(src, cb) {
+    const img = getScene(src);
+    let done = false;
+    const go = () => { if (!done) { done = true; cb(); } };
+    if (img.complete && img.naturalWidth) { go(); return; }
+    img.addEventListener("load", go, { once: true });
+    img.addEventListener("error", go, { once: true });
+    setTimeout(go, 1800);
+  }
+
   function updateMiniRoute() {
     [...miniRoute.children].forEach((el, i) => {
       el.className = "mini-stop";
@@ -229,8 +248,13 @@
     scenePhoto.style.backgroundImage = "url('" + l.bg + "')";
     scenePhoto.style.backgroundPosition = l.bgPos || "center";
     updateMiniRoute();
-    feedback.textContent = "稳住，别在这一程翻车。";
-    startStage();
+    setMission(l.name, "正在进站…", "等这一程的实景加载出来，计时才开始。", "");
+    stageArea.innerHTML = '<div class="loading-scene">正在加载实景…</div>';
+    feedback.textContent = "别急，站台已经在加载了。";
+    const token = state.token;
+    whenSceneReady(l.bg, () => {
+      if (token === state.token) startStage();
+    });
   }
 
   function startStage() {
@@ -486,6 +510,8 @@
   creditsModal.addEventListener("click", e => { if (e.target === creditsModal) creditsModal.classList.add("hidden"); });
 
   document.addEventListener("pointerdown", () => { if (state.soundOn) ensureAudio(); }, { passive: true });
+
+  [...new Set(LEGS.flatMap(l => [l.bg, l.endBg]).filter(Boolean))].forEach(getScene);
 
   const bootLeg = Number(new URLSearchParams(location.search).get("leg"));
   if (bootLeg >= 2 && bootLeg <= 5) {

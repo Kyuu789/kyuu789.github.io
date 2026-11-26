@@ -392,18 +392,19 @@ body.shake{animation:screenShake .35s ease}
   .shift-track{flex:1;min-width:46px}
   .stage{overflow:hidden}.backdrop{filter:saturate(.82) contrast(1.02) brightness(.74)}
   .station{top:12px;left:12px}.station b{font-size:12px}.station span{font-size:12px}.floor-note{top:34px;left:12px;font-size:9px}
-  .pile-deck{left:12px;right:12px;top:226px;bottom:170px;overflow-y:auto;overflow-x:hidden;grid-template-columns:repeat(3,1fr);gap:6px;align-content:start;padding-bottom:6px;scrollbar-width:thin;touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-  .pile-card{width:auto;min-width:0;height:92px;flex-shrink:0}.pile-card img{height:46px}.pile-card::after{height:46px}
-  .pile-caption{font-size:8px;left:5px;top:5px}.pile-caption i{font-size:7px}.pile-card b{font-size:16px;left:5px;bottom:5px}.pile-plus{width:21px;height:21px;right:5px;bottom:5px;font-size:12px}.grade{right:5px;top:5px;font-size:8px;padding:1px 5px}.pile-card.junk svg{width:62%;height:62%;margin:8% auto 0}
-  .cart-panel,.sort-panel{left:12px;right:12px;bottom:62px;width:auto;padding:9px 11px 10px}
-  .cart-head span{font-size:9px}.cart-head b{font-size:30px}.cart-meta{font-size:9px}
+  .pile-deck{left:12px;right:12px;top:206px;bottom:158px;overflow-y:auto;overflow-x:hidden;grid-template-columns:repeat(3,1fr);gap:6px;align-content:start;padding-bottom:6px;scrollbar-width:thin;touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .pile-card{width:auto;min-width:0;height:74px;flex-shrink:0}.pile-card img{height:32px}.pile-card::after{height:32px}
+  .pile-caption{font-size:8px;left:5px;top:5px}.pile-caption i{font-size:7px}.pile-card b{font-size:14px;left:5px;bottom:5px}.pile-plus{width:20px;height:20px;right:5px;bottom:5px;font-size:12px}.grade{right:5px;top:5px;font-size:8px;padding:1px 5px}.pile-card.junk svg{width:56%;height:56%;margin:7% auto 0}
+  .cart-panel,.sort-panel{left:12px;right:12px;bottom:62px;width:auto;padding:8px 10px 9px}
+  .cart-head span{font-size:9px}.cart-head b{font-size:26px}.cart-meta{font-size:9px}
   .worker-figure{right:12px;width:180px;height:120px;bottom:78px;opacity:.28}
-  .boss-panel{left:12px;right:12px;top:60px;bottom:auto;width:auto;gap:8px;padding:7px 8px}
-  .boss-panel img{width:48px;height:64px}
-  .boss-task{min-height:22px;font-size:9px}
-  .boss-quote{margin-top:4px;font-size:9px}
-  .boss-cash{margin-top:4px;font-size:9px}
-  .boss-meta{font-size:9px;margin-top:3px}
+  .boss-panel{left:12px;right:12px;top:58px;bottom:auto;width:auto;gap:8px;padding:6px 8px}
+  .boss-panel img{width:44px;height:58px}
+  .boss-task{min-height:18px;font-size:9px;line-height:1.3}
+  .boss-quote{margin-top:3px;font-size:9px}
+  .boss-cash{margin-top:3px;font-size:9px}
+  .boss-meta{font-size:9px;margin-top:2px}
+  .anger{margin-top:3px}
   .idle-bar{bottom:12px;gap:6px}
   .idle-btn{min-height:34px;padding:0 9px;font-size:10px}
   .truck-card{width:100%;padding:12px;top:118px;bottom:12px;transform:translateX(-50%);overflow-y:auto}.truck-truck{grid-template-columns:64px 1fr}.truck-bed{grid-template-columns:repeat(3,1fr);gap:5px;padding:8px}.truck-slot{min-height:82px}.ground-bale{min-width:80px;padding:7px}.truck-meta{gap:10px}.truck-actions .btn{min-width:0;flex:1}
@@ -411,6 +412,10 @@ body.shake{animation:screenShake .35s ease}
   .machine-readout{left:12px;top:36px;bottom:auto;width:auto;min-width:156px;padding:6px 9px 7px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
   .machine-readout span{display:none}.machine-readout b{font-size:24px}.machine-readout #baleBatch{font-size:9px;margin:0}
   .safety{right:12px;top:10px;padding:7px 9px;font-size:9px}
+  body[data-scene="baler"] .machine-readout{top:34px;left:12px;right:auto;min-width:150px}
+  body[data-scene="baler"] .boss-panel{top:102px;padding:6px 8px;gap:8px}
+  body[data-scene="baler"] .boss-panel img{width:42px;height:56px}
+  body[data-scene="baler"] .boss-task{min-height:16px}
   .console{left:12px;right:12px;bottom:64px;width:auto;max-height:63%;padding:11px;overflow:auto}
   .sort-item{width:48px;height:48px}
   .panel-inset{grid-template-columns:1fr 58px}.panel-inset img{height:46px}
@@ -428,7 +433,7 @@ body.shake{animation:screenShake .35s ease}
   .toast{top:70px;font-size:10px;max-width:calc(100vw - 30px);white-space:normal;text-align:center}
 }
 @media (max-height:620px){
-  #app{grid-template-rows:56px minmax(0,1fr)}.hud{padding-top:6px;padding-bottom:6px}.brand p{display:none}.station{top:8px}.floor-note{display:none}.pile-deck{top:196px;bottom:104px}.pile-card{height:88px}.pile-card img{height:44px}.console{max-height:67%}
+  #app{grid-template-rows:56px minmax(0,1fr)}.hud{padding-top:6px;padding-bottom:6px}.brand p{display:none}.station{top:8px}.floor-note{display:none}.pile-deck{top:180px;bottom:96px}.pile-card{height:68px}.pile-card img{height:30px}.console{max-height:67%}
 }
 </style>
 </head>
@@ -894,6 +899,7 @@ function setScene(name,instant=false){
   if(old)old.classList.remove('active');
   if(next)next.classList.add('active');
   state.scene=name;
+  document.body.dataset.scene=name;
   const hideIdle=name==='end';
   els.bossPanel.classList.toggle('hidden',hideIdle);
   els.idleBar.classList.toggle('hidden',hideIdle);

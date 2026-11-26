@@ -63,17 +63,7 @@ body::before{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;bac
 
 /* Stage */
 .stage{position:relative;min-height:0;overflow:hidden;background:#0b1412}
-#threeCanvas{position:absolute;inset:0;z-index:0;width:100%;height:100%;display:block}
-body.before-start .view,body.before-start .hud,body.before-start .boss-panel,body.before-start .idle-bar,body.before-start #threeCanvas{opacity:0;visibility:hidden}
-body.before-start #threeCanvas{display:none!important}
-.roam-controls{position:absolute;inset:0;z-index:8;pointer-events:none}
-#joyBase{position:absolute;left:18px;bottom:28px;width:112px;height:112px;border:1px solid rgba(230,174,82,.32);border-radius:50%;background:rgba(8,16,14,.34);pointer-events:auto;touch-action:none}
-#joyKnob{position:absolute;left:50%;top:50%;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(243,204,130,.9),rgba(230,174,82,.55));transform:translate(-50%,-50%);box-shadow:0 8px 20px rgba(0,0,0,.35)}
-.look-hint{position:absolute;right:18px;bottom:42px;font-family:var(--mono);font-size:10px;color:rgba(236,232,220,.62);letter-spacing:.08em}
-.roam-prompt{position:absolute;left:50%;bottom:126px;z-index:9;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(230,174,82,.42);background:rgba(8,16,14,.82);backdrop-filter:blur(10px);box-shadow:var(--shadow)}
-.roam-prompt span{font-size:12px;color:var(--amber2)}
-.roam-prompt .btn{min-height:38px;padding:0 14px}
-.roam-back{position:absolute;right:14px;top:14px;z-index:9;min-height:36px;padding:0 12px;border:1px solid rgba(230,174,82,.42);background:rgba(8,16,14,.82);color:var(--amber2);font-family:var(--mono);font-size:11px;letter-spacing:.08em;cursor:pointer}
+body.before-start .view,body.before-start .hud,body.before-start .boss-panel,body.before-start .idle-bar{opacity:0;visibility:hidden}
 .view{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .28s ease,visibility .28s ease;overflow:hidden}
 .view.active{opacity:1;visibility:visible}
 .backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.76) contrast(1.06) brightness(.66);transform:scale(1.025)}
@@ -483,16 +473,6 @@ body.shake{animation:screenShake .35s ease}
   </header>
 
   <main class="stage" id="stage">
-    <canvas id="threeCanvas"></canvas>
-    <div class="roam-prompt hidden" id="roamPrompt">
-      <span id="roamLabel"></span>
-      <button class="btn primary" id="interactBtn" data-i18n="interact">操作</button>
-    </div>
-    <div class="roam-controls hidden" id="roamControls">
-      <div id="joyBase"><div id="joyKnob"></div></div>
-      <div class="look-hint" data-i18n="lookHint">右侧拖动转视角</div>
-    </div>
-    <button id="roamBack" class="roam-back hidden" data-i18n="backWorkshop">回车间</button>
     <section class="view active" id="floorView">
       <img class="backdrop" src="assets/floor.jpg" alt="textile mill floor">
       <div class="vignette"></div>
@@ -736,7 +716,6 @@ body.shake{animation:screenShake .35s ease}
   </div>
 </div>
 
-<script src="assets/three.min.js"></script>
 <script>
 /* ===== 数据 ===== */
 const MATERIALS = {
@@ -772,8 +751,8 @@ const TASK_TYPES=[
   {id:'load',key:'taskLoad',target:300,progress:()=>state.loadedKg}
 ];
 const I18N = {
-  zh:{appTitle:'废毛打包间',clock:'班次',remaining:'剩余',qualified:'合格',output:'产量',stock:'丝道',stationFloor:'收毛区',stationSort:'分拣台',stationBaler:'液压打包',floorNote:'只塞干净毛料 · 异物别上车 · 10–13 次 = 150–190kg',cart:'周转车 / CART',empty:'空车',foreign0:'异物 0',toSort:'去分拣台',sortTitle:'分拣 / SORT',weight:'重量',grade:'品级',purity:'挑出',left:'遗留',sendBaler:'送入打包机',chamber:'压仓 / CHAMBER',gate:'安全门',control:'控制台 / CONTROL',pressure:'液压压力',feed:'倒料',close:'关门',press:'下压',repress:'补压',tie:'穿丝',eject:'出包',stuck:'压仓卡毛',clear:'清理',wire:'打包丝 / WIRE',fourTies:'穿 5 道',tieHint:'按住上排节点，滑到下排对应节点，拉出五根 X | X 包带；连错会松脱。',truckKicker:'9.6米大运 · 装车发运',truckTimer:'装车限时',truckLoaded:'已装',truckRevenue:'预计货款',forklift:'铲车',secure:'绑绳加固',depart:'发车卖货',truckHint:'点地上的包人力扛上车；超重包容易打滑，铲车一次装一包。',bossCash:'老板货款',soldKg:'已售毛料',quality:'品质',scoreWeight:'重量',scorePurity:'纯净',scoreGrade:'品级',scoreBind:'打包',palletKicker:'PALLET BAY',of6:'/ 6 包合格',avg:'平均包重',rejected:'返工包',caught:'挑出异物',defects:'故障/失误',safety:'安全',endTitleDone:'目标达成 · 可以交班',endTitleEnd:'本班结束 · 还差一截',startSub:'把地上的废毛，压成能上垛的包。',target:'目标',bales:'包',baleSize:'单包',shiftTime:'班时',flow1:'收集',flow2:'分拣',flow3:'液压打包',flow4:'穿丝',flow5:'码垛',start:'接班',again:'再来一班',wireStock:'丝道',gradeChip:'品级',emptyBatch:'空车',mixColor:'混色',empty0:'—',bootLoading:'正在加载车间素材…',wage:'工资',boss:'老板',water:'喝水',snack:'吃东西',phone:'手机',caughtBoss:'被抓摸鱼',tasksDone:'完成任务',taskBales:'合格打包',taskSort:'挑净异物',taskJam:'清理卡毛',taskStraps:'完成穿丝',taskLoad:'装车产量',bossAway:'背身摸鱼',bossWatch:'正在巡视',taskDone:'任务完成 · 加工资',taskMiss:'任务超时 · 扣工资加派',caughtMsg:'被老板发现摸鱼 · 扣工资加任务',phoneHome:'手机桌面',wechat:'微信',douyin:'抖音',wife:'老婆',send:'发送',like:'点赞',comment:'评论',drinkMsg:'喝口水缓一缓',snackMsg:'吃口饼干垫肚子',dayWorked:'工作天数',totalBales:'累计合格',nextDay:'已达标 · 下一班进入第',anger:'怒气',slapTitle:'老板发飙了！',slapHint:'看抬手方向，立刻躲开！',dodgeLeft:'向左躲',dodgeRight:'向右躲',dodgeDown:'低头',slapSuccess:'躲开了！',slapFail:'被扇到了 · 扣工资',interact:'操作',lookHint:'右侧拖动转视角',roamFloor:'收毛堆料区',roamSort:'分拣台',roamBaler:'液压打包机',roamPallet:'包垛区',roamTruck:'货车装车区',backWorkshop:'回车间'},
-  en:{appTitle:'Waste Wool Shift',clock:'Shift',remaining:'Left',qualified:'Pass',output:'Output',stock:'Wires',stationFloor:'Recovery',stationSort:'Sorting',stationBaler:'Hydraulic Baler',floorNote:'Load clean fiber only · keep junk out · 10–13 loads = 150–190kg',cart:'CART',empty:'Empty cart',foreign0:'Contaminants 0',toSort:'To sorting line',sortTitle:'SORTING LINE',weight:'Weight',grade:'Grade',purity:'Picked',left:'Left',sendBaler:'Send to baler',chamber:'CHAMBER',gate:'Gate',control:'CONTROL',pressure:'Hydraulic pressure',feed:'Load',close:'Close gate',press:'Press down',repress:'Repress',tie:'Tie',eject:'Eject',stuck:'Fiber jam',clear:'Clear',wire:'BALE WIRE',fourTies:'Tie 5 wires',tieHint:'Press a top node and drag to its bottom node to draw the five X | X straps; wrong links come loose.',truckKicker:'9.6M DAYUN / LOAD & SHIP',truckTimer:'Loading time',truckLoaded:'Loaded',truckRevenue:'Est. sale',forklift:'Forklift',secure:'Secure ropes',depart:'Drive & sell',truckHint:'Tap a ground bale to carry it aboard; heavy bales may slip, forklift loads one bale per charge.',bossCash:'Boss proceeds',soldKg:'Sold fiber',quality:'Quality',scoreWeight:'Weight',scorePurity:'Purity',scoreGrade:'Grade',scoreBind:'Binding',palletKicker:'PALLET BAY',of6:'/ 6 bales passed',avg:'Avg bale',rejected:'Rejected',caught:'Contaminants',defects:'Faults',safety:'Safety',endTitleDone:'Shift target met',endTitleEnd:'Shift ended · short of target',startSub:'Press loose mill waste into stackable bales.',target:'Target',bales:'bales',baleSize:'Bale',shiftTime:'Shift',flow1:'Collect',flow2:'Sort',flow3:'Bale',flow4:'Tie',flow5:'Stack',start:'Start shift',again:'Next shift',wireStock:'Wires',gradeChip:'Grade',emptyBatch:'Empty cart',mixColor:'Mixed color',empty0:'—',bootLoading:'Loading shift assets…',wage:'Wage',boss:'Boss',water:'Water',snack:'Snack',phone:'Phone',caughtBoss:'Caught idle',tasksDone:'Tasks done',taskBales:'Qualified bales',taskSort:'Catch waste',taskJam:'Clear jams',taskStraps:'Tie straps',taskLoad:'Load cart',bossAway:'Back turned',bossWatch:'Watching',taskDone:'Task done · bonus',taskMiss:'Task missed · pay cut',caughtMsg:'Caught slacking · pay cut and extra task',phoneHome:'Phone',wechat:'WeChat',douyin:'TikTok',wife:'Wife',send:'Send',like:'Like',comment:'Comment',drinkMsg:'Take a sip',snackMsg:'Bite a biscuit',dayWorked:'Days worked',totalBales:'Total passed',nextDay:'Target met · next shift starts day',anger:'Anger',slapTitle:'Boss is furious!',slapHint:'Watch the wind-up and dodge now!',dodgeLeft:'Dodge left',dodgeRight:'Dodge right',dodgeDown:'Duck',slapSuccess:'Dodged it!',slapFail:'Slapped · wage cut',interact:'Use',lookHint:'Drag right side to look',roamFloor:'Wool recovery pile',roamSort:'Sorting table',roamBaler:'Hydraulic baler',roamPallet:'Pallet bay',roamTruck:'Truck loading bay',backWorkshop:'Workshop'}
+  zh:{appTitle:'废毛打包间',clock:'班次',remaining:'剩余',qualified:'合格',output:'产量',stock:'丝道',stationFloor:'收毛区',stationSort:'分拣台',stationBaler:'液压打包',floorNote:'只塞干净毛料 · 异物别上车 · 10–13 次 = 150–190kg',cart:'周转车 / CART',empty:'空车',foreign0:'异物 0',toSort:'去分拣台',sortTitle:'分拣 / SORT',weight:'重量',grade:'品级',purity:'挑出',left:'遗留',sendBaler:'送入打包机',chamber:'压仓 / CHAMBER',gate:'安全门',control:'控制台 / CONTROL',pressure:'液压压力',feed:'倒料',close:'关门',press:'下压',repress:'补压',tie:'穿丝',eject:'出包',stuck:'压仓卡毛',clear:'清理',wire:'打包丝 / WIRE',fourTies:'穿 5 道',tieHint:'按住上排节点，滑到下排对应节点，拉出五根 X | X 包带；连错会松脱。',truckKicker:'9.6米大运 · 装车发运',truckTimer:'装车限时',truckLoaded:'已装',truckRevenue:'预计货款',forklift:'铲车',secure:'绑绳加固',depart:'发车卖货',truckHint:'点地上的包人力扛上车；超重包容易打滑，铲车一次装一包。',bossCash:'老板货款',soldKg:'已售毛料',quality:'品质',scoreWeight:'重量',scorePurity:'纯净',scoreGrade:'品级',scoreBind:'打包',palletKicker:'PALLET BAY',of6:'/ 6 包合格',avg:'平均包重',rejected:'返工包',caught:'挑出异物',defects:'故障/失误',safety:'安全',endTitleDone:'目标达成 · 可以交班',endTitleEnd:'本班结束 · 还差一截',startSub:'把地上的废毛，压成能上垛的包。',target:'目标',bales:'包',baleSize:'单包',shiftTime:'班时',flow1:'收集',flow2:'分拣',flow3:'液压打包',flow4:'穿丝',flow5:'码垛',start:'接班',again:'再来一班',wireStock:'丝道',gradeChip:'品级',emptyBatch:'空车',mixColor:'混色',empty0:'—',bootLoading:'正在加载车间素材…',wage:'工资',boss:'老板',water:'喝水',snack:'吃东西',phone:'手机',caughtBoss:'被抓摸鱼',tasksDone:'完成任务',taskBales:'合格打包',taskSort:'挑净异物',taskJam:'清理卡毛',taskStraps:'完成穿丝',taskLoad:'装车产量',bossAway:'背身摸鱼',bossWatch:'正在巡视',taskDone:'任务完成 · 加工资',taskMiss:'任务超时 · 扣工资加派',caughtMsg:'被老板发现摸鱼 · 扣工资加任务',phoneHome:'手机桌面',wechat:'微信',douyin:'抖音',wife:'老婆',send:'发送',like:'点赞',comment:'评论',drinkMsg:'喝口水缓一缓',snackMsg:'吃口饼干垫肚子',dayWorked:'工作天数',totalBales:'累计合格',nextDay:'已达标 · 下一班进入第',anger:'怒气',slapTitle:'老板发飙了！',slapHint:'看抬手方向，立刻躲开！',dodgeLeft:'向左躲',dodgeRight:'向右躲',dodgeDown:'低头',slapSuccess:'躲开了！',slapFail:'被扇到了 · 扣工资'},
+  en:{appTitle:'Waste Wool Shift',clock:'Shift',remaining:'Left',qualified:'Pass',output:'Output',stock:'Wires',stationFloor:'Recovery',stationSort:'Sorting',stationBaler:'Hydraulic Baler',floorNote:'Load clean fiber only · keep junk out · 10–13 loads = 150–190kg',cart:'CART',empty:'Empty cart',foreign0:'Contaminants 0',toSort:'To sorting line',sortTitle:'SORTING LINE',weight:'Weight',grade:'Grade',purity:'Picked',left:'Left',sendBaler:'Send to baler',chamber:'CHAMBER',gate:'Gate',control:'CONTROL',pressure:'Hydraulic pressure',feed:'Load',close:'Close gate',press:'Press down',repress:'Repress',tie:'Tie',eject:'Eject',stuck:'Fiber jam',clear:'Clear',wire:'BALE WIRE',fourTies:'Tie 5 wires',tieHint:'Press a top node and drag to its bottom node to draw the five X | X straps; wrong links come loose.',truckKicker:'9.6M DAYUN / LOAD & SHIP',truckTimer:'Loading time',truckLoaded:'Loaded',truckRevenue:'Est. sale',forklift:'Forklift',secure:'Secure ropes',depart:'Drive & sell',truckHint:'Tap a ground bale to carry it aboard; heavy bales may slip, forklift loads one bale per charge.',bossCash:'Boss proceeds',soldKg:'Sold fiber',quality:'Quality',scoreWeight:'Weight',scorePurity:'Purity',scoreGrade:'Grade',scoreBind:'Binding',palletKicker:'PALLET BAY',of6:'/ 6 bales passed',avg:'Avg bale',rejected:'Rejected',caught:'Contaminants',defects:'Faults',safety:'Safety',endTitleDone:'Shift target met',endTitleEnd:'Shift ended · short of target',startSub:'Press loose mill waste into stackable bales.',target:'Target',bales:'bales',baleSize:'Bale',shiftTime:'Shift',flow1:'Collect',flow2:'Sort',flow3:'Bale',flow4:'Tie',flow5:'Stack',start:'Start shift',again:'Next shift',wireStock:'Wires',gradeChip:'Grade',emptyBatch:'Empty cart',mixColor:'Mixed color',empty0:'—',bootLoading:'Loading shift assets…',wage:'Wage',boss:'Boss',water:'Water',snack:'Snack',phone:'Phone',caughtBoss:'Caught idle',tasksDone:'Tasks done',taskBales:'Qualified bales',taskSort:'Catch waste',taskJam:'Clear jams',taskStraps:'Tie straps',taskLoad:'Load cart',bossAway:'Back turned',bossWatch:'Watching',taskDone:'Task done · bonus',taskMiss:'Task missed · pay cut',caughtMsg:'Caught slacking · pay cut and extra task',phoneHome:'Phone',wechat:'WeChat',douyin:'TikTok',wife:'Wife',send:'Send',like:'Like',comment:'Comment',drinkMsg:'Take a sip',snackMsg:'Bite a biscuit',dayWorked:'Days worked',totalBales:'Total passed',nextDay:'Target met · next shift starts day',anger:'Anger',slapTitle:'Boss is furious!',slapHint:'Watch the wind-up and dodge now!',dodgeLeft:'Dodge left',dodgeRight:'Dodge right',dodgeDown:'Duck',slapSuccess:'Dodged it!',slapFail:'Slapped · wage cut'}
 };
 let lang = localStorage.getItem('tw-lang') || 'zh';
 const t = k => (I18N[lang]&&I18N[lang][k]) || I18N.zh[k] || k;
@@ -787,7 +766,6 @@ function persistSave(){const {recorded,...save}=state.career;try{localStorage.se
 
 const state = {
   workshop:'wool',quote:'',
-  roam:{active:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null},
   started:false,running:false,finished:false,scene:'floor',remaining:SHIFT_SECONDS,
   cart:{total:0,materials:{},colors:{}},sortItems:[],missed:0,caught:0,defects:0,
   bale:null,machine:{loaded:false,door:false,handInside:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false},
@@ -814,7 +792,7 @@ const els={
   palletTitle:$('#palletTitle'),palletMeta:$('#palletMeta'),palletRow:$('#palletRow'),
   truckView:$('#truckView'),truckSlots:$('#truckSlots'),truckGround:$('#truckGround'),truckTimer:$('#truckTimer'),truckLoaded:$('#truckLoaded'),truckRevenue:$('#truckRevenue'),forkliftBtn:$('#forkliftBtn'),forkliftCount:$('#forkliftCount'),secureBtn:$('#secureBtn'),departBtn:$('#departBtn'),
   endKicker:$('#endKicker'),endQualified:$('#endQualified'),endOutput:$('#endOutput'),endAvg:$('#endAvg'),endRejects:$('#endRejects'),endCaught:$('#endCaught'),endDefects:$('#endDefects'),endSafety:$('#endSafety'),endGrade:$('#endGrade'),endTitle:$('#endTitle'),endTags:$('#endTags'),endBossCash:$('#endBossCash'),endSoldKg:$('#endSoldKg'),endDay:$('#endDay'),endTotalBales:$('#endTotalBales'),againBtn:$('#againBtn'),
-  stage:$('#stage'),wage:$('#wage'),stationBaler:$('#stationBaler'),balerBg:$('#balerBg'),bossPanel:$('#bossPanel'),bossState:$('#bossState'),bossTask:$('#bossTask'),bossTaskFill:$('#bossTaskFill'),bossTaskTime:$('#bossTaskTime'),bossTaskProg:$('#bossTaskProg'),bossCashLine:$('#bossCashLine'),bossQuote:$('#bossQuote'),bossAngerFill:$('#bossAngerFill'),slapLayer:$('#slapLayer'),slapHint:$('#slapHint'),slapHand:$('#slapHand'),slapTimerFill:$('#slapTimerFill'),threeCanvas:$('#threeCanvas'),roamPrompt:$('#roamPrompt'),roamLabel:$('#roamLabel'),interactBtn:$('#interactBtn'),roamControls:$('#roamControls'),joyBase:$('#joyBase'),joyKnob:$('#joyKnob'),roamBack:$('#roamBack'),idleBar:$('.idle-bar'),
+  stage:$('#stage'),wage:$('#wage'),stationBaler:$('#stationBaler'),balerBg:$('#balerBg'),bossPanel:$('#bossPanel'),bossState:$('#bossState'),bossTask:$('#bossTask'),bossTaskFill:$('#bossTaskFill'),bossTaskTime:$('#bossTaskTime'),bossTaskProg:$('#bossTaskProg'),bossCashLine:$('#bossCashLine'),bossQuote:$('#bossQuote'),bossAngerFill:$('#bossAngerFill'),slapLayer:$('#slapLayer'),slapHint:$('#slapHint'),slapHand:$('#slapHand'),slapTimerFill:$('#slapTimerFill'),idleBar:$('.idle-bar'),
   waterBtn:$('#waterBtn'),snackBtn:$('#snackBtn'),phoneBtn:$('#phoneBtn'),phoneLayer:$('#phoneLayer'),phoneScreen:$('#phoneScreen'),phoneClose:$('#phoneClose'),
   endWage:$('#endWage'),endCaughtBoss:$('#endCaughtBoss'),endTasks:$('#endTasks'),bootFill:$('#bootFill'),bootPct:$('#bootPct'),
   fade:$('#fade'),toast:$('#toast'),startModal:$('#startModal'),startBtn:$('#startBtn'),langBtn:$('#langBtn'),musicBtn:$('#musicBtn'),sfxBtn:$('#sfxBtn')
@@ -919,15 +897,8 @@ function setScene(name,instant=false){
   const hideIdle=name==='end';
   els.bossPanel.classList.toggle('hidden',hideIdle);
   els.idleBar.classList.toggle('hidden',hideIdle);
-  state.roam.active=name==='roam';
-  els.roamControls.classList.toggle('hidden',!state.roam.active);
-  els.roamPrompt.classList.toggle('hidden',!state.roam.active);
-  const inStation=['floor','sort','baler','pallet','truck'].includes(name);
-  els.roamBack.classList.toggle('hidden',!inStation||!state.running);
   if(!instant){els.fade.classList.add('on');setTimeout(()=>{els.fade.classList.remove('on')},220)}
 }
-
-function enterRoam(){if(state.finished)return;setScene('roam')}
 
 /* ===== 收毛 ===== */
 function junkLabel(type){const labels={plastic:lang==='zh'?'塑料膜':'Plastic',metal:lang==='zh'?'金属钩':'Metal',paper:lang==='zh'?'纸片':'Paper',oil:lang==='zh'?'油污毛':'Oiled'};return labels[type]||type}
@@ -1173,7 +1144,7 @@ function afterResult(goStack){
 function nextShiftCycle(){
   if(state.finished)return;
   state.bale=null;state.machine={loaded:false,door:false,handInside:false,stuck:false,presses:0,pressure:0,pressed:false,needRepress:false,tied:0,opened:false,wireSnap:false,tieOrder:[],tiePairs:[],gesture:null,arrangeSkew:false};
-  setScene('roam');updateFloor();
+  setScene('floor');updateFloor();
   if(state.qualified>=TARGET_BALES){state.running=false;setTimeout(finishShift,900)}
 }
 function unsoldBales(){return state.acceptedBales.filter(b=>!b.sold)}
@@ -1353,8 +1324,7 @@ function tick(){if(!state.running||state.finished)return;state.remaining--;bossC
 function startShift(){
   resetState();state.running=true;state.started=true;document.body.classList.remove('before-start');els.startModal.classList.add('hidden');els.toast.className='toast';
   state.quote=BOSS_QUOTES[lang][Math.floor(Math.random()*BOSS_QUOTES[lang].length)];
-  initThree();
-  setScene('roam',true);const ws=activeWorkshop();els.stationBaler.textContent=lang==='zh'?ws.machineZh:ws.machineEn;els.balerBg.src='assets/'+ws.machineImg;updateFloor();updateHud();assignTask();clearInterval(timerId);timerId=setInterval(tick,1000);
+  setScene('floor',true);const ws=activeWorkshop();els.stationBaler.textContent=lang==='zh'?ws.machineZh:ws.machineEn;els.balerBg.src='assets/'+ws.machineImg;updateFloor();updateHud();assignTask();clearInterval(timerId);timerId=setInterval(tick,1000);
   AudioSys.ensure();AudioSys.startMusic();toast(lang==='zh'?'接班 · 先装满一车':'Start shift · load a cart');
 }
 function resetState(){
@@ -1366,10 +1336,9 @@ function resetState(){
   state.wage=0;state.caughtCount=0;state.tasksDone=0;state.tasksMissed=0;state.loadedKg=0;state.jamsCleared=0;state.strapsTied=0;
   state.bossCash=0;state.soldBales=0;state.soldKg=0;
   state.truck={arrived:false,loaded:0,slotIds:[],groundIds:[],forklift:FORKLIFT_USES,secured:false,timer:TRUCK_SECONDS,loadedBales:[],revenue:0};
-  state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0,x:4.2,z:2.2,wp:0};state.slap={open:false,dir:null,correct:null,timer:null,timeout:null,left:0};state.roam={active:false,x:0,z:0,yaw:0,pitch:0,joyX:0,joyY:0,nearest:null};state.phoneOpen=false;state.wechatMsgs=[];state.quote='';state.career.recorded=false;
+  state.boss={watching:false,phaseLeft:4,task:null,extraTasks:0,anger:0};state.slap={open:false,dir:null,correct:null,timer:null,timeout:null,left:0};state.phoneOpen=false;state.wechatMsgs=[];state.quote='';state.career.recorded=false;
   document.body.classList.remove('angry','shake');els.slapLayer.classList.add('hidden');
   els.phoneLayer.classList.add('hidden');
-  els.roamControls.classList.add('hidden');els.roamPrompt.classList.add('hidden');els.roamBack.classList.add('hidden');
   els.sortLayer.innerHTML='';els.tieLayer.classList.add('hidden');els.resultLayer.classList.add('hidden');
   els.floorView.classList.add('active');els.sortView.classList.remove('active');els.balerView.classList.remove('active');els.palletView.classList.remove('active');els.endView.classList.remove('active');
   resetTieBoard();updateHud();
@@ -1438,168 +1407,6 @@ els.snackBtn.addEventListener('click',()=>idleAction('snack'));
 els.phoneBtn.addEventListener('click',()=>idleAction('phone'));
 els.phoneClose.addEventListener('click',closePhone);
 $$('[data-dodge]',els.slapLayer).forEach(btn=>btn.addEventListener('click',()=>dodgeSlap(btn.dataset.dodge)));
-
-/* ===== 第一人称 3D 车间 ===== */
-const ROAM_SPOTS=[
-  {id:'floor',x:-6,z:3,key:'roamFloor',can:()=>state.running,run:()=>setScene('floor')},
-  {id:'sort',x:-1,z:-4,key:'roamSort',can:()=>state.running&&state.cart.total>=MIN_BALE,run:()=>{setScene('floor',true);goSort()}},
-  {id:'baler',x:5,z:1,key:'roamBaler',can:()=>state.running&&state.bale&&state.scene!=='baler',run:()=>{setScene('sort',true);sendBaler()}},
-  {id:'pallet',x:-5,z:-6,key:'roamPallet',can:()=>state.running&&state.acceptedBales.length>0,run:()=>goPallet()},
-  {id:'truck',x:6,z:-6,key:'roamTruck',can:()=>state.running&&unsoldBales().length>=TRUCK_ARRIVE,run:()=>goTruck()}
-];
-let three=null;
-const BOSS_WAYPOINTS=[{x:4.2,z:2.2},{x:1.2,z:3.2},{x:-3,z:1.4},{x:2,z:-2.4},{x:4.2,z:2.2}];
-const roamKeys={};
-let lookPointer=null,lastLookX=0,lastLookY=0,joyPointer=null,lastJoyX=0,lastJoyY=0,lastFrame=performance.now();
-
-function box(w,h,d,color,x,y,z,rough=.85){
-  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:rough,metalness:.08}));
-  m.position.set(x,y,z);three.scene.add(m);return m;
-}
-function cyl(rt,rb,h,color,x,y,z,rotZ=0){
-  const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,18),new THREE.MeshStandardMaterial({color,roughness:.95}));
-  m.position.set(x,y,z);m.rotation.z=rotZ;three.scene.add(m);return m;
-}
-const texLoader=new THREE.TextureLoader();
-function getTex(file){
-  if(!three.tex[file]){const t=texLoader.load('assets/'+file);t.encoding=THREE.sRGBEncoding;three.tex[file]=t}
-  return three.tex[file];
-}
-function texBox(w,h,d,file,x,y,z,ry=0,rough=.82){
-  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({map:getTex(file),roughness:rough}));
-  m.position.set(x,y,z);m.rotation.y=ry;three.scene.add(m);return m;
-}
-function texPlane(w,h,file,x,y,z,ry=0,rx=0,op=1){
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:getTex(file),roughness:.85,transparent:op<1,opacity:op}));
-  m.position.set(x,y,z);m.rotation.set(rx,ry,0);three.scene.add(m);return m;
-}
-function blob(r,file,x,y,z,sx=1,sy=.72,sz=1){
-  const m=new THREE.Mesh(new THREE.SphereGeometry(r,18,12),new THREE.MeshStandardMaterial({map:getTex(file),roughness:.96}));
-  m.position.set(x,y,z);m.scale.set(sx,sy,sz);three.scene.add(m);return m;
-}
-function makeLabel(text,x,z,y=2.55){
-  const c=document.createElement('canvas');c.width=256;c.height=72;const g=c.getContext('2d');
-  g.fillStyle='rgba(8,16,14,.78)';g.fillRect(18,12,220,48);g.strokeStyle='rgba(230,174,82,.7)';g.strokeRect(18,12,220,48);
-  g.fillStyle='#f3cc82';g.font='bold 28px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(text,128,37);
-  const t=new THREE.CanvasTexture(c);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true}));
-  sp.position.set(x,y,z);sp.scale.set(1.7,.48,1);three.scene.add(sp);return sp;
-}
-function initThree(){
-  if(typeof THREE==='undefined'||three)return;
-  const canvas=els.threeCanvas;
-  const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b1412);scene.fog=new THREE.Fog(0x0b1412,8,25);
-  const camera=new THREE.PerspectiveCamera(70,1,0.1,60);camera.rotation.order='YXZ';
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'low-power'});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
-  three={scene,camera,renderer,tex:{}};
-  scene.add(new THREE.AmbientLight(0x9fb7a6,.62));
-  const sun=new THREE.DirectionalLight(0xffe2b0,.85);sun.position.set(4,9,3);scene.add(sun);
-  const floorTex=getTex('floor.jpg');floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;floorTex.repeat.set(4,3);
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(24,18),new THREE.MeshStandardMaterial({map:floorTex,roughness:.94}));
-  floor.rotation.x=-Math.PI/2;scene.add(floor);
-  texPlane(24,3.1,'warehouse.jpg',0,1.55,-8.92);
-  texPlane(18,3.1,'sort-facility.jpg',-11.92,1.55,0,Math.PI/2);
-  texPlane(18,3.1,'baler.jpg',11.92,1.55,0,-Math.PI/2);
-  [[-6,3],[-1,-4],[5,1],[-5,-6],[6,-6]].forEach(([x,z])=>{const p=new THREE.PointLight(0xffd9a0,.42,7);p.position.set(x,2.45,z);scene.add(p)});
-  // 收毛料堆
-  blob(1.15,'pile-white.jpg',-6.8,.48,3.1,1.35,.72,1.05);blob(.92,'pile-mixed.jpg',-5.6,.42,3.35,1.1,.7,1);blob(.78,'pile-dark.jpg',-6.1,.36,2.25,1,.68,.9);blob(.62,'pile-white.jpg',-5.15,.32,2.55,1,.65,.9);
-  // 分拣台
-  box(3.4,.16,1.5,0x3a332c,-1,.88,-4);box(3.2,.72,1.2,0x2d261f,-1,.38,-4);
-  const conv=new THREE.Mesh(new THREE.PlaneGeometry(3.2,1.3),new THREE.MeshStandardMaterial({map:getTex('sort-conveyor.jpg'),roughness:.9}));conv.rotation.x=-Math.PI/2;conv.position.set(-1,.97,-4);three.scene.add(conv);
-  texPlane(3.4,1.15,'sort-table.jpg',-1,1.45,-4.72);
-  // 打包机
-  box(2.6,2.5,1.7,0x34413a,5,1.25,1);texPlane(2.2,2.1,'baler.jpg',5,1.3,1.87);texPlane(1.3,1.2,'bale-result.jpg',5,.95,1.89);box(1.8,.45,1.2,0x6b5a35,5,2.18,1);texPlane(.85,.62,'control-panel.jpg',3.62,1.25,1.2,-Math.PI/2);texPlane(.6,.6,'gauge.jpg',3.62,.72,1.2,-Math.PI/2);
-  // 包垛
-  box(2.2,.25,1.4,0x5a4632,-5,.13,-6);box(1.5,.7,1.1,0x9a8f76,-5,.62,-6);texPlane(1.35,.58,'bale-result.jpg',-5,.62,-5.43);box(1.4,.65,1.0,0x80765f,-5,.18,-5.2);texPlane(1.25,.52,'pallet-rows.jpg',-5,.18,-4.68);box(1.3,.65,1.0,0xaaa08a,-4.2,1.08,-6);texPlane(1.15,.52,'bale-tie.jpg',-4.2,1.08,-5.43);
-  // 货车
-  box(2.8,.35,3.1,0x252b2d,5.5,.35,-5.4);box(2.6,.9,2.8,0x59636a,5.5,.85,-5.5);texPlane(2.4,.8,'warehouse.jpg',5.5,.9,-4.05);box(1.8,1.55,1.7,0x8d2f28,7.3,.95,-6.5);texPlane(1.2,.7,'control-panel.jpg',7.3,1.35,-5.62);
-  cyl(.34,.34,.25,0x111313,6.2,.34,-4.45,Math.PI/2);cyl(.34,.34,.25,0x111313,6.2,.34,-6.55,Math.PI/2);cyl(.34,.34,.25,0x111313,8.2,.34,-4.45,Math.PI/2);cyl(.34,.34,.25,0x111313,8.2,.34,-6.55,Math.PI/2);
-  // 老板 3D NPC 和工人立牌
-  const bossGroup=new THREE.Group();
-  const bossBody=new THREE.Mesh(new THREE.CylinderGeometry(.28,.34,1.25,14),new THREE.MeshStandardMaterial({color:0x2b3130,roughness:.8}));bossBody.position.y=.85;bossGroup.add(bossBody);
-  const bossHead=new THREE.Mesh(new THREE.SphereGeometry(.26,16,12),new THREE.MeshStandardMaterial({color:0x8a6a55,roughness:.8}));bossHead.position.y=1.72;bossGroup.add(bossHead);
-  const bossFace=new THREE.Mesh(new THREE.PlaneGeometry(.42,.52),new THREE.MeshStandardMaterial({map:getTex('boss.jpg'),roughness:.8}));bossFace.position.set(0,1.72,.22);bossGroup.add(bossFace);
-  bossGroup.position.set(state.boss.x,0,state.boss.z);three.scene.add(bossGroup);three.boss=bossGroup;
-  texPlane(.8,1.8,'worker.jpg',-7.6,1.5,1.8,.55);
-  // 工位标识
-  makeLabel(t('roamFloor'),-6,3,2.65);makeLabel(t('roamSort'),-1,-4,2.55);makeLabel(t('roamBaler'),5,1,2.85);makeLabel(t('roamPallet'),-5,-6,2.55);makeLabel(t('roamTruck'),6,-6,2.65);
-  resizeThree();bindRoamControls();requestAnimationFrame(tickThree);
-}
-function resizeThree(){
-  if(!three)return;const w=els.stage.clientWidth||innerWidth,h=els.stage.clientHeight||innerHeight;
-  three.camera.aspect=w/h;three.camera.updateProjectionMatrix();three.renderer.setSize(w,h,false);
-}
-function nearestSpot(){
-  const r=state.roam;let best=null,bd=2.35;
-  ROAM_SPOTS.forEach(s=>{const d=Math.hypot(s.x-r.x,s.z-r.z);if(d<bd){bd=d;best=s}});
-  return best;
-}
-function updateBoss3D(dt){
-  if(!three||!three.boss)return;
-  const b=state.boss,g=three.boss,wp=BOSS_WAYPOINTS[b.wp];
-  if(b.watching){
-    const dx=state.roam.x-b.x,dz=state.roam.z-b.z;
-    g.rotation.y=Math.atan2(dx,dz);
-    if(state.phoneOpen&&Math.hypot(dx,dz)<6.5)catchBoss();
-  }else{
-    const dx=wp.x-b.x,dz=wp.z-b.z,d=Math.hypot(dx,dz);
-    if(d<.25){b.wp=(b.wp+1)%BOSS_WAYPOINTS.length}
-    else{const sp=.75*dt;b.x+=dx/d*sp;b.z+=dz/d*sp;g.rotation.y=Math.atan2(dx,dz)}
-  }
-  g.position.set(b.x,0,b.z);
-}
-function updateRoamMovement(dt){
-  const r=state.roam;let f=0,st=0;
-  if(roamKeys['w']||roamKeys['arrowup'])f+=1;if(roamKeys['s']||roamKeys['arrowdown'])f-=1;
-  if(roamKeys['d']||roamKeys['arrowright'])st+=1;if(roamKeys['a']||roamKeys['arrowleft'])st-=1;
-  f-=r.joyY;st+=r.joyX;
-  const len=Math.hypot(f,st);if(len>1){f/=len;st/=len}
-  const speed=2.7,sin=Math.sin(r.yaw),cos=Math.cos(r.yaw);
-  r.x+=(-sin*f+cos*st)*speed*dt;r.z+=(-cos*f-sin*st)*speed*dt;
-  r.x=Math.max(-10.5,Math.min(10.5,r.x));r.z=Math.max(-7.5,Math.min(7.5,r.z));
-}
-function tickThree(){
-  requestAnimationFrame(tickThree);if(!three)return;
-  const now=performance.now(),dt=Math.min(.05,(now-lastFrame)/1000);lastFrame=now;
-  const r=state.roam;
-  if(!state.started)r.yaw+=dt*.12;
-  if(r.active){
-    updateRoamMovement(dt);
-    updateBoss3D(dt);
-    const spot=nearestSpot();r.nearest=spot;
-    if(spot){els.roamPrompt.classList.remove('hidden');els.roamLabel.textContent=t(spot.key);els.interactBtn.disabled=!spot.can()}
-    else els.roamPrompt.classList.add('hidden');
-  }
-  three.camera.position.set(r.x,1.6,r.z);three.camera.rotation.y=r.yaw;three.camera.rotation.x=r.pitch;
-  three.renderer.render(three.scene,three.camera);
-}
-function bindRoamControls(){
-  window.addEventListener('keydown',e=>{roamKeys[e.key.toLowerCase()]=true});
-  window.addEventListener('keyup',e=>{roamKeys[e.key.toLowerCase()]=false});
-  window.addEventListener('resize',resizeThree);
-  els.stage.addEventListener('pointerdown',e=>{
-    if(!state.roam.active||e.target.closest('button,.view,.roam-controls,.hud,.boss-panel'))return;
-    lookPointer=e.pointerId;lastLookX=e.clientX;lastLookY=e.clientY;
-  });
-  window.addEventListener('pointermove',e=>{
-    if(lookPointer===e.pointerId){
-      const dx=e.clientX-lastLookX,dy=e.clientY-lastLookY;lastLookX=e.clientX;lastLookY=e.clientY;
-      state.roam.yaw-=dx*.0032;state.roam.pitch=Math.max(-.55,Math.min(.55,state.roam.pitch-dy*.0028));
-    }
-    if(joyPointer===e.pointerId){
-      const rect=els.joyBase.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
-      let dx=e.clientX-cx,dy=e.clientY-cy,len=Math.hypot(dx,dy),max=42;
-      if(len>max){dx*=max/len;dy*=max/len}
-      state.roam.joyX=dx/max;state.roam.joyY=dy/max;
-      els.joyKnob.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;
-    }
-  });
-  const endPointer=e=>{if(lookPointer===e.pointerId)lookPointer=null;if(joyPointer===e.pointerId){joyPointer=null;state.roam.joyX=0;state.roam.joyY=0;els.joyKnob.style.transform='translate(-50%,-50%)'}};
-  window.addEventListener('pointerup',endPointer);window.addEventListener('pointercancel',endPointer);
-  els.joyBase.addEventListener('pointerdown',e=>{joyPointer=e.pointerId;e.preventDefault()});
-  els.interactBtn.addEventListener('click',()=>{const s=state.roam.nearest;if(s&&s.can())s.run()});
-  els.roamBack.addEventListener('click',enterRoam);
-}
 
 /* ===== 素材加载 ===== */
 function loadAssets(){

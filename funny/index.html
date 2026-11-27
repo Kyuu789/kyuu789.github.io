@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="存放梦境、画面与文字的自留地。仅一人记录，供安静欣赏。">
+<title>自留地 · 梦境、画面与文字</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="home">
+
+<div class="site-bg"></div>
+<div class="grain"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="brand-dot"></span>自留地</a>
+    <div class="nav-links">
+      <a href="index.html" data-nav="home">首页</a>
+      <a href="gallery.html" data-nav="gallery">图片集</a>
+      <a href="novels.html" data-nav="novels">小说集</a>
+      <a href="about.html" data-nav="about">关于</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <!-- ============ 首页 ============ -->
+  <section class="hero">
+    <div class="hero-veil"></div>
+
+    <svg class="deco-cloud c1" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <path d="M22 64c-10 0-18-8-18-18s8-18 18-18c3-13 14-22 28-22 15 0 27 11 29 25 11 1 20 10 20 21 0 6-5 12-12 12z"
+            stroke="rgba(248,247,242,.55)" stroke-width="1.2"/>
+    </svg>
+    <svg class="deco-cloud c2" viewBox="0 0 200 90" fill="none" aria-hidden="true">
+      <path d="M22 64c-10 0-18-8-18-18s8-18 18-18c3-13 14-22 28-22 15 0 27 11 29 25 11 1 20 10 20 21 0 6-5 12-12 12z"
+            stroke="rgba(248,247,242,.5)" stroke-width="1.2"/>
+    </svg>
+
+    <div class="hero-inner">
+      <div class="hero-kicker"><span class="k-en">A Quiet Place</span><span class="k-dot">·</span>私人图文小说欣赏站</div>
+      <h1>存放梦境、画面与文字的<em>自留地</em><br>仅我一人记录，供安静欣赏</h1>
+      <div class="hero-rule"></div>
+      <p class="hero-sub">这里没有喧嚣，没有投稿，没有评论区<br>只有一些雾、一些糖纸、一些写下来就放下了的事</p>
+      <div class="hero-actions">
+        <a class="btn solid" href="gallery.html">进入图片集</a>
+        <a class="btn" href="novels.html">阅读小说集</a>
+      </div>
+    </div>
+
+    <div class="deco-grass"></div>
+  </section>
+
+  <!-- ============ 精选图片 ============ -->
+  <section class="section" id="pictures">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="kicker">Pictures</div>
+        <h2>最近放进来的几幅画面</h2>
+        <p>雾、云、光线和一处没人的窗台。它们不解释自己，只是安静地待着。</p>
+      </div>
+      <div class="gallery-grid" id="home-gallery"></div>
+      <a class="section-link" href="gallery.html">看全部图片 →</a>
+    </div>
+  </section>
+
+  <!-- ============ 最新文字 ============ -->
+  <section class="section" id="words">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="kicker">Words</div>
+        <h2>写在雾散之前</h2>
+        <p>一些很短的故事。写完就放在这里，不给谁看，也不求谁懂。</p>
+      </div>
+      <div class="novel-list" id="home-novels"></div>
+      <a class="section-link" href="novels.html">读全部文字 →</a>
+    </div>
+  </section>
+
+  <!-- ============ 一句 ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="about-wrap reveal" style="margin:0 auto;text-align:center;">
+        <div class="kicker" style="justify-content:center;">Note</div>
+        <p style="font-family:var(--serif);font-size:clamp(18px,2.4vw,24px);line-height:2.1;color:rgba(248,247,242,.78);letter-spacing:.08em;">
+          “我不收藏热闹，只收藏那些<br>没有人看见、却真实发生过的下午。”
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-line"></div>
+    <p>自留地 &nbsp;·&nbsp; 一人记录，一人维护<br>仅管理员发布内容，访客只可浏览</p>
+  </footer>
+</main>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
